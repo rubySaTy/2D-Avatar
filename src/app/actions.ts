@@ -7,7 +7,7 @@ import { createDIDStream, shortUUID, validateImageUrl } from "@/lib/utils";
 import { getUser, validateRequest } from "@/lib/getUser";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import * as argon2 from "argon2";
+import * as argon2 from "argon2"; // downgraded version because of an error with vercel - https://github.com/vercel/next.js/discussions/65978
 import { generateIdFromEntropySize } from "lucia";
 import { lucia } from "@/auth";
 import { avatarTable, meetingSessionTable, userTable } from "@/lib/db/schema";
