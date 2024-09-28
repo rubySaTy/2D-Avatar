@@ -260,9 +260,9 @@ export async function createTalkStream(
   formData: FormData
 ) {
   const input = formData.get("message")?.toString();
-  console.log(streamId, sessionId, input);
+  console.log(streamId, input);
   try {
-    const playResponse = await fetch(
+    const playResponse = await axios(
       `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams/${streamId}`,
       {
         method: "POST",
@@ -270,7 +270,7 @@ export async function createTalkStream(
           Authorization: `Basic ${process.env.DID_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        data: {
           script: {
             type: "text",
             provider: {
@@ -283,21 +283,20 @@ export async function createTalkStream(
           },
           config: { stitch: true },
           session_id: sessionId,
-        }),
+        },
       }
     );
+
+    console.log(playResponse.data);
   } catch (error) {
     console.error("Error in 'createTalkStream'");
   }
 }
 
 export async function logout() {
-  "use server";
   const { session } = await validateRequest();
   if (!session) {
-    return {
-      error: "Unauthorized",
-    };
+    return { message: "Unauthorized" };
   }
 
   await lucia.invalidateSession(session.id);
@@ -308,5 +307,5 @@ export async function logout() {
     sessionCookie.value,
     sessionCookie.attributes
   );
-  return redirect("/login");
+  redirect("/login");
 }

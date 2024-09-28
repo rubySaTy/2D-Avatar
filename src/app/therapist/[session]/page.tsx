@@ -1,7 +1,8 @@
-import InputArea from "@/components/InputArea";
-import { getSession } from "@/lib/getMeetingSession";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import InputArea from "@/components/InputArea";
+import SessionLink from "@/components/SessionLink";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { getSession } from "@/lib/getMeetingSession";
 
 export default async function TherapistSessionPage({
   params,
@@ -13,17 +14,31 @@ export default async function TherapistSessionPage({
     notFound();
   }
 
-  const clientUrl = new URL(
-    `http://localhost:3001/client/${session.meetingLink}`
-  );
+  const appUrl = process.env.APP_URL;
+  const clientUrl = new URL(`${appUrl}/client/${session.meetingLink}`);
 
   return (
-    <div className="grid w-full gap-1.5">
-      <InputArea
-        sessionId={session.didSessionId}
-        streamId={session.didStreamId}
-      />
-      <Link href={clientUrl.toString()}>{clientUrl.toString()}</Link>
+    <div className="container mx-auto p-4">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Session Link</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SessionLink clientUrl={clientUrl.toString()} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session Controls</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InputArea
+            sessionId={session.didSessionId}
+            streamId={session.didStreamId}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

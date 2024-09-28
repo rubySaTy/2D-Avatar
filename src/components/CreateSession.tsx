@@ -14,6 +14,13 @@ import Image from "next/image";
 import { useFormState } from "react-dom";
 import { createSession } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "./ui/card";
 
 interface CreateSessionProps {
   avatars: Array<Avatar>;
@@ -24,35 +31,56 @@ export default function CreateSession({ avatars }: CreateSessionProps) {
   const [state, formAction] = useFormState(createSession, null);
 
   return (
-    <form action={formAction}>
-      <div className="grid w-full items-center gap-4">
-        <div className="flex flex-col space-y-1.5">
-          <Label htmlFor="avatars">Avatars</Label>
-          <Select
-            name="avatar"
-            onValueChange={(avatar) => {
-              const parsedAvatar = JSON.parse(avatar);
-              setAvatarImgUrl(parsedAvatar.imageUrl);
-            }}
-          >
-            <SelectTrigger id="avatars">
-              <SelectValue placeholder="Select" />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {avatars.map((avatar) => (
-                <SelectItem key={avatar.id} value={JSON.stringify(avatar)}>
-                  {avatar.avatarName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {avatarImgUrl && (
-          <Image src={avatarImgUrl} alt="Avatar" width={100} height={100} />
-        )}
-      </div>
-      <SubmitButton>Create a Session</SubmitButton>
-      {state?.message && <p>{state.message}</p>}
-    </form>
+    <Card className="w-[350px]">
+      <CardHeader>
+        <CardTitle>Create a Session</CardTitle>
+      </CardHeader>
+      <form action={formAction}>
+        <CardContent>
+          <div className="grid w-full items-center gap-4">
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="avatars">Select an Avatar</Label>
+              <Select
+                name="avatar"
+                onValueChange={(value) => {
+                  const avatar = JSON.parse(value) as Avatar;
+                  setAvatarImgUrl(avatar.imageUrl);
+                }}
+              >
+                <SelectTrigger id="avatars">
+                  <SelectValue placeholder="Choose your avatar" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {avatars.map((avatar) => (
+                    <SelectItem key={avatar.id} value={JSON.stringify(avatar)}>
+                      {avatar.avatarName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {avatarImgUrl && (
+              <div className="flex justify-center">
+                <Image
+                  src={avatarImgUrl}
+                  alt="Selected Avatar"
+                  width={100}
+                  height={100}
+                  className="rounded-full"
+                />
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center gap-4">
+          <SubmitButton type="submit" className="w-full">
+            Create Session
+          </SubmitButton>
+          {state?.message && (
+            <p className="text-sm text-muted-foreground">{state.message}</p>
+          )}
+        </CardFooter>
+      </form>
+    </Card>
   );
 }
