@@ -190,6 +190,7 @@ export async function sendICECandidate(
     );
   } catch (error) {
     console.error("Error in 'sendICECandidate'");
+    console.error(error);
   }
 }
 
@@ -211,6 +212,7 @@ export async function notifyICEGatheringComplete(
     );
   } catch (error) {
     console.error("Error in 'notifyICEGatheringComplete'");
+    console.error(error);
   }
 }
 
@@ -233,6 +235,7 @@ export async function sendSdpAnswer(
     );
   } catch (error) {
     console.error("Error in 'sendSdpAnswer'");
+    console.error(error);
   }
 }
 
@@ -251,6 +254,7 @@ export async function closeStream(streamId: string, sessionId: string) {
     );
   } catch (error) {
     console.error("Error in 'closeStream'");
+    console.error(error);
   }
 }
 
@@ -290,6 +294,7 @@ export async function createTalkStream(
     console.log(playResponse.data);
   } catch (error) {
     console.error("Error in 'createTalkStream'");
+    console.error(error);
   }
 }
 

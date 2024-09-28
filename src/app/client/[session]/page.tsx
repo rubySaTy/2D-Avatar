@@ -1,5 +1,5 @@
 import Stream from "@/components/Stream";
-import StreamingComponent from "@/components/StreamingComponent";
+// import StreamingComponent from "@/components/StreamingComponent";
 import { getSession } from "@/lib/getMeetingSession";
 import { notFound } from "next/navigation";
 
