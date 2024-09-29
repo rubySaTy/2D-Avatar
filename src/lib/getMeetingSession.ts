@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { meetingSessionTable, type MeetingSession } from "./db/schema";
 import { db } from "./db/db";
 
-export async function getSession(
+export async function getSessionByMeetingLink(
   session: string
 ): Promise<MeetingSession | null> {
   try {

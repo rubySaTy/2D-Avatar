@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import InputArea from "@/components/InputArea";
 import SessionLink from "@/components/SessionLink";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { getSession } from "@/lib/getMeetingSession";
+import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
 
 export default async function TherapistSessionPage({
   params,
 }: {
   params: { session: string };
 }) {
-  const session = await getSession(params.session);
+  const session = await getSessionByMeetingLink(params.session); // params.session in this context is the meeting link
   if (!session) {
     notFound();
   }
@@ -33,10 +33,7 @@ export default async function TherapistSessionPage({
           <CardTitle>Session Controls</CardTitle>
         </CardHeader>
         <CardContent>
-          <InputArea
-            sessionId={session.didSessionId}
-            streamId={session.didStreamId}
-          />
+          <InputArea meetingLink={session.meetingLink} />
         </CardContent>
       </Card>
     </div>

@@ -9,13 +9,13 @@ CREATE TABLE IF NOT EXISTS "avatar" (
 CREATE TABLE IF NOT EXISTS "meeting_session" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" text,
-	"avatar_id" integer,
+	"avatar_id" serial NOT NULL,
 	"meeting_link" varchar(255) NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"did_stream_id" text NOT NULL,
-	"did_session_id" text NOT NULL,
-	"offer" jsonb NOT NULL,
-	"ice_servers" jsonb NOT NULL,
+	"did_stream_id" text,
+	"did_session_id" text,
+	"offer" jsonb,
+	"ice_servers" jsonb,
 	CONSTRAINT "meeting_session_meeting_link_unique" UNIQUE("meeting_link")
 );
 --> statement-breakpoint

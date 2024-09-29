@@ -31,32 +31,7 @@ export function shortUUID(): string {
     .substring(0, 10);
 }
 
-interface SessionResponse {
-  id: string;
-  offer: RTCSessionDescriptionInit;
-  ice_servers: RTCIceServer[];
-  session_id: string;
-}
 
-// Initialize D-ID stream
-export async function createDIDStream(sourceUrl: string) {
-  try {
-    const sessionResponse = await axios<SessionResponse>({
-      url: `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams`,
-      method: "POST",
-      data: { source_url: sourceUrl, stream_warmup: true },
-      headers: {
-        Authorization: `Basic ${process.env.DID_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    return sessionResponse.data;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
 
 export async function validateImageUrl(url: string): Promise<boolean> {
   try {

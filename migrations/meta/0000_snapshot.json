@@ -1,5 +1,5 @@
 {
-  "id": "b2b94bce-e97f-4d1c-896e-327b42ea84f6",
+  "id": "8e1104df-5575-472e-bfdb-4096cf10b474",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -77,9 +77,9 @@
         },
         "avatar_id": {
           "name": "avatar_id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "meeting_link": {
           "name": "meeting_link",
@@ -98,25 +98,25 @@
           "name": "did_stream_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "did_session_id": {
           "name": "did_session_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "offer": {
           "name": "offer",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "ice_servers": {
           "name": "ice_servers",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},

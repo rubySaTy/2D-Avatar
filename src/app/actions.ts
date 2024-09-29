@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import { createDIDStream, shortUUID, validateImageUrl } from "@/lib/utils";
+import { shortUUID, validateImageUrl } from "@/lib/utils";
 import { getUser, validateRequest } from "@/lib/getUser";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -17,6 +17,7 @@ import type {
   NewMeetingSession,
   NewUser,
 } from "@/lib/db/schema";
+import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
 
 export async function loginUser(prevState: any, formData: FormData) {
   const username = formData.get("username")?.toString();
@@ -142,19 +143,19 @@ export async function createSession(prevState: any, formData: FormData) {
 
   const meetingLink = shortUUID();
   try {
-    const sessionClientAnswer = await createDIDStream(avatar.imageUrl);
-    if (!sessionClientAnswer) {
-      return { message: "Error creating stream" };
-    }
+    // const sessionClientAnswer = await createDIDStream(avatar.imageUrl);
+    // if (!sessionClientAnswer) {
+    //   return { message: "Error creating stream" };
+    // }
 
     const newMeetingSession: NewMeetingSession = {
       userId: user.id,
       avatarId: avatar.id,
       meetingLink,
-      didStreamId: sessionClientAnswer.id,
-      didSessionId: sessionClientAnswer.session_id,
-      offer: sessionClientAnswer.offer,
-      iceServers: sessionClientAnswer.ice_servers,
+      // didStreamId: sessionClientAnswer.id,
+      // didSessionId: sessionClientAnswer.session_id,
+      // offer: sessionClientAnswer.offer,
+      // iceServers: sessionClientAnswer.ice_servers,
     };
 
     await db.insert(meetingSessionTable).values(newMeetingSession);
@@ -259,15 +260,21 @@ export async function closeStream(streamId: string, sessionId: string) {
 }
 
 export async function createTalkStream(
-  streamId: string,
-  sessionId: string,
+  meetingLink: string,
   formData: FormData
 ) {
   const input = formData.get("message")?.toString();
-  console.log(streamId, input);
+  console.log(meetingLink, input);
+
   try {
+    const session = await getSessionByMeetingLink(meetingLink);
+    if (!session || !session.didStreamId || !session.didSessionId) {
+      console.error(`Session not found with meeting link ${meetingLink}`);
+      throw new Error("Session not found");
+    }
+
     const playResponse = await axios(
-      `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams/${streamId}`,
+      `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams/${session.didStreamId}`,
       {
         method: "POST",
         headers: {
@@ -286,7 +293,7 @@ export async function createTalkStream(
             input: input,
           },
           config: { stitch: true },
-          session_id: sessionId,
+          session_id: session.didSessionId,
         },
       }
     );
@@ -313,4 +320,57 @@ export async function logout() {
     sessionCookie.attributes
   );
   redirect("/login");
+}
+
+interface SessionResponse {
+  id: string;
+  offer: RTCSessionDescriptionInit;
+  ice_servers: RTCIceServer[];
+  session_id: string;
+}
+
+// Initialize D-ID stream
+export async function createDIDStream(meetingLink: string) {
+  if (!meetingLink) return null;
+
+  try {
+    const session = await getSessionByMeetingLink(meetingLink);
+    if (!session) return null;
+    const avatars = await db
+      .select()
+      .from(avatarTable)
+      .where(eq(avatarTable.id, session.avatarId))
+      .limit(1);
+    const avatar = avatars[0];
+
+    if (!avatar) return null;
+
+    const sessionResponse = await axios<SessionResponse>({
+      url: `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams`,
+      method: "POST",
+      data: { source_url: avatar.imageUrl, stream_warmup: true },
+      headers: {
+        Authorization: `Basic ${process.env.DID_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!sessionResponse.data) return null;
+
+    await db
+      .update(meetingSessionTable)
+      .set({
+        didStreamId: sessionResponse.data.id,
+        didSessionId: sessionResponse.data.session_id,
+        offer: sessionResponse.data.offer,
+        iceServers: sessionResponse.data.ice_servers,
+      })
+      .where(eq(meetingSessionTable.meetingLink, session.meetingLink));
+    console.log(`DB updated successfully at meeting link ${meetingLink}`);
+
+    return sessionResponse.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }

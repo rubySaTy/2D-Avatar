@@ -42,13 +42,13 @@ export const avatarTable = pgTable("avatar", {
 export const meetingSessionTable = pgTable("meeting_session", {
   id: serial("id").primaryKey(),
   userId: text("user_id").references(() => userTable.id),
-  avatarId: integer("avatar_id").references(() => avatarTable.id),
+  avatarId: serial("avatar_id").references(() => avatarTable.id),
   meetingLink: varchar("meeting_link", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  didStreamId: text("did_stream_id").notNull(),
-  didSessionId: text("did_session_id").notNull(),
-  offer: jsonb("offer").notNull(), // (RTCSessionDescriptionInit stored as JSONB)
-  iceServers: jsonb("ice_servers").notNull(),
+  didStreamId: text("did_stream_id"),
+  didSessionId: text("did_session_id"),
+  offer: jsonb("offer"), // (RTCSessionDescriptionInit stored as JSONB)
+  iceServers: jsonb("ice_servers"),
 });
 
 export type User = typeof userTable.$inferSelect;

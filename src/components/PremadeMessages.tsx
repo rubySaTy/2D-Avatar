@@ -19,13 +19,17 @@ const constructiveFeedback = [
   "This doesn't meet our expectations.",
   "We should review this and make necessary changes.",
 ];
+
 interface PremadeMessagesProps {
-  addPremadeMessage: (message: string) => void;
+  setMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function PremadeMessages({
-  addPremadeMessage,
-}: PremadeMessagesProps) {
+export default function PremadeMessages({ setMessage }: PremadeMessagesProps) {
+  const addPremadeMessage = (premadeMessage: string) => {
+    setMessage((prevMessage) =>
+      prevMessage ? `${prevMessage}\n${premadeMessage}` : premadeMessage
+    );
+  };
   return (
     <>
       <Card>
