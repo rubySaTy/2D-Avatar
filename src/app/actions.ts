@@ -118,6 +118,7 @@ export async function createAvatar(prevState: any, formData: FormData) {
     userId: selectedUserId,
     avatarName,
     imageUrl,
+    idleVideoUrl: "", // TODO:
   };
 
   try {
@@ -143,19 +144,10 @@ export async function createSession(prevState: any, formData: FormData) {
 
   const meetingLink = shortUUID();
   try {
-    // const sessionClientAnswer = await createDIDStream(avatar.imageUrl);
-    // if (!sessionClientAnswer) {
-    //   return { message: "Error creating stream" };
-    // }
-
     const newMeetingSession: NewMeetingSession = {
       userId: user.id,
       avatarId: avatar.id,
       meetingLink,
-      // didStreamId: sessionClientAnswer.id,
-      // didSessionId: sessionClientAnswer.session_id,
-      // offer: sessionClientAnswer.offer,
-      // iceServers: sessionClientAnswer.ice_servers,
     };
 
     await db.insert(meetingSessionTable).values(newMeetingSession);
@@ -286,13 +278,13 @@ export async function createTalkStream(
             type: "text",
             provider: {
               type: "microsoft",
-              voice_id: "Sara",
-              voice_config: { style: "neutral" },
+              voice_id: "en-US-EmmaMultilingualNeural",
+              // voice_config: { style: "neutral" },
             },
             ssml: "false",
             input: input,
           },
-          config: { stitch: true },
+          config: { fluent: true, pad_audio: "0.0" },
           session_id: session.didSessionId,
         },
       }
