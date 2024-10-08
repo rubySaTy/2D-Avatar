@@ -36,6 +36,7 @@ export const avatarTable = pgTable("avatar", {
     .notNull(),
   avatarName: varchar("avatar_name", { length: 50 }).notNull(),
   imageUrl: text("image_url").notNull(),
+  idleVideoUrl: text("idle_video_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

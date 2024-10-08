@@ -31,8 +31,6 @@ export function shortUUID(): string {
     .substring(0, 10);
 }
 
-
-
 export async function validateImageUrl(url: string): Promise<boolean> {
   try {
     const response = await axios.get(url, {
@@ -47,4 +45,24 @@ export async function validateImageUrl(url: string): Promise<boolean> {
     console.error("Error validating image URL:", error);
     return false;
   }
+}
+
+export async function createIdleVideo(imageUrl: string) {
+  try {
+    const res = await axios(
+      `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${process.env.DID_API_KEY}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        data: {
+          source_url: imageUrl,
+          config: { fluent: true, pad_audio: "0.0" },
+        },
+      }
+    );
+  } catch (error) {}
 }
