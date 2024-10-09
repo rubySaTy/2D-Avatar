@@ -5,19 +5,25 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 
 const positiveMessages = [
-  "Great job!",
-  "Keep up the good work!",
-  "You're making excellent progress!",
-  "I'm impressed with your dedication!",
-  "Your effort is truly commendable!",
+  "I hear you and agree with you.",
+  "I fully understand you.",
+  "I appreciate you and all that you have done.",
+  "I support you what ever you do.",
+  "I love you very much.",
+  "Intrested.",
 ];
 
 const constructiveFeedback = [
-  "There's room for improvement.",
-  "Let's discuss how we can do better.",
-  "I think we need to reassess our approach.",
-  "This doesn't meet our expectations.",
-  "We should review this and make necessary changes.",
+  "I disagree with you.",
+  "What you are saying is stupid.",
+  "I don't believe you.",
+  "I don't trust you.",
+  "Stop dwelling on this issue.",
+  "I am not interested in having this conversation.",
+  "I don't love you.",
+  "I hate you.",
+  "You are fired.",
+  "I am leaving you.",
 ];
 
 interface PremadeMessagesProps {
