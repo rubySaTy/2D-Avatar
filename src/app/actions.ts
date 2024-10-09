@@ -23,6 +23,7 @@ import type {
   NewUser,
 } from "@/lib/db/schema";
 import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
+import type { ProviderConfig } from "@/lib/types";
 
 export async function loginUser(prevState: any, formData: FormData) {
   const username = formData.get("username")?.toString();
@@ -272,7 +273,21 @@ export async function createTalkStream(
   formData: FormData
 ) {
   const input = formData.get("message")?.toString();
-  console.log(meetingLink, input);
+
+  const providerType = formData.get("providerType")?.toString();
+  const voiceId = formData.get("voiceId")?.toString();
+  const voiceStyle = formData.get("voiceStyle")?.toString();
+
+  const voiceProvider: ProviderConfig = {
+    type: providerType || "microsoft", // Default to 'microsoft' if undefined
+    voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
+    voice_config: {},
+  };
+
+  if (voiceStyle) {
+    voiceProvider.voice_config.style = voiceStyle;
+  }
+  console.log(meetingLink, input, voiceProvider);
 
   try {
     const session = await getSessionByMeetingLink(meetingLink);
@@ -292,11 +307,7 @@ export async function createTalkStream(
         data: {
           script: {
             type: "text",
-            provider: {
-              type: "microsoft",
-              voice_id: "en-US-EmmaMultilingualNeural",
-              // voice_config: { style: "neutral" },
-            },
+            provider: voiceProvider,
             ssml: "false",
             input: input,
           },
