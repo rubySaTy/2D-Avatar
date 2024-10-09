@@ -8,21 +8,21 @@ import {
   sendICECandidate,
   sendSdpAnswer,
 } from "@/app/actions";
-import { Loader2, X } from "lucide-react";
-import { Button } from "./ui/button";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 
 interface StreamProps {
   meetingLink: string;
+  idleVideoUrl: string;
 }
 
-export default function Stream({ meetingLink }: StreamProps) {
+export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   // State variables
   const [isReady, setIsReady] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [videoIsPlaying, setVideoIsPlaying] = useState(false);
-  const [userHasInteracted, setUserHasInteracted] = useState(false); // NEW: Tracks if user has interacted
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
 
   // Refs for peer connection and data channel
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -32,12 +32,9 @@ export default function Stream({ meetingLink }: StreamProps) {
   const streamIdRef = useRef<string>();
   const sessionIdRef = useRef<string>();
 
-  // Ref for the video element
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Refs for monitoring video data reception
-  const statsIntervalIdRef = useRef<number | null>(null);
-  const lastBytesReceivedRef = useRef(0);
+  // Refs for the video elements
+  const videoRef = useRef<HTMLVideoElement>(null); // Live stream video
+  const idleVideoRef = useRef<HTMLVideoElement>(null); // Idle video
 
   // Refs for reconnection attempts
   const reconnectionAttemptsRef = useRef(0);
@@ -51,6 +48,15 @@ export default function Stream({ meetingLink }: StreamProps) {
       return () => {
         cleanupConnection();
       };
+    }
+  }, []);
+
+  // Play the idle video on component mount
+  useEffect(() => {
+    if (idleVideoRef.current) {
+      idleVideoRef.current.play().catch((error) => {
+        console.error("Error playing idle video on mount:", error);
+      });
     }
   }, []);
 
@@ -81,9 +87,9 @@ export default function Stream({ meetingLink }: StreamProps) {
     pc.addEventListener("icecandidate", onIceCandidate);
     pc.addEventListener("iceconnectionstatechange", onIceConnectionStateChange);
     pc.addEventListener("track", onTrack);
-    pc.addEventListener("icegatheringstatechange", onIceGatheringStateChange); // NEW
-    pc.addEventListener("connectionstatechange", onConnectionStateChange); // NEW
-    pc.addEventListener("signalingstatechange", onSignalingStateChange); // NEW
+    pc.addEventListener("icegatheringstatechange", onIceGatheringStateChange);
+    pc.addEventListener("connectionstatechange", onConnectionStateChange);
+    pc.addEventListener("signalingstatechange", onSignalingStateChange);
 
     // Create data channel for stream events
     const dataChannel = pc.createDataChannel("JanusDataChannel");
@@ -111,8 +117,16 @@ export default function Stream({ meetingLink }: StreamProps) {
     if (eventType === "stream/ready") {
       console.log("Stream is ready");
       setIsStreamReady(true);
+    } else if (eventType === "stream/started") {
+      console.log("Stream started");
+      setVideoIsPlaying(true);
+    } else if (eventType === "stream/done") {
+      console.log("Stream done");
+      setVideoIsPlaying(false);
+    } else if (eventType === "stream/error") {
+      console.error("Stream error");
+      // Handle error if needed
     }
-    // Handle other events like 'stream/started', 'stream/done', 'stream/error' if needed
   }
 
   function onIceCandidate(event: RTCPeerConnectionIceEvent) {
@@ -218,12 +232,6 @@ export default function Stream({ meetingLink }: StreamProps) {
         videoRef.current.srcObject = null;
       }
 
-      // Clear stats interval
-      if (statsIntervalIdRef.current !== null) {
-        clearInterval(statsIntervalIdRef.current);
-        statsIntervalIdRef.current = null;
-      }
-
       // Initiate a new connection after a delay
       const delay = Math.min(1000 * reconnectionAttemptsRef.current, 10000); // Cap delay at 10 seconds
       setTimeout(() => {
@@ -239,6 +247,15 @@ export default function Stream({ meetingLink }: StreamProps) {
       videoRef.current.muted = false;
       videoRef.current.play().catch((error) => {
         console.error("Error playing video after user interaction:", error);
+      });
+    }
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = false;
+      idleVideoRef.current.play().catch((error) => {
+        console.error(
+          "Error playing idle video after user interaction:",
+          error
+        );
       });
     }
   }
@@ -260,29 +277,6 @@ export default function Stream({ meetingLink }: StreamProps) {
       }
     } else {
       console.error("Video element not found.");
-    }
-
-    const pc = pcRef.current;
-    if (pc) {
-      // Monitor video data reception
-      statsIntervalIdRef.current = window.setInterval(async () => {
-        const stats = await pc.getStats(event.track);
-        stats.forEach((report) => {
-          if (report.type === "inbound-rtp" && report.kind === "video") {
-            const bytesReceived = report.bytesReceived;
-            if (bytesReceived > lastBytesReceivedRef.current) {
-              if (!videoIsPlaying) {
-                setVideoIsPlaying(true);
-              }
-            } else {
-              if (videoIsPlaying) {
-                setVideoIsPlaying(false);
-              }
-            }
-            lastBytesReceivedRef.current = bytesReceived;
-          }
-        });
-      }, 500);
     }
   }
 
@@ -348,12 +342,6 @@ export default function Stream({ meetingLink }: StreamProps) {
       }
       videoRef.current.srcObject = null;
     }
-
-    // Clear stats interval
-    if (statsIntervalIdRef.current !== null) {
-      clearInterval(statsIntervalIdRef.current);
-      statsIntervalIdRef.current = null;
-    }
   }
 
   // Handle video loadedmetadata event
@@ -387,24 +375,39 @@ export default function Stream({ meetingLink }: StreamProps) {
     <Card className="w-full max-w-2xl mx-auto">
       <CardContent className="p-4">
         <div className="relative aspect-video bg-gray-900">
-          {!(isReady && isStreamReady && videoIsPlaying) && (
+          {!(isReady && isStreamReady) && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
             </div>
           )}
+
+          {/* Idle Video */}
+          <video
+            id="idleVideo"
+            ref={idleVideoRef}
+            className={`w-full h-full object-contain ${
+              !videoIsPlaying ? "opacity-100" : "opacity-0"
+            }`}
+            src={idleVideoUrl}
+            autoPlay
+            loop
+            playsInline
+            muted={!userHasInteracted}
+          />
+
+          {/* Live Stream Video */}
           <video
             id="remoteVideo"
             ref={videoRef}
-            className={`w-full h-full object-contain ${
-              isReady && isStreamReady && videoIsPlaying
-                ? "opacity-100"
-                : "opacity-0"
+            className={`w-full h-full object-contain absolute top-0 left-0 ${
+              videoIsPlaying ? "opacity-100" : "opacity-0"
             }`}
             autoPlay
             playsInline
-            muted={!userHasInteracted} // Keep muted until user interacts
+            muted={!userHasInteracted}
           />
-          {!userHasInteracted && isReady && isStreamReady && videoIsPlaying && (
+
+          {!userHasInteracted && isReady && isStreamReady && (
             // Overlay a button to prompt user interaction
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <button
@@ -428,7 +431,7 @@ export default function Stream({ meetingLink }: StreamProps) {
                 ? isStreamReady
                   ? videoIsPlaying
                     ? "Live"
-                    : "Buffering..."
+                    : "Idle"
                   : "Preparing Stream..."
                 : "Connecting..."}
             </Badge>

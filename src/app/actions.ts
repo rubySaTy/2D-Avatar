@@ -3,7 +3,12 @@
 import { cookies } from "next/headers";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import { shortUUID, validateImageUrl } from "@/lib/utils";
+import {
+  createIdleVideo,
+  getIdleVideo,
+  shortUUID,
+  validateImageUrl,
+} from "@/lib/utils";
 import { getUser, validateRequest } from "@/lib/getUser";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -114,11 +119,22 @@ export async function createAvatar(prevState: any, formData: FormData) {
     return { message: "Invalid image URL" };
   }
 
+  const createdIdleVideoRes = await createIdleVideo(imageUrl);
+  if (!createdIdleVideoRes) {
+    return { message: "Error creating idle video" };
+  }
+
+  // Polling to get the silent idle video
+  const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
+  if (!idleVideo) {
+    return { message: "Error fetching idle video" };
+  }
+
   const newAvatar: NewAvatar = {
     userId: selectedUserId,
     avatarName,
     imageUrl,
-    idleVideoUrl: "", // TODO:
+    idleVideoUrl: idleVideo.result_url,
   };
 
   try {
