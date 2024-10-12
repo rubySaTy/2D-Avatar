@@ -1,10 +1,10 @@
+import path from "path";
+import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import InputArea from "@/components/InputArea";
 import SessionLink from "@/components/SessionLink";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
-import path from "path";
-import { readFileSync } from "fs";
+import { getSessionByMeetingLink } from "@/lib/utils.server";
 import type { Voice } from "@/lib/types";
 
 export default async function TherapistSessionPage({

@@ -4,12 +4,14 @@ import { cookies } from "next/headers";
 import axios from "axios";
 import { db } from "@/lib/db/db";
 import {
+  findUserByUsername,
+  isUsernameUnique,
   createIdleVideo,
   getIdleVideo,
   shortUUID,
-  validateImageUrl,
-} from "@/lib/utils";
-import { getUser, validateRequest } from "@/lib/getUser";
+  getSessionByMeetingLink,
+} from "@/lib/utils.server";
+import { getUser, validateRequest } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import * as argon2 from "argon2"; // downgraded version because of an error with vercel - https://github.com/vercel/next.js/discussions/65978
@@ -22,29 +24,28 @@ import type {
   NewMeetingSession,
   NewUser,
 } from "@/lib/db/schema";
-import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
 import type { ProviderConfig } from "@/lib/types";
+import {
+  validateImageUrl,
+  validatePassword,
+  validateRole,
+  validateUsername,
+} from "@/lib/validations";
 
 export async function loginUser(prevState: any, formData: FormData) {
-  const username = formData.get("username")?.toString();
-  const password = formData.get("password")?.toString();
+  const username = formData.get("username")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
 
-  // TODO: "Validate username and password";
-  if (!username || !password) {
+  if (!validateUsername(username) || !validatePassword(password)) {
     return { message: "Invalid credentials" };
   }
 
   try {
-    const userRecords = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.username, username));
-
-    if (userRecords.length === 0) {
+    const user = await findUserByUsername(username);
+    if (!user) {
       return { message: "Invalid credentials" };
     }
 
-    const user = userRecords[0];
     const validPassword = await argon2.verify(user.passwordHash, password);
     if (!validPassword) {
       return { message: "Invalid credentials" };
@@ -66,27 +67,20 @@ export async function loginUser(prevState: any, formData: FormData) {
 }
 
 export async function createUser(prevState: any, formData: FormData) {
-  const username = formData.get("username")?.toString();
-  const password = formData.get("password")?.toString();
-  const role = formData.get("role")?.toString();
+  const username = formData.get("username")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
+  const role = formData.get("role")?.toString() || "";
 
-  // TODO: "Validate username, password and role, maybe with zod";
-  if (!username || !password || !role) {
+  if (
+    !validateUsername(username) ||
+    !validatePassword(password) ||
+    !validateRole(role)
+  ) {
     return { message: "Invalid credentials" };
   }
 
-  if (role !== "admin" && role !== "therapist") {
-    return { message: "Invalid role" };
-  }
-
   try {
-    const existingUser = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.username, username))
-      .limit(1);
-
-    if (existingUser.length > 0) {
+    if (!(await isUsernameUnique(username))) {
       return { message: "User already exists" };
     }
 

@@ -3,7 +3,7 @@ import CreateAvatar from "@/components/CreateAvatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/lib/db/db";
 import { userTable } from "@/lib/db/schema";
-import { getUser } from "@/lib/getUser";
+import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function AdminPage() {

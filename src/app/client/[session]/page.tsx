@@ -1,7 +1,7 @@
 import Stream from "@/components/Stream";
 import { db } from "@/lib/db/db";
 import { avatarTable, meetingSessionTable } from "@/lib/db/schema";
-import { getSessionByMeetingLink } from "@/lib/getMeetingSession";
+import { getSessionByMeetingLink } from "@/lib/utils.server";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 

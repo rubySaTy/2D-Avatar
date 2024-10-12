@@ -3,7 +3,7 @@ import CreateSession from "@/components/CreateSession";
 import { db } from "@/lib/db/db";
 import { eq } from "drizzle-orm";
 import { avatarTable } from "@/lib/db/schema";
-import { getUser } from "@/lib/getUser";
+import { getUser } from "@/lib/auth";
 
 export default async function TherapistPage() {
   const user = await getUser();
