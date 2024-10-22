@@ -3,143 +3,14 @@
 import { cookies } from "next/headers";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import {
-  findUserByUsername,
-  isUsernameUnique,
-  createIdleVideo,
-  getIdleVideo,
-  shortUUID,
-  getSessionByMeetingLink,
-} from "@/lib/utils.server";
+import { shortUUID, getSessionByMeetingLink } from "@/lib/utils.server";
 import { getUser, validateRequest } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import * as argon2 from "argon2"; // downgraded version because of an error with vercel - https://github.com/vercel/next.js/discussions/65978
-import { generateIdFromEntropySize } from "lucia";
 import { lucia } from "@/auth";
-import { avatarTable, meetingSessionTable, userTable } from "@/lib/db/schema";
-import type {
-  Avatar,
-  NewAvatar,
-  NewMeetingSession,
-  NewUser,
-} from "@/lib/db/schema";
+import { avatarTable, meetingSessionTable } from "@/lib/db/schema";
+import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 import type { ProviderConfig } from "@/lib/types";
-import {
-  validateImageUrl,
-  validatePassword,
-  validateRole,
-  validateUsername,
-} from "@/lib/validations";
-
-export async function loginUser(prevState: any, formData: FormData) {
-  const username = formData.get("username")?.toString() || "";
-  const password = formData.get("password")?.toString() || "";
-
-  if (!validateUsername(username) || !validatePassword(password)) {
-    return { message: "Invalid credentials" };
-  }
-
-  try {
-    const user = await findUserByUsername(username);
-    if (!user) {
-      return { message: "Invalid credentials" };
-    }
-
-    const validPassword = await argon2.verify(user.passwordHash, password);
-    if (!validPassword) {
-      return { message: "Invalid credentials" };
-    }
-
-    const session = await lucia.createSession(user.id, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(
-      sessionCookie.name,
-      sessionCookie.value,
-      sessionCookie.attributes
-    );
-  } catch (error) {
-    console.error(error);
-    return { message: "An unexpected error occurred" };
-  }
-
-  redirect("/");
-}
-
-export async function createUser(prevState: any, formData: FormData) {
-  const username = formData.get("username")?.toString() || "";
-  const password = formData.get("password")?.toString() || "";
-  const role = formData.get("role")?.toString() || "";
-
-  if (
-    !validateUsername(username) ||
-    !validatePassword(password) ||
-    !validateRole(role)
-  ) {
-    return { message: "Invalid credentials" };
-  }
-
-  try {
-    if (!(await isUsernameUnique(username))) {
-      return { message: "User already exists" };
-    }
-
-    const passwordHash = await argon2.hash(password);
-    const newUser: NewUser = {
-      id: generateIdFromEntropySize(10),
-      username,
-      passwordHash,
-      role,
-    };
-
-    await db.insert(userTable).values(newUser);
-    return { message: "User created" };
-  } catch (error) {
-    console.error(error);
-    return { message: "An unexpected error occurred" };
-  }
-}
-
-export async function createAvatar(prevState: any, formData: FormData) {
-  const avatarName = formData.get("avatarName")?.toString();
-  const imageUrl = formData.get("imageUrl")?.toString();
-  const selectedUserId = formData.get("userId")?.toString();
-
-  if (!avatarName || !imageUrl || !selectedUserId) {
-    return { message: "Invalid params" };
-  }
-
-  const isImageValid = await validateImageUrl(imageUrl);
-  if (!isImageValid) {
-    return { message: "Invalid image URL" };
-  }
-
-  const createdIdleVideoRes = await createIdleVideo(imageUrl);
-  if (!createdIdleVideoRes) {
-    return { message: "Error creating idle video" };
-  }
-
-  // Polling to get the silent idle video
-  const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
-  if (!idleVideo) {
-    return { message: "Error fetching idle video" };
-  }
-
-  const newAvatar: NewAvatar = {
-    userId: selectedUserId,
-    avatarName,
-    imageUrl,
-    idleVideoUrl: idleVideo.result_url,
-  };
-
-  try {
-    await db.insert(avatarTable).values(newAvatar);
-    return { message: "Avatar created" };
-  } catch (error) {
-    console.error(error);
-    return { message: "Error creating avatar" };
-  }
-}
 
 export async function createSession(prevState: any, formData: FormData) {
   const avatarJson = formData.get("avatar")?.toString();

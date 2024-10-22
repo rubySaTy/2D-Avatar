@@ -1,13 +1,13 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import { createUser } from "@/app/actions";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Separator } from "./ui/separator";
 import FormCard from "./FormCard";
 import UsernamePasswordFields from "./UsernamePasswordFields";
 import { SubmitButton } from "./SubmitButton";
+import { createUser } from "@/app/actions/auth";
 
 export default function CreateUser() {
   const [state, formAction] = useFormState(createUser, null);

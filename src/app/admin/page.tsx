@@ -1,10 +1,10 @@
-import CreateUser from "@/components/CreateUser";
-import CreateAvatar from "@/components/CreateAvatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db/db";
 import { userTable } from "@/lib/db/schema";
 import { getUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CreateUser from "@/components/CreateUser";
+import CreateAvatar from "@/components/CreateAvatar";
 
 export default async function AdminPage() {
   const usersArray = await db.select().from(userTable);

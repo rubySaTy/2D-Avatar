@@ -1,6 +1,6 @@
 "use client";
 
-import { createAvatar } from "@/app/actions";
+// import { createAvatar } from "@/app/actions";
 import { useFormState } from "react-dom";
 import { Separator } from "./ui/separator";
 import FormCard from "./FormCard";
@@ -15,6 +15,8 @@ import {
   SelectItem,
   SelectContent,
 } from "./ui/select";
+import ImageUploader from "./image-uploader";
+import { createAvatar } from "@/app/actions/createAvatar";
 
 interface CreateAvatarProps {
   users: Array<User>;
@@ -29,7 +31,7 @@ export default function CreateAvatar({
 
   return (
     <FormCard title="Create Avatar" message={state?.message}>
-      <form action={formAction}>
+      <form action={formAction} encType="multipart/form-data">
         <div className="grid w-full items-center gap-3 md:gap-4">
           <Input
             id="avatarName"
@@ -37,16 +39,11 @@ export default function CreateAvatar({
             placeholder="Avatar Name"
             required
           />
-          <Input
-            id="imageUrl"
-            name="imageUrl"
-            placeholder="https://i.ibb.co/example.jpg"
-            type="url"
-            required
-          />
+          <h1>Upload an Image</h1>
+          <ImageUploader />
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="users">User to assign the avatar to:</Label>
-            <Select name="userId">
+            <Select name="userId" required>
               <SelectTrigger id="users">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>

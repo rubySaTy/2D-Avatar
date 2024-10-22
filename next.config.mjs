@@ -3,7 +3,8 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: "i.ibb.co",
+        protocol: "https",
+        hostname: "smartherapy-idle-videos.s3.eu-central-1.amazonaws.com",
       },
     ],
   },

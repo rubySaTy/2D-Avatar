@@ -6,6 +6,12 @@ import {
   userTable,
 } from "./db/schema";
 import axios, { type AxiosResponse, type AxiosRequestConfig } from "axios";
+import s3Client from "./s3Client";
+import { Upload } from "@aws-sdk/lib-storage";
+import type {
+  ObjectCannedACL,
+  PutObjectCommandInput,
+} from "@aws-sdk/client-s3";
 import type {
   DIDCreateTalkApiResponse,
   DIDGetTalkApiResponse,
@@ -182,5 +188,56 @@ export async function getSessionByMeetingLink(
   } catch (error) {
     console.error("Error fetching session:", error);
     return null;
+  }
+}
+
+/**
+ * Uploads data to AWS S3 using the Upload class for handling streams.
+ *
+ * @param data - The data to upload (Buffer, ReadableStream, Blob, etc.).
+ * @param folder - The folder/path within the S3 bucket (e.g., 'avatars/', 'videos/').
+ * @param fileName - The name of the file (e.g., 'image.png', 'video.mp4').
+ * @param contentType - The MIME type of the file (e.g., 'image/png', 'video/mp4').
+ * @param acl - Access control list setting (default: 'public-read').
+ * @returns The URL of the uploaded file.
+ */
+export async function uploadToS3(
+  data: Buffer | ReadableStream | Blob,
+  folder: string,
+  fileName: string,
+  contentType: string,
+  acl: ObjectCannedACL = "public-read"
+): Promise<string> {
+  const bucketName = process.env.AWS_BUCKET_NAME!;
+  const key = `${folder}${Date.now()}-${fileName}`;
+
+  const uploadParams: PutObjectCommandInput = {
+    Bucket: bucketName,
+    Key: key,
+    Body: data,
+    ACL: acl,
+    ContentType: contentType,
+  };
+
+  try {
+    const parallelUploads3 = new Upload({
+      client: s3Client,
+      params: uploadParams,
+      // You can adjust concurrency and part size as needed
+      queueSize: 4, // concurrency
+      partSize: 5 * 1024 * 1024, // 5 MB
+    });
+
+    parallelUploads3.on("httpUploadProgress", (progress) => {
+      console.log(`Uploaded ${progress.loaded} of ${progress.total}`);
+    });
+
+    await parallelUploads3.done();
+
+    // Construct the S3 URL
+    return `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  } catch (error) {
+    console.error("Error uploading to S3:", error);
+    throw new Error("Failed to upload file to S3");
   }
 }
