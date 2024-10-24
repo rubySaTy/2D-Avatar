@@ -1,13 +1,15 @@
 "use server";
 
-import { cookies } from "next/headers";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import { shortUUID, getSessionByMeetingLink } from "@/lib/utils.server";
-import { getUser, validateRequest } from "@/lib/auth";
+import {
+  shortUUID,
+  getSessionByMeetingLink,
+  getAvatarByMeetingLink,
+} from "@/lib/utils.server";
+import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { lucia } from "@/auth";
 import { avatarTable, meetingSessionTable } from "@/lib/db/schema";
 import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 import type { ProviderConfig } from "@/lib/types";
@@ -152,7 +154,6 @@ export async function createTalkStream(
   if (voiceStyle) {
     voiceProvider.voice_config.style = voiceStyle;
   }
-  console.log(meetingLink, input, voiceProvider);
 
   try {
     const session = await getSessionByMeetingLink(meetingLink);
@@ -181,29 +182,10 @@ export async function createTalkStream(
         },
       }
     );
-
-    console.log(playResponse.data);
   } catch (error) {
     console.error("Error in 'createTalkStream'");
     console.error(error);
   }
-}
-
-export async function logout() {
-  const { session } = await validateRequest();
-  if (!session) {
-    return { message: "Unauthorized" };
-  }
-
-  await lucia.invalidateSession(session.id);
-
-  const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(
-    sessionCookie.name,
-    sessionCookie.value,
-    sessionCookie.attributes
-  );
-  redirect("/login");
 }
 
 interface SessionResponse {
@@ -217,18 +199,10 @@ interface SessionResponse {
 export async function createDIDStream(meetingLink: string) {
   if (!meetingLink) return null;
 
+  const avatar = await getAvatarByMeetingLink(meetingLink);
+  if (!avatar) return null;
+
   try {
-    const session = await getSessionByMeetingLink(meetingLink);
-    if (!session) return null;
-    const avatars = await db
-      .select()
-      .from(avatarTable)
-      .where(eq(avatarTable.id, session.avatarId))
-      .limit(1);
-    const avatar = avatars[0];
-
-    if (!avatar) return null;
-
     const sessionResponse = await axios<SessionResponse>({
       url: `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams`,
       method: "POST",
@@ -249,7 +223,7 @@ export async function createDIDStream(meetingLink: string) {
         offer: sessionResponse.data.offer,
         iceServers: sessionResponse.data.ice_servers,
       })
-      .where(eq(meetingSessionTable.meetingLink, session.meetingLink));
+      .where(eq(meetingSessionTable.meetingLink, meetingLink));
     console.log(`DB updated successfully at meeting link ${meetingLink}`);
 
     return sessionResponse.data;

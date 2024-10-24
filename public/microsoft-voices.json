@@ -1,0 +1,1123 @@
+[
+  {
+    "id": "he-IL-HilaNeural",
+    "name": "Hila",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "he-IL-AvriNeural",
+    "name": "Avri",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-NatashaNeural",
+    "name": "Natasha",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-WilliamNeural",
+    "name": "William",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-AnnetteNeural",
+    "name": "Annette",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-CarlyNeural",
+    "name": "Carly",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-DarrenNeural",
+    "name": "Darren",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-DuncanNeural",
+    "name": "Duncan",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-ElsieNeural",
+    "name": "Elsie",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-FreyaNeural",
+    "name": "Freya",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-JoanneNeural",
+    "name": "Joanne",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-KenNeural",
+    "name": "Ken",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-KimNeural",
+    "name": "Kim",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-NeilNeural",
+    "name": "Neil",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-TimNeural",
+    "name": "Tim",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-AU-TinaNeural",
+    "name": "Tina",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-CA-ClaraNeural",
+    "name": "Clara",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-CA",
+        "language": "English (Canada)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-CA-LiamNeural",
+    "name": "Liam",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-CA",
+        "language": "English (Canada)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-SoniaNeural",
+    "name": "Sonia",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": ["cheerful", "sad"]
+  },
+  {
+    "id": "en-GB-RyanNeural",
+    "name": "Ryan",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": ["cheerful", "chat"]
+  },
+  {
+    "id": "en-GB-LibbyNeural",
+    "name": "Libby",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-AbbiNeural",
+    "name": "Abbi",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-AlfieNeural",
+    "name": "Alfie",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-BellaNeural",
+    "name": "Bella",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-ElliotNeural",
+    "name": "Elliot",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-EthanNeural",
+    "name": "Ethan",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-HollieNeural",
+    "name": "Hollie",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-MaisieNeural",
+    "name": "Maisie",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-NoahNeural",
+    "name": "Noah",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-OliverNeural",
+    "name": "Oliver",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-OliviaNeural",
+    "name": "Olivia",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-ThomasNeural",
+    "name": "Thomas",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-GB-MiaNeural",
+    "name": "Mia",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-IE-EmilyNeural",
+    "name": "Emily",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-IE",
+        "language": "English (Ireland)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-IE-ConnorNeural",
+    "name": "Connor",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-IE",
+        "language": "English (Ireland)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+
+  {
+    "id": "en-NZ-MollyNeural",
+    "name": "Molly",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-NZ",
+        "language": "English (New Zealand)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-NZ-MitchellNeural",
+    "name": "Mitchell",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-NZ",
+        "language": "English (New Zealand)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+
+  {
+    "id": "en-US-AvaMultilingualNeural",
+    "name": "Ava Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-AndrewMultilingualNeural",
+    "name": "Andrew Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": ["empathetic", "relieved"]
+  },
+  {
+    "id": "en-US-EmmaMultilingualNeural",
+    "name": "Emma Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-BrianMultilingualNeural",
+    "name": "Brian Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-AvaNeural",
+    "name": "Ava",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-AndrewNeural",
+    "name": "Andrew",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-EmmaNeural",
+    "name": "Emma",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-BrianNeural",
+    "name": "Brian",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-JennyNeural",
+    "name": "Jenny",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "assistant",
+      "chat",
+      "customerservice",
+      "newscast",
+      "angry",
+      "cheerful",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
+  },
+  {
+    "id": "en-US-GuyNeural",
+    "name": "Guy",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "newscast",
+      "angry",
+      "cheerful",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
+  },
+  {
+    "id": "en-US-AriaNeural",
+    "name": "Aria",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "chat",
+      "customerservice",
+      "narration-professional",
+      "newscast-casual",
+      "newscast-formal",
+      "cheerful",
+      "empathetic",
+      "angry",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
+  },
+  {
+    "id": "en-US-DavisNeural",
+    "name": "Davis",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "chat",
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-JaneNeural",
+    "name": "Jane",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-JasonNeural",
+    "name": "Jason",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-SaraNeural",
+    "name": "Sara",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-TonyNeural",
+    "name": "Tony",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-NancyNeural",
+    "name": "Nancy",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-AmberNeural",
+    "name": "Amber",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-AnaNeural",
+    "name": "Ana",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-AshleyNeural",
+    "name": "Ashley",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-BrandonNeural",
+    "name": "Brandon",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-ChristopherNeural",
+    "name": "Christopher",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-CoraNeural",
+    "name": "Cora",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-ElizabethNeural",
+    "name": "Elizabeth",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-EricNeural",
+    "name": "Eric",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-JacobNeural",
+    "name": "Jacob",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-JennyMultilingualNeural",
+    "name": "Jenny Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-MichelleNeural",
+    "name": "Michelle",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-MonicaNeural",
+    "name": "Monica",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-RogerNeural",
+    "name": "Roger",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-RyanMultilingualNeural",
+    "name": "Ryan Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-SteffanNeural",
+    "name": "Steffan",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-SteffanMultilingualNeural",
+    "name": "Steffan Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-ZA-LeahNeural",
+    "name": "Leah",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-ZA",
+        "language": "English (South Africa)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-ZA-LukeNeural",
+    "name": "Luke",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-ZA",
+        "language": "English (South Africa)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  }
+]

@@ -1,6 +1,5 @@
 "use client";
 
-// import { createAvatar } from "@/app/actions";
 import { useFormState } from "react-dom";
 import { Separator } from "./ui/separator";
 import FormCard from "./FormCard";
@@ -31,7 +30,7 @@ export default function CreateAvatar({
 
   return (
     <FormCard title="Create Avatar" message={state?.message}>
-      <form action={formAction} encType="multipart/form-data">
+      <form action={formAction}>
         <div className="grid w-full items-center gap-3 md:gap-4">
           <Input
             id="avatarName"

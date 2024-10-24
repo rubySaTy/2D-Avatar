@@ -1,6 +1,6 @@
 "use client";
-import { logout } from "@/app/actions";
-import { Button } from "./ui/button";
+import { logout } from "@/app/actions/auth";
+import { Button } from "../ui/button";
 import { LogOut } from "lucide-react";
 import { useFormState } from "react-dom";
 

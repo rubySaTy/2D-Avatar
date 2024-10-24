@@ -3,7 +3,7 @@ import { db } from "@/lib/db/db";
 import { userTable } from "@/lib/db/schema";
 import { getUser } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CreateUser from "@/components/CreateUser";
+import CreateUser from "@/components/auth/CreateUser";
 import CreateAvatar from "@/components/CreateAvatar";
 
 export default async function AdminPage() {

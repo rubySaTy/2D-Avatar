@@ -3,7 +3,7 @@ interface Language {
   language: string;
 }
 
-export interface Voice {
+export interface MicrosoftVoice {
   id: string;
   name: string;
   gender: string;

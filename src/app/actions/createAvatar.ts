@@ -22,16 +22,18 @@ const avatarSchema = z.object({
 });
 
 export async function createAvatar(prevState: any, formData: FormData) {
-  const avatarName = formData.get("avatarName") as string;
-  const userId = formData.get("userId") as string;
-  const picture = formData.get("picture") as File;
+  const parsedData = avatarSchema.safeParse({
+    avatarName: formData.get("avatarName"),
+    userId: formData.get("userId"),
+    picture: formData.get("picture"),
+  });
 
-  const parsed = avatarSchema.safeParse({ avatarName, userId, picture });
-
-  if (!parsed.success) {
-    const errors = parsed.error.errors.map((err) => err.message).join(", ");
+  if (!parsedData.success) {
+    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: `Validation failed: ${errors}` };
   }
+
+  const { avatarName, picture, userId } = parsedData.data;
 
   try {
     const sanitizedAvatarName = sanitizeString(avatarName);

@@ -1,10 +1,10 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import { Separator } from "./ui/separator";
-import FormCard from "./FormCard";
+import { Separator } from "../ui/separator";
+import FormCard from "../FormCard";
 import UsernamePasswordFields from "./UsernamePasswordFields";
-import { SubmitButton } from "./SubmitButton";
+import { SubmitButton } from "../SubmitButton";
 import { loginUser } from "@/app/actions/auth";
 
 export default function Login() {

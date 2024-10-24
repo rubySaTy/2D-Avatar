@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db/db";
 import {
-  type MeetingSession,
+  avatarTable,
   meetingSessionTable,
   userTable,
+  type Avatar,
+  type MeetingSession,
 } from "./db/schema";
 import axios, { type AxiosResponse, type AxiosRequestConfig } from "axios";
 import s3Client from "./s3Client";
@@ -189,6 +191,23 @@ export async function getSessionByMeetingLink(
     console.error("Error fetching session:", error);
     return null;
   }
+}
+
+export async function getAvatarByMeetingLink(
+  meetingLink: string
+): Promise<Avatar | null> {
+  const result = await db
+    .select()
+    .from(meetingSessionTable)
+    .innerJoin(avatarTable, eq(meetingSessionTable.avatarId, avatarTable.id))
+    .where(eq(meetingSessionTable.meetingLink, meetingLink))
+    .limit(1);
+
+  if (result.length === 0) {
+    return null;
+  }
+
+  return result[0].avatar || null;
 }
 
 /**
