@@ -226,7 +226,7 @@ export async function uploadToS3(
   fileName: string,
   contentType: string,
   acl: ObjectCannedACL = "public-read"
-): Promise<string> {
+): Promise<{ url: string; key: string }> {
   const bucketName = process.env.AWS_BUCKET_NAME!;
   const key = `${folder}${Date.now()}-${fileName}`;
 
@@ -253,8 +253,10 @@ export async function uploadToS3(
 
     await parallelUploads3.done();
 
-    // Construct the S3 URL
-    return `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    return {
+      url: `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
+      key: key,
+    };
   } catch (error) {
     console.error("Error uploading to S3:", error);
     throw new Error("Failed to upload file to S3");
