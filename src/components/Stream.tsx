@@ -10,7 +10,6 @@ import {
 } from "@/app/actions";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
-import { Badge } from "./ui/badge";
 
 interface StreamProps {
   meetingLink: string;
@@ -418,24 +417,6 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
               </button>
             </div>
           )}
-          <div className="absolute top-2 left-2">
-            <Badge
-              variant={
-                isReady && isStreamReady && videoIsPlaying
-                  ? "default"
-                  : "secondary"
-              }
-              className="text-xs"
-            >
-              {isReady
-                ? isStreamReady
-                  ? videoIsPlaying
-                    ? "Live"
-                    : "Idle"
-                  : "Preparing Stream..."
-                : "Connecting..."}
-            </Badge>
-          </div>
         </div>
       </CardContent>
     </Card>

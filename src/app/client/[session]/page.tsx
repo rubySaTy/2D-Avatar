@@ -16,7 +16,7 @@ export default async function ClientSessionPage({
   }
 
   return (
-    <div>
+    <div className="flex items-center justify-center min-h-[700px]">
       <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
     </div>
   );
