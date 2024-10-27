@@ -9,11 +9,12 @@ import { createIdleVideo, getIdleVideo, uploadToS3 } from "@/lib/utils.server";
 import { sanitizeFilename, sanitizeString } from "@/lib/utils";
 import s3Client from "@/lib/s3Client";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import elevenlabs from "@/lib/elevenlabs";
 
 const avatarSchema = z.object({
   avatarName: z.string().min(1),
   userId: z.string().min(1),
-  picture: z
+  imageFile: z
     .instanceof(File)
     .refine((file) => file.size <= 5 * 1024 * 1024, {
       message: "File size should be less than 5MB",
@@ -21,6 +22,31 @@ const avatarSchema = z.object({
     .refine((file) => file.type.startsWith("image/"), {
       message: "Only image files are allowed",
     }),
+  voiceFiles: z
+    .array(z.instanceof(File))
+    .transform((files) =>
+      files.filter((file) => file.size > 0 && file.name !== "undefined")
+    )
+    .pipe(
+      z
+        .array(z.instanceof(File))
+        .max(25, { message: "You can upload up to 25 voice files" })
+        .refine(
+          (files) => files.every((file) => file.size <= 10 * 1024 * 1024),
+          {
+            message: "Each file must be less than or equal to 10MB",
+          }
+        )
+        .refine(
+          (files) =>
+            files.every((file) =>
+              ["audio/mp3", "audio/wav", "audio/mpeg", "audio/ogg"].includes(
+                file.type
+              )
+            ),
+          { message: "Only MP3, WAV, OGG and MPEG files are allowed" }
+        )
+    ),
 });
 
 // Type for tracking uploaded resources that might need cleanup
@@ -32,7 +58,8 @@ export async function createAvatar(prevState: any, formData: FormData) {
   const parsedData = avatarSchema.safeParse({
     avatarName: formData.get("avatarName"),
     userId: formData.get("userId"),
-    picture: formData.get("picture"),
+    imageFile: formData.get("imageFile"),
+    voiceFiles: formData.getAll("voiceFiles"),
   });
 
   if (!parsedData.success) {
@@ -40,7 +67,8 @@ export async function createAvatar(prevState: any, formData: FormData) {
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarName, picture, userId } = parsedData.data;
+  const { avatarName, voiceFiles, imageFile, userId } = parsedData.data;
+
   const uploadedResources: UploadedResources = {
     s3Objects: [],
   };
@@ -51,15 +79,21 @@ export async function createAvatar(prevState: any, formData: FormData) {
   }
 
   try {
+    // Create voice if voice files exist
+    const elevenlabsRes =
+      voiceFiles.length > 0
+        ? await elevenlabs.voices.add({ name: avatarName, files: voiceFiles })
+        : null;
+
     // Step 1: Upload initial image
     const sanitizedAvatarName = sanitizeString(avatarName);
-    const sanitizedFileName = sanitizeFilename(picture.name);
+    const sanitizedFileName = sanitizeFilename(imageFile.name);
     const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
     const { url: imageUrl, key: imageKey } = await uploadToS3(
-      picture.stream(),
+      imageFile.stream(),
       "avatars/",
       `${fileName}`,
-      picture.type
+      imageFile.type
     );
     uploadedResources.s3Objects.push({ bucket: s3BucketName, key: imageKey });
 
@@ -104,6 +138,7 @@ export async function createAvatar(prevState: any, formData: FormData) {
       avatarName,
       imageUrl,
       idleVideoUrl: idleVideoUrl,
+      elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
     };
 
     await db.insert(avatarTable).values(newAvatar);

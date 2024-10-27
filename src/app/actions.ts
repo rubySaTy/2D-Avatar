@@ -4,13 +4,14 @@ import axios from "axios";
 import { db } from "@/lib/db/db";
 import {
   shortUUID,
-  getSessionByMeetingLink,
   getAvatarByMeetingLink,
+  getMeetingDataByLink,
 } from "@/lib/utils.server";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { avatarTable, meetingSessionTable } from "@/lib/db/schema";
+import { meetingSessionTable } from "@/lib/db/schema";
+import { createTalkStreamSchema } from "@/lib/validationSchema";
 import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 import type { ProviderConfig } from "@/lib/types";
 
@@ -139,43 +140,60 @@ export async function createTalkStream(
   meetingLink: string,
   formData: FormData
 ) {
-  const input = formData.get("message")?.toString();
-
-  const providerType = formData.get("providerType")?.toString();
-  const voiceId = formData.get("voiceId")?.toString();
-  const voiceStyle = formData.get("voiceStyle")?.toString();
-
-  const voiceProvider: ProviderConfig = {
-    type: providerType || "microsoft", // Default to 'microsoft' if undefined
-    voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
-    voice_config: {},
+  const data = {
+    meetingLink,
+    message: formData.get("message"),
+    providerType: formData.get("providerType"),
+    voiceId: formData.get("voiceId"),
+    voiceStyle: formData.get("voiceStyle"),
   };
 
-  if (voiceStyle) {
-    voiceProvider.voice_config.style = voiceStyle;
+  const result = createTalkStreamSchema.safeParse(data);
+
+  if (!result.success) {
+    const errors = result.error.errors.map((err) => err.message).join(", ");
+    throw new Error(`Validation error(s): ${errors}`);
   }
 
+  const { message, providerType, voiceId, voiceStyle } = result.data;
+
   try {
-    const session = await getSessionByMeetingLink(meetingLink);
-    if (!session || !session.didStreamId || !session.didSessionId) {
-      console.error(`Session not found with meeting link ${meetingLink}`);
-      throw new Error("Session not found");
+    const meetingData = await getMeetingDataByLink(meetingLink);
+    if (!meetingData) {
+      console.error(`Meeting data not found with meeting link ${meetingLink}`);
+      throw new Error("Meeting data not found");
+    }
+    const { avatar, session } = meetingData;
+
+    const voiceProvider: ProviderConfig = {
+      type: providerType || "microsoft", // Default to 'microsoft' if undefined
+      voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
+      voice_config: voiceStyle ? { style: voiceStyle } : {},
+    };
+
+    // Override with avatar's ElevenLabs voice ID if available and no voice ID is provided
+    if (avatar.elevenlabsVoiceId && !data.voiceId) {
+      voiceProvider.type = "elevenlabs";
+      voiceProvider.voice_id = avatar.elevenlabsVoiceId;
     }
 
-    const playResponse = await axios(
+    await axios(
       `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams/${session.didStreamId}`,
       {
         method: "POST",
         headers: {
           Authorization: `Basic ${process.env.DID_API_KEY}`,
           "Content-Type": "application/json",
+          "x-api-key-external": JSON.stringify({
+            elevenlabs: process.env.ELEVENLABS_API_KEY,
+          }),
         },
         data: {
           script: {
             type: "text",
             provider: voiceProvider,
             ssml: "false",
-            input: input,
+            input: message,
           },
           config: { fluent: true, pad_audio: "0.0" },
           session_id: session.didSessionId,

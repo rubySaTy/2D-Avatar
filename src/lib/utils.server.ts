@@ -18,6 +18,7 @@ import type {
   DIDCreateTalkApiResponse,
   DIDGetTalkApiResponse,
   PollConfig,
+  ProviderConfig,
 } from "./types";
 
 export function shortUUID(): string {
@@ -176,6 +177,7 @@ async function fetchWithRetries<T>(
   throw new Error("Max retries reached without achieving desired status");
 }
 
+TODO: "Check for deletion if unused";
 export async function getSessionByMeetingLink(
   session: string
 ): Promise<MeetingSession | null> {
@@ -208,6 +210,28 @@ export async function getAvatarByMeetingLink(
   }
 
   return result[0].avatar || null;
+}
+
+export async function getMeetingDataByLink(
+  meetingLink: string
+): Promise<{ session: MeetingSession; avatar: Avatar } | null> {
+  const results = await db
+    .select()
+    .from(meetingSessionTable)
+    .leftJoin(avatarTable, eq(meetingSessionTable.avatarId, avatarTable.id))
+    .where(eq(meetingSessionTable.meetingLink, meetingLink))
+    .limit(1);
+
+  if (results.length === 0) return null;
+
+  const result = results[0];
+
+  if (!result.avatar || !result.meeting_session) return null;
+
+  return {
+    session: result.meeting_session,
+    avatar: result.avatar,
+  };
 }
 
 /**
@@ -262,3 +286,9 @@ export async function uploadToS3(
     throw new Error("Failed to upload file to S3");
   }
 }
+
+const DEFAULT_VOICE_PROVIDER: ProviderConfig = {
+  type: "microsoft",
+  voice_id: "en-US-EmmaMultilingualNeural",
+  voice_config: {},
+};

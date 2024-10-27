@@ -32,7 +32,7 @@ export default function SessionLink({ clientUrl }: SessionLinkProps) {
   return (
     <>
       <Input readOnly value={clientUrl} />
-      <Button onClick={handleCopy} disabled={copied}>
+      <Button className="min-w-32" onClick={handleCopy} disabled={copied}>
         {copied ? (
           <>
             <CheckIcon className="mr-2 h-4 w-4" /> Copied!

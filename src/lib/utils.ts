@@ -15,3 +15,10 @@ export function sanitizeFilename(filename: string): string {
     .replace(/[^a-zA-Z0-9.\-_]/g, "")
     .toLowerCase();
 }
+
+// Helper function to convert File[] to FileList
+export const fileArrayToFileList = (files: File[]): FileList => {
+  const dataTransfer = new DataTransfer();
+  files.forEach((file) => dataTransfer.items.add(file));
+  return dataTransfer.files;
+};

@@ -21,6 +21,7 @@ import {
   CardContent,
   CardFooter,
 } from "./ui/card";
+import Spinner from "./ui/spinner";
 
 interface CreateSessionProps {
   avatars: Array<Avatar>;
@@ -31,7 +32,7 @@ export default function CreateSession({ avatars }: CreateSessionProps) {
   const [state, formAction] = useFormState(createSession, null);
 
   return (
-    <Card className="w-[350px]">
+    <Card className="w-[400px]">
       <CardHeader>
         <CardTitle>Create a Session</CardTitle>
       </CardHeader>
@@ -59,17 +60,21 @@ export default function CreateSession({ avatars }: CreateSessionProps) {
                 </SelectContent>
               </Select>
             </div>
-            {avatarImgUrl && (
-              <div className="flex justify-center">
-                <Image
-                  src={avatarImgUrl}
-                  alt="Selected Avatar"
-                  width={100}
-                  height={100}
-                  className="rounded-full"
-                />
-              </div>
-            )}
+            <div className="relative h-[170px]">
+              {!avatarImgUrl && <Spinner />}
+              {avatarImgUrl && (
+                <div className="flex justify-center">
+                  <Image
+                    src={avatarImgUrl}
+                    alt="Selected Avatar"
+                    width={100}
+                    height={100}
+                    style={{ width: "auto", height: "auto" }}
+                    className="rounded-full"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-4">

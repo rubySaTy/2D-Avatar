@@ -15,6 +15,20 @@
       "when": 1727646618158,
       "tag": "0001_wide_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1730029813579,
+      "tag": "0002_boring_human_torch",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1730029871779,
+      "tag": "0003_wealthy_trauma",
+      "breakpoints": true
     }
   ]
 }

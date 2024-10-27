@@ -14,8 +14,9 @@ import {
   SelectItem,
   SelectContent,
 } from "./ui/select";
-import ImageUploader from "./image-uploader";
 import { createAvatar } from "@/app/actions/createAvatar";
+import ImageUpload from "./ImageUpload";
+import VoiceUpload from "./VoiceUpload";
 
 interface CreateAvatarProps {
   users: Array<User>;
@@ -38,8 +39,9 @@ export default function CreateAvatar({
             placeholder="Avatar Name"
             required
           />
-          <h1>Upload an Image</h1>
-          <ImageUploader />
+          <h1>Upload Files</h1>
+          <ImageUpload />
+          <VoiceUpload />
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="users">User to assign the avatar to:</Label>
             <Select name="userId" required>

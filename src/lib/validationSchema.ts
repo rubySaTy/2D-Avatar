@@ -29,3 +29,11 @@ export const loginUserSchema = z.object({
   username: usernameField,
   password: passwordField,
 });
+
+export const createTalkStreamSchema = z.object({
+  meetingLink: z.string().min(1, { message: "Meeting link is required" }),
+  message: z.string().min(1, { message: "Message input is required" }),
+  providerType: z.string().nullable().optional(),
+  voiceId: z.string().nullable().optional(),
+  voiceStyle: z.string().nullable().optional(),
+});

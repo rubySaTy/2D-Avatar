@@ -28,7 +28,6 @@ const submitMessage = (meetingLink: string) => {
   };
 };
 
-
 export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
@@ -37,6 +36,7 @@ export default function TherapistInteractionPanel({
   const [state, formAction] = useFormState(submitMessage(meetingLink), null);
 
   // Reset message when form submission is successful
+  // TODO: return status "success" to ensure only when successful
   useEffect(() => {
     if (state?.success) {
       setMessage("");
