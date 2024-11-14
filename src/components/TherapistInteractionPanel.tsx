@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { SubmitButton } from "./SubmitButton";
 import VoiceSelector from "./VoiceSelector";
 import PremadeMessages from "./PremadeMessages";
+import { getMessageTimestamp } from "@/lib/utils";
 import type { MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -23,8 +24,8 @@ interface TherapistInteractionPanelProps {
 // Wrapper for submitting message with ID
 const submitMessage = (meetingLink: string) => {
   return async (prevState: any, formData: FormData) => {
-    await createTalkStream(meetingLink, formData);
-    return { success: true };
+    const res = await createTalkStream(meetingLink, formData);
+    return res;
   };
 };
 
@@ -33,37 +34,42 @@ export default function TherapistInteractionPanel({
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
   const [message, setMessage] = useState("");
+  const [history, setHistory] = useState([""]);
   const [state, formAction] = useFormState(submitMessage(meetingLink), null);
 
-  // Reset message when form submission is successful
-  // TODO: return status "success" to ensure only when successful
   useEffect(() => {
     if (state?.success) {
       setMessage("");
+      const timestamp = getMessageTimestamp();
+      setHistory((history) => [...history, `${timestamp} - ${state.message}`]);
     }
   }, [state]);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <form action={formAction} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Session Controls</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+    <div className="container mx-auto p-4">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-3/4 space-y-6">
+          <form action={formAction} className="space-y-6">
             <MessageArea message={message} setMessage={setMessage} />
-          </CardContent>
-        </Card>
+            {!state?.success && state?.message}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PremadeMessages setMessage={setMessage} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Voice Selector</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <VoiceSelector {...VoiceSelectorProps} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </form>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Voice Selector</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <VoiceSelector {...VoiceSelectorProps} />
-          </CardContent>
-        </Card>
-      </form>
+        <MessageHistory history={history} />
+      </div>
     </div>
   );
 }
@@ -83,7 +89,7 @@ function MessageArea({ message, setMessage }: MessageAreaProps) {
           name="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[150px]"
+          className="min-h-[150px] text-lg"
         />
 
         <div className="flex justify-between">
@@ -97,9 +103,25 @@ function MessageArea({ message, setMessage }: MessageAreaProps) {
           </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <PremadeMessages setMessage={setMessage} />
-      </div>
     </>
+  );
+}
+
+function MessageHistory({ history }: { history: string[] }) {
+  return (
+    <Card className="w-full lg:w-1/4">
+      <CardHeader>
+        <CardTitle>Message History</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {history.map((msg, index) => (
+            <div key={index} className="p-3 rounded-lg bg-muted">
+              <p className="text-sm">{msg}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

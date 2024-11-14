@@ -1,6 +1,6 @@
 "use server";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { db } from "@/lib/db/db";
 import {
   shortUUID,
@@ -140,43 +140,41 @@ export async function createTalkStream(
   meetingLink: string,
   formData: FormData
 ) {
-  const data = {
+  const ParsedData = createTalkStreamSchema.safeParse({
     meetingLink,
     message: formData.get("message"),
     providerType: formData.get("providerType"),
     voiceId: formData.get("voiceId"),
     voiceStyle: formData.get("voiceStyle"),
-  };
+  });
 
-  const result = createTalkStreamSchema.safeParse(data);
-
-  if (!result.success) {
-    const errors = result.error.errors.map((err) => err.message).join(", ");
-    throw new Error(`Validation error(s): ${errors}`);
+  if (!ParsedData.success) {
+    const errors = ParsedData.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { message, providerType, voiceId, voiceStyle } = result.data;
+  const { message, providerType, voiceId, voiceStyle } = ParsedData.data;
+
+  const meetingData = await getMeetingDataByLink(meetingLink);
+  if (!meetingData) {
+    console.error(`Meeting data not found with meeting link ${meetingLink}`);
+    return { success: false, message: "Meeting data not found" };
+  }
+  const { avatar, session } = meetingData;
+
+  const voiceProvider: ProviderConfig = {
+    type: providerType || "microsoft", // Default to 'microsoft' if undefined
+    voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
+    voice_config: voiceStyle ? { style: voiceStyle } : {},
+  };
+
+  // Override with avatar's ElevenLabs voice ID if available and no voice ID is provided
+  if (avatar.elevenlabsVoiceId && !voiceId) {
+    voiceProvider.type = "elevenlabs";
+    voiceProvider.voice_id = avatar.elevenlabsVoiceId;
+  }
 
   try {
-    const meetingData = await getMeetingDataByLink(meetingLink);
-    if (!meetingData) {
-      console.error(`Meeting data not found with meeting link ${meetingLink}`);
-      throw new Error("Meeting data not found");
-    }
-    const { avatar, session } = meetingData;
-
-    const voiceProvider: ProviderConfig = {
-      type: providerType || "microsoft", // Default to 'microsoft' if undefined
-      voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
-      voice_config: voiceStyle ? { style: voiceStyle } : {},
-    };
-
-    // Override with avatar's ElevenLabs voice ID if available and no voice ID is provided
-    if (avatar.elevenlabsVoiceId && !data.voiceId) {
-      voiceProvider.type = "elevenlabs";
-      voiceProvider.voice_id = avatar.elevenlabsVoiceId;
-    }
-
     await axios(
       `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/streams/${session.didStreamId}`,
       {
@@ -200,9 +198,19 @@ export async function createTalkStream(
         },
       }
     );
+
+    return { success: true, message: message };
   } catch (error) {
     console.error("Error in 'createTalkStream'");
-    console.error(error);
+    if (error instanceof AxiosError) {
+      console.error("D-ID API error:", {
+        status: error.response?.status,
+        message: error.message,
+        data: error.response?.data,
+      });
+    } else console.error("Non-Axios error:", error);
+
+    return { success: false, message: "Failed to send message to avatar" };
   }
 }
 
