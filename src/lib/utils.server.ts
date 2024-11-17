@@ -1,12 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "./db/db";
-import {
-  avatarTable,
-  meetingSessionTable,
-  userTable,
-  type Avatar,
-  type MeetingSession,
-} from "./db/schema";
+import { users, avatars, meetingSessions } from "./db/schema";
+import type { User, Avatar, MeetingSession } from "./db/schema";
 import axios, { type AxiosResponse, type AxiosRequestConfig } from "axios";
 import s3Client from "./s3Client";
 import { Upload } from "@aws-sdk/lib-storage";
@@ -18,7 +13,6 @@ import type {
   DIDCreateTalkApiResponse,
   DIDGetTalkApiResponse,
   PollConfig,
-  ProviderConfig,
 } from "./types";
 
 export function shortUUID(): string {
@@ -46,19 +40,48 @@ export function shortUUID(): string {
     .substring(0, 10);
 }
 
-export async function findUserByUsername(username: string) {
-  const user = await db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.username, username))
-    .limit(1);
+export async function findUser(
+  username?: string,
+  email?: string
+): Promise<User | null> {
+  if (username && email) {
+    const usersRes = await db
+      .select()
+      .from(users)
+      .where(or(eq(users.username, username), eq(users.email, email)))
+      .limit(1);
+    return usersRes[0] ?? null;
+  } else if (username) {
+    const usersRes = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    return usersRes[0] ?? null;
+  } else if (email) {
+    const usersRes = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    return usersRes[0] ?? null;
+  }
 
-  return user.length > 0 ? user[0] : null;
+  throw new Error("No valid identifier provided");
 }
 
-export async function isUsernameUnique(username: string): Promise<boolean> {
-  const user = await findUserByUsername(username);
-  return !user; // Returns true if no user is found
+export async function getUserAvatars(userId: string) {
+  const result = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    with: {
+      usersToAvatars: {
+        with: {
+          avatar: true,
+        },
+      },
+    },
+  });
+  return result?.usersToAvatars.map((ua) => ua.avatar) ?? [];
 }
 
 export async function createIdleVideo(imageUrl: string) {
@@ -177,32 +200,14 @@ async function fetchWithRetries<T>(
   throw new Error("Max retries reached without achieving desired status");
 }
 
-TODO: "Check for deletion if unused";
-export async function getSessionByMeetingLink(
-  session: string
-): Promise<MeetingSession | null> {
-  try {
-    const sessions = await db
-      .select()
-      .from(meetingSessionTable)
-      .where(eq(meetingSessionTable.meetingLink, session))
-      .limit(1);
-
-    return sessions[0] || null;
-  } catch (error) {
-    console.error("Error fetching session:", error);
-    return null;
-  }
-}
-
 export async function getAvatarByMeetingLink(
   meetingLink: string
 ): Promise<Avatar | null> {
   const result = await db
     .select()
-    .from(meetingSessionTable)
-    .innerJoin(avatarTable, eq(meetingSessionTable.avatarId, avatarTable.id))
-    .where(eq(meetingSessionTable.meetingLink, meetingLink))
+    .from(meetingSessions)
+    .innerJoin(avatars, eq(meetingSessions.avatarId, avatars.id))
+    .where(eq(meetingSessions.meetingLink, meetingLink))
     .limit(1);
 
   if (result.length === 0) {
@@ -217,9 +222,9 @@ export async function getMeetingDataByLink(
 ): Promise<{ session: MeetingSession; avatar: Avatar } | null> {
   const results = await db
     .select()
-    .from(meetingSessionTable)
-    .leftJoin(avatarTable, eq(meetingSessionTable.avatarId, avatarTable.id))
-    .where(eq(meetingSessionTable.meetingLink, meetingLink))
+    .from(meetingSessions)
+    .leftJoin(avatars, eq(meetingSessions.avatarId, avatars.id))
+    .where(eq(meetingSessions.meetingLink, meetingLink))
     .limit(1);
 
   if (results.length === 0) return null;
@@ -286,9 +291,3 @@ export async function uploadToS3(
     throw new Error("Failed to upload file to S3");
   }
 }
-
-const DEFAULT_VOICE_PROVIDER: ProviderConfig = {
-  type: "microsoft",
-  voice_id: "en-US-EmmaMultilingualNeural",
-  voice_config: {},
-};

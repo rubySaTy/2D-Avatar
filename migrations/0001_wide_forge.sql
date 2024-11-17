@@ -1,1 +1,0 @@
-ALTER TABLE "avatar" ADD COLUMN "idle_video_url" text;

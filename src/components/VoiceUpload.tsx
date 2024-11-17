@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { type FileRejection, useDropzone } from "react-dropzone";
 import { Label } from "@/components/ui/label";
@@ -83,7 +85,7 @@ export default function VoiceUpload() {
   }, [voiceFiles]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Label htmlFor="voiceFiles">Voice Samples (Optional)</Label>
       <input
         type="file"

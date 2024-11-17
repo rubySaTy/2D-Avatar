@@ -10,7 +10,7 @@ import {
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { meetingSessionTable } from "@/lib/db/schema";
+import { meetingSessions } from "@/lib/db/schema";
 import { createTalkStreamSchema } from "@/lib/validationSchema";
 import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 import type { ProviderConfig } from "@/lib/types";
@@ -35,7 +35,7 @@ export async function createSession(prevState: any, formData: FormData) {
       meetingLink,
     };
 
-    await db.insert(meetingSessionTable).values(newMeetingSession);
+    await db.insert(meetingSessions).values(newMeetingSession);
   } catch (error) {
     console.error(error);
     return { message: "Error creating session" };
@@ -242,14 +242,14 @@ export async function createDIDStream(meetingLink: string) {
     if (!sessionResponse.data) return null;
 
     await db
-      .update(meetingSessionTable)
+      .update(meetingSessions)
       .set({
         didStreamId: sessionResponse.data.id,
         didSessionId: sessionResponse.data.session_id,
         offer: sessionResponse.data.offer,
         iceServers: sessionResponse.data.ice_servers,
       })
-      .where(eq(meetingSessionTable.meetingLink, meetingLink));
+      .where(eq(meetingSessions.meetingLink, meetingLink));
     console.log(`DB updated successfully at meeting link ${meetingLink}`);
 
     return sessionResponse.data;

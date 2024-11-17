@@ -1,1 +1,0 @@
-ALTER TABLE "avatar" ADD COLUMN "elevenlabs-voice_id" text;

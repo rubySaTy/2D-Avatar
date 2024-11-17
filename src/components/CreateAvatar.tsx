@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectContent,
 } from "./ui/select";
-import { createAvatar } from "@/app/actions/createAvatar";
+import { createAvatar } from "@/app/actions/admin";
 import ImageUpload from "./ImageUpload";
 import VoiceUpload from "./VoiceUpload";
 

@@ -1,53 +1,91 @@
 "use server";
 
-import axios from "axios";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
-import { z } from "zod";
+import axios from "axios";
+import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
-import { avatarTable, type NewAvatar } from "@/lib/db/schema";
-import { createIdleVideo, getIdleVideo, uploadToS3 } from "@/lib/utils.server";
-import { sanitizeFilename, sanitizeString } from "@/lib/utils";
+import {
+  users,
+  NewUser,
+  avatars,
+  NewAvatar,
+  usersToAvatars,
+} from "@/lib/db/schema";
+import {
+  createIdleVideo,
+  findUser,
+  getIdleVideo,
+  uploadToS3,
+} from "@/lib/utils.server";
 import s3Client from "@/lib/s3Client";
+import { avatarSchema, createUserSchema } from "@/lib/validationSchema";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { generateIdFromEntropySize } from "lucia";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
+import { sanitizeString, sanitizeFilename } from "@/lib/utils";
 
-const avatarSchema = z.object({
-  avatarName: z.string().min(1),
-  userId: z.string().min(1),
-  imageFile: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: "File size should be less than 5MB",
-    })
-    .refine((file) => file.type.startsWith("image/"), {
-      message: "Only image files are allowed",
-    }),
-  voiceFiles: z
-    .array(z.instanceof(File))
-    .transform((files) =>
-      files.filter((file) => file.size > 0 && file.name !== "undefined")
-    )
-    .pipe(
-      z
-        .array(z.instanceof(File))
-        .max(25, { message: "You can upload up to 25 voice files" })
-        .refine(
-          (files) => files.every((file) => file.size <= 10 * 1024 * 1024),
-          {
-            message: "Each file must be less than or equal to 10MB",
-          }
-        )
-        .refine(
-          (files) =>
-            files.every((file) =>
-              ["audio/mp3", "audio/wav", "audio/mpeg", "audio/ogg"].includes(
-                file.type
-              )
-            ),
-          { message: "Only MP3, WAV, OGG and MPEG files are allowed" }
-        )
-    ),
-});
+const userIdSchema = z.string().min(1, { message: "User ID cannot be empty." });
+
+export async function deleteUser(formData: FormData) {
+  const id = formData.get("id");
+  const parseResult = userIdSchema.safeParse(id);
+
+  if (!parseResult.success) {
+    console.error(parseResult.error.errors);
+    return;
+  }
+
+  const userId = parseResult.data;
+  try {
+    await db.delete(users).where(eq(users.id, userId));
+    revalidatePath("/admin");
+  } catch (error) {
+    console.error("Error deleting user:", error);
+  }
+}
+
+export async function createUser(prevState: any, formData: FormData) {
+  const parseResult = createUserSchema.safeParse({
+    username: formData.get("username"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
+  });
+
+  if (!parseResult.success) {
+    const errorMessages = parseResult.error.errors.map((err) => err.message);
+    return { success: false, message: errorMessages.join(", ") };
+  }
+
+  const { username, email, password, role } = parseResult.data;
+
+  try {
+    const foundUser = await findUser(username, email);
+    TODO: "Describe what already exists, username or email";
+    if (foundUser) {
+      return { success: false, message: "User already exists" };
+    }
+
+    const passwordHash = await argon2.hash(password);
+    const newUser: NewUser = {
+      id: generateIdFromEntropySize(10),
+      username,
+      email,
+      passwordHash,
+      role,
+    };
+
+    await db.insert(users).values(newUser);
+    revalidatePath("/admin");
+    return { success: true, message: "User created" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "An unexpected error occurred" };
+  }
+}
 
 // Type for tracking uploaded resources that might need cleanup
 interface UploadedResources {
@@ -57,9 +95,9 @@ interface UploadedResources {
 export async function createAvatar(prevState: any, formData: FormData) {
   const parsedData = avatarSchema.safeParse({
     avatarName: formData.get("avatarName"),
-    userId: formData.get("userId"),
     imageFile: formData.get("imageFile"),
     voiceFiles: formData.getAll("voiceFiles"),
+    userIds: formData.getAll("userIds"),
   });
 
   if (!parsedData.success) {
@@ -67,7 +105,8 @@ export async function createAvatar(prevState: any, formData: FormData) {
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarName, voiceFiles, imageFile, userId } = parsedData.data;
+  const { avatarName, voiceFiles, imageFile, userIds } = parsedData.data;
+  console.log(userIds);
 
   const uploadedResources: UploadedResources = {
     s3Objects: [],
@@ -127,21 +166,31 @@ export async function createAvatar(prevState: any, formData: FormData) {
       videoFileName,
       "video/mp4"
     );
+
     uploadedResources.s3Objects.push({
       bucket: s3BucketName,
       key: idleVideoKey,
     });
 
-    // Step 5: Database insertion
-    const newAvatar: NewAvatar = {
+    TODO: "5.1 and 5.2 are temp, should switch to transaction";
+    // 5.1. Insert the new avatar
+    const createdAvatar = await db
+      .insert(avatars)
+      .values({
+        avatarName,
+        imageUrl,
+        idleVideoUrl: idleVideoUrl,
+        elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
+      })
+      .returning();
+    // 5.2. Insert associations into users_to_avatars
+    const associations = userIds.map((userId) => ({
       userId,
-      avatarName,
-      imageUrl,
-      idleVideoUrl: idleVideoUrl,
-      elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
-    };
+      avatarId: createdAvatar[0].id,
+    }));
 
-    await db.insert(avatarTable).values(newAvatar);
+    await db.insert(usersToAvatars).values(associations);
+    revalidatePath("/admin");
     return { success: true, message: "Avatar created" };
   } catch (error: any) {
     console.error("Error creating avatar:", error);
