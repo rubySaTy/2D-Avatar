@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 import { createTalkStream } from "@/app/actions";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -33,15 +33,16 @@ export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
-  const [message, setMessage] = useState("");
   const [history, setHistory] = useState([""]);
   const [state, formAction] = useFormState(submitMessage(meetingLink), null);
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   useEffect(() => {
-    if (state?.success) {
-      setMessage("");
+    if (state?.success && formRef.current) {
       const timestamp = getMessageTimestamp();
       setHistory((history) => [...history, `${timestamp} - ${state.message}`]);
+      formRef.current.reset();
     }
   }, [state]);
 
@@ -49,11 +50,29 @@ export default function TherapistInteractionPanel({
     <div className="container mx-auto p-4">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-3/4 space-y-6">
-          <form action={formAction} className="space-y-6">
-            <MessageArea message={message} setMessage={setMessage} />
+          <form ref={formRef} action={formAction} className="space-y-6">
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Type your message here."
+                id="message"
+                name="message"
+                className="min-h-[150px] text-lg"
+              />
+
+              <div className="flex justify-between">
+                <SubmitButton>Send Message</SubmitButton>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => formRef.current?.reset()}
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
             {!state?.success && state?.message}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <PremadeMessages setMessage={setMessage} />
+              <PremadeMessages />
               <Card>
                 <CardHeader>
                   <CardTitle>Voice Selector</CardTitle>
@@ -71,39 +90,6 @@ export default function TherapistInteractionPanel({
         <MessageHistory history={history} />
       </div>
     </div>
-  );
-}
-
-export interface MessageAreaProps {
-  message: string;
-  setMessage: Dispatch<SetStateAction<string>>;
-}
-
-function MessageArea({ message, setMessage }: MessageAreaProps) {
-  return (
-    <>
-      <div className="space-y-4">
-        <Textarea
-          placeholder="Type your message here."
-          id="message"
-          name="message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[150px] text-lg"
-        />
-
-        <div className="flex justify-between">
-          <SubmitButton>Send Message</SubmitButton>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setMessage("")}
-          >
-            Clear
-          </Button>
-        </div>
-      </div>
-    </>
   );
 }
 

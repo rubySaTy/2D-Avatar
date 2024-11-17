@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// lib/schemas/fields.ts
 const usernameField = z
   .string()
   .min(3, { message: "Username must be at least 3 characters long" })
@@ -31,13 +30,42 @@ export const loginUserSchema = z.object({
   password: passwordField,
 });
 
-export const createTalkStreamSchema = z.object({
-  meetingLink: z.string().min(1, { message: "Meeting link is required" }),
-  message: z.string().min(1, { message: "Message input is required" }),
-  providerType: z.string().nullable().optional(),
-  voiceId: z.string().nullable().optional(),
-  voiceStyle: z.string().nullable().optional(),
-});
+export const createTalkStreamSchema = z
+  .object({
+    meetingLink: z.string().min(1, { message: "Meeting link is required" }),
+
+    // Preprocess 'message': Convert empty strings to undefined
+    message: z.preprocess((val) => {
+      if (typeof val === "string" && val.trim() === "") return undefined;
+      return val;
+    }, z.string().min(1, { message: "Message input is required" }).optional()),
+
+    // Preprocess 'premadeMessage': Convert empty strings to null
+    premadeMessage: z.preprocess((val) => {
+      if (typeof val === "string" && val.trim() === "") return null;
+      return val;
+    }, z.string().nullable().optional()),
+
+    providerType: z.string().nullable().optional(),
+    voiceId: z.string().nullable().optional(),
+    voiceStyle: z.string().nullable().optional(),
+  })
+  .refine(
+    (data) => {
+      // If 'premadeMessage' is null or undefined, 'message' must be provided
+      if (data.premadeMessage == null) {
+        return (
+          typeof data.message === "string" && data.message.trim().length > 0
+        );
+      }
+      // If 'premadeMessage' is provided, 'message' is optional
+      return true;
+    },
+    {
+      message: "Message input is required",
+      path: ["message"], // This sets the error on the 'message' field
+    }
+  );
 
 export const avatarSchema = z.object({
   avatarName: z.string().min(1),

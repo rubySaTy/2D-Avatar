@@ -11,7 +11,6 @@ export default async function ClientSessionPage({
   const avatar = await getAvatarByMeetingLink(meetingLink);
 
   if (!avatar || !avatar.idleVideoUrl) {
-    console.log("idle video not found");
     notFound();
   }
 

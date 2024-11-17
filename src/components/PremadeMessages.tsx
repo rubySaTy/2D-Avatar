@@ -23,17 +23,7 @@ const messages = {
   ],
 };
 
-interface PremadeMessagesProps {
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-}
-
-export default function PremadeMessages({ setMessage }: PremadeMessagesProps) {
-  const addPremadeMessage = (premadeMessage: string) => {
-    setMessage((prevMessage) =>
-      prevMessage ? `${prevMessage}\n${premadeMessage}` : premadeMessage
-    );
-  };
-
+export default function PremadeMessages() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {Object.entries(messages).map(([type, msgs]) => (
@@ -45,14 +35,15 @@ export default function PremadeMessages({ setMessage }: PremadeMessagesProps) {
             {msgs.map((msg, index) => (
               <Button
                 key={index}
-                type="button"
+                type="submit"
+                name="premadeMessage"
+                value={msg}
                 variant="ghost"
                 className={`w-full justify-start ${
                   type === "positive"
                     ? "text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
                     : "text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
                 }`}
-                onClick={() => addPremadeMessage(msg)}
               >
                 <span className="truncate">{msg}</span>
               </Button>

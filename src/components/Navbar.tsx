@@ -17,9 +17,9 @@ const NavItem = ({ href, text }: { href: string; text: string }) => (
 );
 
 interface NavbarProps {
-  role?: string;
+  currentUserRole: string;
 }
-export default function Navbar({ role }: NavbarProps) {
+export default function Navbar({ currentUserRole: role }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

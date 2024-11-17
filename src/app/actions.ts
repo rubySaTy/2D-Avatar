@@ -107,6 +107,7 @@ export async function createTalkStream(
   const ParsedData = createTalkStreamSchema.safeParse({
     meetingLink,
     message: formData.get("message"),
+    premadeMessage: formData.get("premadeMessage"),
     providerType: formData.get("providerType"),
     voiceId: formData.get("voiceId"),
     voiceStyle: formData.get("voiceStyle"),
@@ -117,7 +118,14 @@ export async function createTalkStream(
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { message, providerType, voiceId, voiceStyle } = ParsedData.data;
+  const {
+    message: userMessage,
+    premadeMessage,
+    providerType,
+    voiceId,
+    voiceStyle,
+  } = ParsedData.data;
+  const message = premadeMessage ?? userMessage;
 
   const meetingData = await getMeetingDataByLink(meetingLink);
   if (!meetingData) {
@@ -182,7 +190,6 @@ interface SessionResponse {
   session_id: string;
 }
 
-// Initialize D-ID stream
 export async function createDIDStream(meetingLink: string) {
   if (!meetingLink) return null;
 
