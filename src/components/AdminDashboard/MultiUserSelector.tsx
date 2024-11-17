@@ -23,9 +23,13 @@ import type { UserDto } from "@/lib/db/schema";
 
 interface MultiUserSelectorProps {
   users: Array<UserDto>;
+  currentUserId: string;
 }
 
-export default function MultiUserSelector({ users }: MultiUserSelectorProps) {
+export default function MultiUserSelector({
+  users,
+  currentUserId,
+}: MultiUserSelectorProps) {
   const [open, setOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Array<UserDto>>([]);
 
@@ -75,7 +79,11 @@ export default function MultiUserSelector({ users }: MultiUserSelectorProps) {
                           : "opacity-0"
                       )}
                     />
-                    {user.username}
+                    {currentUserId === user.id ? (
+                      <b>{user.username} (You)</b>
+                    ) : (
+                      user.username
+                    )}
                   </CommandItem>
                 ))}
               </CommandGroup>

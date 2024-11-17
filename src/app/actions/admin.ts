@@ -2,32 +2,32 @@
 
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
+import { generateIdFromEntropySize } from "lucia";
 import axios from "axios";
 import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
-import {
-  users,
-  NewUser,
-  avatars,
-  NewAvatar,
-  usersToAvatars,
-} from "@/lib/db/schema";
+import { users, NewUser, avatars, usersToAvatars } from "@/lib/db/schema";
 import {
   createIdleVideo,
+  deleteS3Objects,
   findUser,
   getIdleVideo,
   uploadToS3,
 } from "@/lib/utils.server";
-import s3Client from "@/lib/s3Client";
 import { avatarSchema, createUserSchema } from "@/lib/validationSchema";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { generateIdFromEntropySize } from "lucia";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
 import { sanitizeString, sanitizeFilename } from "@/lib/utils";
 
 const userIdSchema = z.string().min(1, { message: "User ID cannot be empty." });
+const avatarIdSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? val : parsed;
+  }
+  return val;
+}, z.number().min(1, { message: "Avatar ID must be a positive number." }));
 
 export async function deleteUser(formData: FormData) {
   const id = formData.get("id");
@@ -87,11 +87,6 @@ export async function createUser(prevState: any, formData: FormData) {
   }
 }
 
-// Type for tracking uploaded resources that might need cleanup
-interface UploadedResources {
-  s3Objects: { bucket: string; key: string }[];
-}
-
 export async function createAvatar(prevState: any, formData: FormData) {
   const parsedData = avatarSchema.safeParse({
     avatarName: formData.get("avatarName"),
@@ -106,27 +101,19 @@ export async function createAvatar(prevState: any, formData: FormData) {
   }
 
   const { avatarName, voiceFiles, imageFile, userIds } = parsedData.data;
-  console.log(userIds);
 
-  const uploadedResources: UploadedResources = {
-    s3Objects: [],
-  };
-
-  const s3BucketName = process.env.AWS_BUCKET_NAME;
-  if (!s3BucketName) {
-    return { success: false, message: "S3 bucket not configured" };
-  }
+  TODO: "Sanitize voice files";
+  const sanitizedAvatarName = sanitizeString(avatarName);
+  const sanitizedFileName = sanitizeFilename(imageFile.name);
 
   try {
-    // Create voice if voice files exist
+    // Step 1: Create Voice - if voice files exist
     const elevenlabsRes =
       voiceFiles.length > 0
         ? await elevenlabs.voices.add({ name: avatarName, files: voiceFiles })
         : null;
 
-    // Step 1: Upload initial image
-    const sanitizedAvatarName = sanitizeString(avatarName);
-    const sanitizedFileName = sanitizeFilename(imageFile.name);
+    // Step 2: Upload Image to S3
     const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
     const { url: imageUrl, key: imageKey } = await uploadToS3(
       imageFile.stream(),
@@ -134,24 +121,21 @@ export async function createAvatar(prevState: any, formData: FormData) {
       `${fileName}`,
       imageFile.type
     );
-    uploadedResources.s3Objects.push({ bucket: s3BucketName, key: imageKey });
 
-    // Step 2: Create idle video
+    // Step 3: Create idle video
     const createdIdleVideoRes = await createIdleVideo(imageUrl);
     if (!createdIdleVideoRes) {
-      await cleanupResources(uploadedResources);
       return { success: false, message: "Error creating idle video" };
     }
 
-    // Step 3: Poll for idle video completion
+    // Step 4: Poll for idle video completion
     // Polling to get the silent idle video
     const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
     if (!idleVideo) {
-      await cleanupResources(uploadedResources);
       return { success: false, message: "Error fetching idle video" };
     }
 
-    // Step 4: Download and upload final video
+    // Step 5: Download and upload final video
     // download video as a Buffer using Axios
     const res = await axios.get(idleVideo.result_url, {
       responseType: "arraybuffer",
@@ -167,49 +151,61 @@ export async function createAvatar(prevState: any, formData: FormData) {
       "video/mp4"
     );
 
-    uploadedResources.s3Objects.push({
-      bucket: s3BucketName,
-      key: idleVideoKey,
+    // Step 6: Begin Database Transaction for Insert Operations
+    await db.transaction(async (tx) => {
+      const createdAvatar = await tx
+        .insert(avatars)
+        .values({
+          avatarName,
+          imageUrl,
+          imageKey,
+          idleVideoUrl,
+          idleVideoKey,
+          elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
+        })
+        .returning();
+
+      const associations = userIds.map((userId) => ({
+        userId,
+        avatarId: createdAvatar[0].id,
+      }));
+
+      await tx.insert(usersToAvatars).values(associations);
     });
 
-    TODO: "5.1 and 5.2 are temp, should switch to transaction";
-    // 5.1. Insert the new avatar
-    const createdAvatar = await db
-      .insert(avatars)
-      .values({
-        avatarName,
-        imageUrl,
-        idleVideoUrl: idleVideoUrl,
-        elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
-      })
-      .returning();
-    // 5.2. Insert associations into users_to_avatars
-    const associations = userIds.map((userId) => ({
-      userId,
-      avatarId: createdAvatar[0].id,
-    }));
-
-    await db.insert(usersToAvatars).values(associations);
     revalidatePath("/admin");
     return { success: true, message: "Avatar created" };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating avatar:", error);
     return { success: false, message: "Internal server error" };
   }
 }
 
-async function cleanupResources(resources: UploadedResources) {
-  // Cleanup S3 objects
-  for (const obj of resources.s3Objects) {
-    try {
-      await s3Client.send(
-        new DeleteObjectCommand({
-          Bucket: obj.bucket,
-          Key: obj.key,
-        })
-      );
-    } catch (error) {
-      console.error(`Failed to delete S3 object ${obj.key}:`, error);
-    }
+export async function deleteAvatar(formData: FormData) {
+  const id = formData.get("id");
+  const parseResult = avatarIdSchema.safeParse(id);
+
+  if (!parseResult.success) {
+    console.error(parseResult.error.errors);
+    return;
+  }
+
+  const avatarId = parseResult.data;
+  try {
+    const deletedAvatar = await db
+      .delete(avatars)
+      .where(eq(avatars.id, avatarId))
+      .returning();
+
+    const { imageKey, idleVideoKey } = deletedAvatar[0];
+
+    const keysToDelete: string[] = [];
+    keysToDelete.push(imageKey);
+    if (idleVideoKey) keysToDelete.push(idleVideoKey);
+    await deleteS3Objects(keysToDelete);
+
+    revalidatePath("/admin");
+  } catch (error) {
+    console.error("Error deleting avatar:", error);
   }
 }

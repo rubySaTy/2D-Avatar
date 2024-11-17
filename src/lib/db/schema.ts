@@ -29,7 +29,9 @@ export const avatars = pgTable("avatar", {
   id: serial("id").primaryKey(),
   avatarName: varchar("avatar_name", { length: 50 }).notNull(),
   imageUrl: text("image_url").notNull(),
+  imageKey: text("image_key").notNull(),   
   idleVideoUrl: text("idle_video_url"),
+  idleVideoKey: text("idle_video_key"),
   elevenlabsVoiceId: text("elevenlabs_voice_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -43,10 +45,10 @@ export const usersToAvatars = pgTable(
   {
     userId: text("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }), // Cascades deletion of associations when a user is deleted
+      .references(() => users.id, { onDelete: "cascade" }),
     avatarId: integer("avatar_id")
       .notNull()
-      .references(() => avatars.id, { onDelete: "restrict" }), // Prevents avatar deletion when associations are removed
+      .references(() => avatars.id, { onDelete: "cascade" }),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.avatarId] }),
@@ -79,7 +81,7 @@ export const meetingSessions = pgTable("meeting_session", {
   id: serial("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   avatarId: integer("avatar_id").references(() => avatars.id, {
-    onDelete: "restrict",
+    onDelete: "cascade",
   }),
   meetingLink: varchar("meeting_link", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -1,19 +1,22 @@
 import { eq, or } from "drizzle-orm";
 import { db } from "./db/db";
 import { users, avatars, meetingSessions } from "./db/schema";
-import type { User, Avatar, MeetingSession } from "./db/schema";
-import axios, { type AxiosResponse, type AxiosRequestConfig } from "axios";
+import type { User, Avatar, MeetingSession, UserDto } from "./db/schema";
+import type { AxiosResponse, AxiosRequestConfig } from "axios";
 import s3Client from "./s3Client";
 import { Upload } from "@aws-sdk/lib-storage";
-import type {
-  ObjectCannedACL,
-  PutObjectCommandInput,
+import {
+  DeleteObjectsCommand,
+  type DeleteObjectsCommandInput,
+  type ObjectCannedACL,
+  type PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
 import type {
   DIDCreateTalkApiResponse,
   DIDGetTalkApiResponse,
   PollConfig,
 } from "./types";
+import didApi from "./d-idApi";
 
 export function shortUUID(): string {
   const uuid: string = crypto.randomUUID();
@@ -70,6 +73,20 @@ export async function findUser(
   throw new Error("No valid identifier provided");
 }
 
+export async function getUsersDto(): Promise<UserDto[]> {
+  const usersArray = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    })
+    .from(users);
+
+  return usersArray;
+}
+
 export async function getUserAvatars(userId: string) {
   const result = await db.query.users.findFirst({
     where: eq(users.id, userId),
@@ -86,32 +103,21 @@ export async function getUserAvatars(userId: string) {
 
 export async function createIdleVideo(imageUrl: string) {
   try {
-    const res = await axios<DIDCreateTalkApiResponse>(
-      `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${process.env.DID_API_KEY}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
+    const res = await didApi.post<DIDCreateTalkApiResponse>("", {
+      source_url: imageUrl,
+      driver_url: "bank://lively/driver-06",
+      script: {
+        type: "text",
+        ssml: true,
+        input:
+          '<break time="5000ms"/><break time="5000ms"/><break time="5000ms"/>',
+        provider: {
+          type: "microsoft",
+          voice_id: "en-US-JennyNeural",
         },
-        data: {
-          source_url: imageUrl,
-          driver_url: "bank://lively/driver-06",
-          script: {
-            type: "text",
-            ssml: true,
-            input:
-              '<break time="5000ms"/><break time="5000ms"/><break time="5000ms"/>',
-            provider: {
-              type: "microsoft",
-              voice_id: "en-US-JennyNeural",
-            },
-          },
-          config: { fluent: true },
-        },
-      }
-    );
+      },
+      config: { fluent: true },
+    });
     return res.data;
   } catch (error) {
     console.error(error);
@@ -161,7 +167,7 @@ async function fetchWithRetries<T>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await axios<T>(url, config);
+      const response = await didApi<T>(url, config);
 
       if (!shouldRetry(response.data)) {
         return response;
@@ -289,5 +295,31 @@ export async function uploadToS3(
   } catch (error) {
     console.error("Error uploading to S3:", error);
     throw new Error("Failed to upload file to S3");
+  }
+}
+
+export async function deleteS3Objects(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+
+  const deleteParams: DeleteObjectsCommandInput = {
+    Bucket: process.env.AWS_BUCKET_NAME!,
+    Delete: {
+      Objects: keys.map((key) => ({ Key: key })),
+      Quiet: false,
+    },
+  };
+
+  try {
+    const command = new DeleteObjectsCommand(deleteParams);
+    const response = await s3Client.send(command);
+    console.info("Deleted S3 objects:", response.Deleted);
+
+    if (response.Errors && response.Errors.length > 0) {
+      console.error("Errors deleting S3 objects:", response.Errors);
+      throw new Error("Some S3 objects could not be deleted");
+    }
+  } catch (error) {
+    console.error("Error deleting S3 objects:", error);
+    throw error;
   }
 }

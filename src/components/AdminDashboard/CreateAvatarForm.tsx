@@ -17,13 +17,17 @@ import { AlertCircle } from "lucide-react";
 import { createAvatar } from "@/app/actions/admin";
 import { Separator } from "../ui/separator";
 import { SubmitButton } from "../SubmitButton";
-import { type UserDto } from "@/lib/db/schema";
+import type { UserDto } from "@/lib/db/schema";
 
 interface CreateAvatarFormProps {
   users: Array<UserDto>;
+  currentUserId: string;
 }
 
-export default function CreateAvatarForm({ users }: CreateAvatarFormProps) {
+export default function CreateAvatarForm({
+  users,
+  currentUserId,
+}: CreateAvatarFormProps) {
   const [state, formAction] = useFormState(createAvatar, null);
 
   return (
@@ -49,7 +53,7 @@ export default function CreateAvatarForm({ users }: CreateAvatarFormProps) {
         <Separator />
         <div className="space-y-2">
           <Label>Associated Users</Label>
-          <MultiUserSelector users={users} />
+          <MultiUserSelector users={users} currentUserId={currentUserId} />
         </div>
       </div>
 

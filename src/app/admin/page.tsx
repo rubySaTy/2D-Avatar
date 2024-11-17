@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db/db";
-import { avatars, users } from "@/lib/db/schema";
+import { avatars } from "@/lib/db/schema";
 import { getUser } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -12,22 +12,16 @@ import {
 } from "@/components/ui/card";
 import UserManagement from "@/components/AdminDashboard/UserManagement";
 import AvatarManagement from "@/components/AdminDashboard/AvatarManagement";
+import { getUsersDto } from "@/lib/utils.server";
 
 export default async function AdminPage() {
   const user = await getUser();
   if (!user || user.role !== "admin") redirect("/login");
 
-  const usersArray = await db
-    .select({
-      id: users.id,
-      username: users.username,
-      email: users.email,
-      role: users.role,
-      createdAt: users.createdAt,
-    })
-    .from(users);
-
-  const avatarsArray = await db.select().from(avatars);
+  const [usersDto, avatarsArray] = await Promise.all([
+    getUsersDto(),
+    db.select().from(avatars),
+  ]);
 
   return (
     <div className="container mx-auto py-10">
@@ -43,10 +37,10 @@ export default async function AdminPage() {
               <TabsTrigger value="avatars">Avatars</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
-              <UserManagement users={usersArray} />
+              <UserManagement users={usersDto} />
             </TabsContent>
             <TabsContent value="avatars">
-              <AvatarManagement avatars={avatarsArray} users={usersArray} />
+              <AvatarManagement avatars={avatarsArray} users={usersDto} />
             </TabsContent>
           </Tabs>
         </CardContent>
