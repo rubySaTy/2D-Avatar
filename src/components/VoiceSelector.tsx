@@ -1,4 +1,3 @@
-// components/VoiceArea.tsx
 import { useState, useMemo } from "react";
 import { Label } from "./ui/label";
 import {

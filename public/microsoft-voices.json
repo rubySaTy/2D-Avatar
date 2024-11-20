@@ -224,34 +224,6 @@
     "styles": []
   },
   {
-    "id": "en-CA-ClaraNeural",
-    "name": "Clara",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-CA",
-        "language": "English (Canada)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-CA-LiamNeural",
-    "name": "Liam",
-    "gender": "male",
-    "languages": [
-      {
-        "locale": "en-CA",
-        "language": "English (Canada)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
     "id": "en-GB-SoniaNeural",
     "name": "Sonia",
     "gender": "female",
@@ -462,71 +434,37 @@
     "styles": []
   },
   {
-    "id": "en-IE-EmilyNeural",
-    "name": "Emily",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-IE",
-        "language": "English (Ireland)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-IE-ConnorNeural",
-    "name": "Connor",
-    "gender": "male",
-    "languages": [
-      {
-        "locale": "en-IE",
-        "language": "English (Ireland)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-
-  {
-    "id": "en-NZ-MollyNeural",
-    "name": "Molly",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-NZ",
-        "language": "English (New Zealand)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-NZ-MitchellNeural",
-    "name": "Mitchell",
-    "gender": "male",
-    "languages": [
-      {
-        "locale": "en-NZ",
-        "language": "English (New Zealand)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-
-  {
     "id": "en-US-AvaMultilingualNeural",
     "name": "Ava Multilingual",
     "gender": "female",
     "languages": [
       {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
         "locale": "en-US",
         "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -539,8 +477,32 @@
     "gender": "male",
     "languages": [
       {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
         "locale": "en-US",
         "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -553,78 +515,32 @@
     "gender": "female",
     "languages": [
       {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-BrianMultilingualNeural",
-    "name": "Brian Multilingual",
-    "gender": "male",
-    "languages": [
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
       {
         "locale": "en-US",
         "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-AvaNeural",
-    "name": "Ava",
-    "gender": "female",
-    "languages": [
+      },
       {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-AndrewNeural",
-    "name": "Andrew",
-    "gender": "male",
-    "languages": [
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
       {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-EmmaNeural",
-    "name": "Emma",
-    "gender": "female",
-    "languages": [
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
       {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-BrianNeural",
-    "name": "Brian",
-    "gender": "male",
-    "languages": [
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
       {
-        "locale": "en-US",
-        "language": "English (United States)"
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -939,20 +855,6 @@
     "styles": []
   },
   {
-    "id": "en-US-CoraNeural",
-    "name": "Cora",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
     "id": "en-US-ElizabethNeural",
     "name": "Elizabeth",
     "gender": "female",
@@ -1000,8 +902,32 @@
     "gender": "female",
     "languages": [
       {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
         "locale": "en-US",
         "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -1056,22 +982,32 @@
     "gender": "male",
     "languages": [
       {
-        "locale": "en-US",
-        "language": "English (United States)"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-SteffanNeural",
-    "name": "Steffan",
-    "gender": "male",
-    "languages": [
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
       {
         "locale": "en-US",
         "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -1084,8 +1020,32 @@
     "gender": "male",
     "languages": [
       {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
         "locale": "en-US",
         "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -1093,13 +1053,83 @@
     "styles": []
   },
   {
-    "id": "en-ZA-LeahNeural",
-    "name": "Leah",
+    "id": "zh-CN-XiaoxiaoMultilingualNeural",
+    "name": "Xiaoxiao Multilingual",
     "gender": "female",
     "languages": [
       {
-        "locale": "en-ZA",
-        "language": "English (South Africa)"
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "affectionate",
+      "cheerful",
+      "empathetic",
+      "excited",
+      "poetry-reading",
+      "sorry",
+      "story"
+    ]
+  },
+  {
+    "id": "en-GB-AdaMultilingualNeural",
+    "name": "Ada Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",
@@ -1107,13 +1137,995 @@
     "styles": []
   },
   {
-    "id": "en-ZA-LukeNeural",
-    "name": "Luke",
+    "id": "en-GB-OllieMultilingualNeural",
+    "name": "Ollie Multilingual",
     "gender": "male",
     "languages": [
       {
-        "locale": "en-ZA",
-        "language": "English (South Africa)"
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-CoraMultilingualNeural",
+    "name": "Cora Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-ChristopherMultilingualNeural",
+    "name": "Christopher Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-BrandonMultilingualNeural",
+    "name": "Brandon Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "fr-FR-VivienneMultilingualNeural",
+    "name": "Vivienne Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "fr-FR-RemyMultilingualNeural",
+    "name": "Remy Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "locale": "en-US",
+    "language": "English (United States)"
+  },
+  {
+    "locale": "he-IL",
+    "language": "Hebrew (Israel)"
+  },
+  {
+    "id": "fr-FR-LucienMultilingualNeural",
+    "name": "Lucien Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "de-DE-SeraphinaMultilingualNeural",
+    "name": "Seraphina Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "de-DE-FlorianMultilingualNeural",
+    "name": "Florian Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "it-IT-AlessioMultilingualNeural",
+    "name": "Alessio Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "it-IT-IsabellaMultilingualNeural",
+    "name": "Isabella Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "it-IT-GiuseppeMultilingualNeural",
+    "name": "Giuseppe Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "it-IT-MarcelloMultilingualNeural",
+    "name": "Marcello Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "pt-BR-MacerioMultilingualNeural",
+    "name": "Macerio Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "pt-BR-ThalitaMultilingualNeural",
+    "name": "Thalita Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "es-ES-ArabellaMultilingualNeural",
+    "name": "Arabella Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "es-ES-IsidoraMultilingualNeural",
+    "name": "Isidora Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "es-ES-TristanMultilingualNeural",
+    "name": "Tristan Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "es-ES-XimenaMultilingualNeural",
+    "name": "Ximena Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-XiaochenMultilingualNeural",
+    "name": "Xiaochen Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-XiaoyuMultilingualNeural",
+    "name": "Xiaoyu Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-YunyiMultilingualNeural",
+    "name": "Yunyi Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "en-US-BrianMultilingualNeural",
+    "name": "Brian Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-YunfanMultilingualNeural",
+    "name": "Yunfan Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-YunxiaoMultilingualNeural",
+    "name": "Yunxiao Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "ko-KR-HyunsuMultilingualNeural",
+    "name": "Hyunsu Multilingual",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)"
+      },
+      {
+        "locale": "en-AU",
+        "language": "English (Australia)"
+      },
+      {
+        "locale": "fr-FR",
+        "language": "French (France)"
+      },
+      {
+        "locale": "de-DE",
+        "language": "German (Germany)"
+      },
+      {
+        "locale": "es-ES",
+        "language": "Spanish (Spain)"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)"
       }
     ],
     "access": "public",

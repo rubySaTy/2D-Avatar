@@ -36,13 +36,16 @@ export default function TherapistInteractionPanel({
   const [history, setHistory] = useState([""]);
   const [state, formAction] = useFormState(submitMessage(meetingLink), null);
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (state?.success && formRef.current) {
+    if (state?.success) {
       const timestamp = getMessageTimestamp();
       setHistory((history) => [...history, `${timestamp} - ${state.message}`]);
-      formRef.current.reset();
+
+      if (messageRef.current) {
+        messageRef.current.value = "";
+      }
     }
   }, [state]);
 
@@ -50,9 +53,10 @@ export default function TherapistInteractionPanel({
     <div className="container mx-auto p-4">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-3/4 space-y-6">
-          <form ref={formRef} action={formAction} className="space-y-6">
+          <form action={formAction} className="space-y-6">
             <div className="space-y-4">
               <Textarea
+                ref={messageRef}
                 placeholder="Type your message here."
                 id="message"
                 name="message"
@@ -64,7 +68,11 @@ export default function TherapistInteractionPanel({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => formRef.current?.reset()}
+                  onClick={() => {
+                    if (messageRef.current) {
+                      messageRef.current.value = "";
+                    }
+                  }}
                 >
                   Clear
                 </Button>
