@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -28,7 +27,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getUser();
-  if (!user) redirect("/login");
 
   return (
     <html lang="en">
@@ -42,7 +40,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <header>
-            <Navbar currentUserRole={user.role} />
+            <Navbar currentUserRole={user?.role} />
           </header>
           {children}
         </ThemeProvider>

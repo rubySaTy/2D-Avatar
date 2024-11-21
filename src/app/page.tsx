@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { getUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
   return (
     <main className="flex-1">
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
