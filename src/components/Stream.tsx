@@ -371,12 +371,12 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardContent className="p-4">
-        <div className="relative aspect-[4/3]  bg-gray-900">
+        <div className="relative aspect-video  bg-gray-900">
           {!(isReady && isStreamReady) && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <Loader2 className="w-10 h-10 text-white animate-spin" />
             </div>
           )}
 
