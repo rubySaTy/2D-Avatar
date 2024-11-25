@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "../ui/table";
 import { deleteUser } from "@/app/actions/admin";
+import EditUserForm from "./EditUserForm";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserRowProps = {
@@ -13,6 +14,7 @@ type UserRowProps = {
 
 export default function UserRow({ user, currentUserId }: UserRowProps) {
   const isCurrentUser = user.id === currentUserId;
+  const deleteUserWithId = deleteUser.bind(null, user.id);
 
   return (
     <TableRow className={isCurrentUser ? "bg-muted/50" : ""}>
@@ -48,10 +50,11 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
                   <Pencil className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>TODO: implement edit user form</DialogContent>
+              <DialogContent>
+                <EditUserForm user={user} />
+              </DialogContent>
             </Dialog>
-            <form action={deleteUser}>
-              <input type="hidden" name="id" value={user.id} />
+            <form action={deleteUserWithId}>
               <Button variant="destructive" size="icon" type="submit">
                 <Trash2 className="h-4 w-4" />
               </Button>

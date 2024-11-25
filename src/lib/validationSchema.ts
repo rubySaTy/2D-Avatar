@@ -14,15 +14,26 @@ const passwordField = z
   .min(1, { message: "Password must be at least 1 character long." })
   .max(16, { message: "Password must be at most 16 characters long." });
 
-export const createUserSchema = z.object({
-  username: usernameField,
-  email: z.string().email(),
-  password: passwordField,
-  role: z.enum(["admin", "therapist"], {
-    errorMap: () => ({
-      message: "Role must be either 'admin' or 'therapist'.",
-    }),
+const emailField = z.string().email({ message: "Invalid email address." });
+
+const roleEnum = z.enum(["admin", "therapist"], {
+  errorMap: () => ({
+    message: "Role must be either 'admin' or 'therapist'.",
   }),
+});
+
+const baseUserSchema = z.object({
+  username: usernameField,
+  email: emailField,
+});
+
+export const createUserSchema = baseUserSchema.extend({
+  password: passwordField,
+  role: roleEnum,
+});
+
+export const editUserSchema = baseUserSchema.extend({
+  role: roleEnum.optional().nullable(),
 });
 
 export const loginUserSchema = z.object({
