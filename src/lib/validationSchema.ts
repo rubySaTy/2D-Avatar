@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const userIdSchema = z
+  .string()
+  .min(1, { message: "User ID cannot be empty." });
 const usernameField = z
   .string()
   .min(3, { message: "Username must be at least 3 characters long" })
@@ -34,11 +37,23 @@ export const createUserSchema = baseUserSchema.extend({
 
 export const editUserSchema = baseUserSchema.extend({
   role: roleEnum.optional().nullable(),
+  userId: userIdSchema,
 });
 
 export const loginUserSchema = z.object({
-  username: usernameField,
-  password: passwordField,
+  identifier: z
+    .string()
+    .min(1, "Username or Email is required")
+    .refine(
+      (val) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(val) || val.length >= 3;
+      },
+      {
+        message: "Enter a valid email or a username with at least 3 characters",
+      }
+    ),
+  password: z.string().min(1, "Password must be at least 1 characters"),
 });
 
 export const createTalkStreamSchema = z
@@ -115,3 +130,11 @@ export const avatarSchema = z.object({
         )
     ),
 });
+
+export const avatarIdSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? val : parsed;
+  }
+  return val;
+}, z.number().min(1, { message: "Avatar ID must be a positive number." }));

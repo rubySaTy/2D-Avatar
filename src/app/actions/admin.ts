@@ -21,33 +21,27 @@ import {
   uploadToS3,
 } from "@/lib/utils.server";
 import {
+  avatarIdSchema,
   avatarSchema,
   createUserSchema,
   editUserSchema,
+  userIdSchema,
 } from "@/lib/validationSchema";
-import { z } from "zod";
 import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
 import { sanitizeString, sanitizeFilename } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 
-const userIdSchema = z.string().min(1, { message: "User ID cannot be empty." });
-const avatarIdSchema = z.preprocess((val) => {
-  if (typeof val === "string") {
-    const parsed = parseInt(val, 10);
-    return isNaN(parsed) ? val : parsed;
-  }
-  return val;
-}, z.number().min(1, { message: "Avatar ID must be a positive number." }));
-
-export async function deleteUser(userId: string) {
-  const parseResult = userIdSchema.safeParse(userId);
+export async function deleteUser(formData: FormData) {
+  const id = formData.get("id");
+  const parseResult = userIdSchema.safeParse(id);
 
   if (!parseResult.success) {
     console.error(parseResult.error.errors);
     return;
   }
 
+  const userId = parseResult.data;
   try {
     await db.delete(users).where(eq(users.id, userId));
     revalidatePath("/admin");
@@ -73,9 +67,23 @@ export async function createUser(prevState: any, formData: FormData) {
 
   try {
     const foundUser = await findUser(username, email);
-    TODO: "Describe what already exists, username or email";
     if (foundUser) {
-      return { success: false, message: "User already exists" };
+      const conflicts: string[] = [];
+
+      if (foundUser.username === username) {
+        conflicts.push("Username already exists.");
+      }
+
+      if (foundUser.email === email) {
+        conflicts.push("Email already exists.");
+      }
+
+      const conflictMessage =
+        conflicts.length > 1
+          ? conflicts.join(" ")
+          : conflicts[0] || "User already exists.";
+
+      return { success: false, message: conflictMessage };
     }
 
     const passwordHash = await argon2.hash(password);
@@ -96,30 +104,20 @@ export async function createUser(prevState: any, formData: FormData) {
   }
 }
 
-export async function editUser(
-  userId: string,
-  prevState: any,
-  formData: FormData
-) {
-  const parseUserId = userIdSchema.safeParse(userId);
-
-  if (!parseUserId.success) {
-    console.error(parseUserId.error.errors);
-    return { success: false, message: "Invalid user ID" };
-  }
-
+export async function editUser(prevState: any, formData: FormData) {
   const parseResult = editUserSchema.safeParse({
+    userId: formData.get("userId"),
     username: formData.get("username"),
     email: formData.get("email"),
     role: formData.get("role"),
   });
-
   if (!parseResult.success) {
     const errorMessages = parseResult.error.errors.map((err) => err.message);
     return { success: false, message: errorMessages.join(", ") };
   }
 
-  const { username, email, role } = parseResult.data;
+  const { userId, username, email, role } = parseResult.data;
+
   try {
     const existingUser = await db
       .select()
@@ -131,21 +129,13 @@ export async function editUser(
     }
 
     const user = existingUser[0];
-    const roleChanged = user.role !== role && role;
+    const updates: Partial<NewUser> = { username, email };
+    const roleChanged = role && user.role !== role;
 
-    const updatedUser: Partial<NewUser> = {
-      username,
-      email,
-    };
+    if (roleChanged) updates.role = role;
 
-    if (roleChanged) {
-      updatedUser.role = role;
-    }
-    console.log(updatedUser);
+    await db.update(users).set(updates).where(eq(users.id, userId));
 
-    await db.update(users).set(updatedUser).where(eq(users.id, userId));
-
-    // If role has changed, invalidate all active sessions for the user
     if (roleChanged) {
       await db.delete(sessions).where(eq(sessions.userId, userId));
     }
@@ -156,19 +146,21 @@ export async function editUser(
     console.error(error);
 
     // Simple type guard to check if error is a DbError
-    if (isDbError(error)) {
-      if (error.code === "23505") {
-        // PostgreSQL unique_violation error code
-        if (error.constraint === "user_username_unique")
-          return { success: false, message: "Username already exists." };
-        if (error.constraint === "user_email_unique")
-          return { success: false, message: "Email already exists." };
-      }
+    if (isDbError(error) && error.code === "23505") {
+      const constraintMessages: Record<string, string> = {
+        user_username_unique: "Username already exists.",
+        user_email_unique: "Email already exists.",
+      };
+      return {
+        success: false,
+        message: constraintMessages[error.constraint] || "Duplicate entry.",
+      };
     }
 
     return { success: false, message: "An unexpected error occurred" };
   }
 }
+
 export async function createAvatar(prevState: any, formData: FormData) {
   const parsedData = avatarSchema.safeParse({
     avatarName: formData.get("avatarName"),

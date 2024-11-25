@@ -13,9 +13,16 @@ type UserTableProps = {
   users: Array<UserDto>;
 };
 
+
 export default async function UserTable({ users }: UserTableProps) {
   const currentUser = await getUser();
   if (!currentUser) return null;
+
+  const sortedUsers = users.sort((a, b) => {
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return dateA.getTime() - dateB.getTime();
+  });
 
   return (
     <Table>
@@ -29,7 +36,7 @@ export default async function UserTable({ users }: UserTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users.map((user) => (
+        {sortedUsers.map((user) => (
           <UserRow key={user.id} user={user} currentUserId={currentUser.id} />
         ))}
       </TableBody>

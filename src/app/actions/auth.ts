@@ -10,7 +10,7 @@ import { findUser } from "@/lib/utils.server";
 
 export async function loginUser(prevState: any, formData: FormData) {
   const parsedResult = loginUserSchema.safeParse({
-    username: formData.get("username"),
+    identifier: formData.get("identifier"),
     password: formData.get("password"),
   });
 
@@ -21,13 +21,16 @@ export async function loginUser(prevState: any, formData: FormData) {
     return { message: errorMessages };
   }
 
-  const { username, password } = parsedResult.data;
+  const { identifier, password } = parsedResult.data;
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 
   try {
-    const user = await findUser(username);
-    if (!user) {
-      return { message: "Invalid credentials" };
-    }
+    const user = await findUser(
+      isEmail ? undefined : identifier,
+      isEmail ? identifier : undefined
+    );
+    
+    if (!user) return { message: "Invalid credentials" };
 
     const validPassword = await argon2.verify(user.passwordHash, password);
     if (!validPassword) {

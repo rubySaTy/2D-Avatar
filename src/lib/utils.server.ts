@@ -47,31 +47,23 @@ export async function findUser(
   username?: string,
   email?: string
 ): Promise<User | null> {
-  if (username && email) {
+  if (username || email) {
     const usersRes = await db
       .select()
       .from(users)
-      .where(or(eq(users.username, username), eq(users.email, email)))
-      .limit(1);
-    return usersRes[0] ?? null;
-  } else if (username) {
-    const usersRes = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, username))
-      .limit(1);
-    return usersRes[0] ?? null;
-  } else if (email) {
-    const usersRes = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
+      .where(
+        or(
+          username ? eq(users.username, username) : undefined,
+          email ? eq(users.email, email) : undefined
+        )
+      )
       .limit(1);
     return usersRes[0] ?? null;
   }
 
   throw new Error("No valid identifier provided");
 }
+
 
 export async function getUsersDto(): Promise<UserDto[]> {
   const usersArray = await db

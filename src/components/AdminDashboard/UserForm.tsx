@@ -61,6 +61,10 @@ export default function UserForm({
       </DialogHeader>
 
       <div className="space-y-4">
+        {isEditing && (
+          <input type="hidden" name="userId" value={initialData.id} />
+        )}
+
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="username" className="text-right">
             Username

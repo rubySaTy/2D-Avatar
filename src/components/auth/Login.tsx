@@ -19,12 +19,13 @@ export default function Login() {
     <FormCard title="Sign in" message={state?.message}>
       <form action={formAction}>
         <div className="grid w-full items-center gap-3 md:gap-4">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="identifier">Username or Email</Label>
           <Input
-            id="username"
-            name="username"
-            placeholder="Username"
+            id="identifier"
+            name="identifier"
+            placeholder="Username or Email"
             required
+            autoFocus
           />
           <Label htmlFor="password">Password</Label>
           <div className="relative">

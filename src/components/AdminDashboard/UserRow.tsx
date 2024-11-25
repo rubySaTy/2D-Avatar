@@ -14,7 +14,6 @@ type UserRowProps = {
 
 export default function UserRow({ user, currentUserId }: UserRowProps) {
   const isCurrentUser = user.id === currentUserId;
-  const deleteUserWithId = deleteUser.bind(null, user.id);
 
   return (
     <TableRow className={isCurrentUser ? "bg-muted/50" : ""}>
@@ -54,7 +53,8 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
                 <EditUserForm user={user} />
               </DialogContent>
             </Dialog>
-            <form action={deleteUserWithId}>
+            <form action={deleteUser}>
+              <input type="hidden" name="id" value={user.id} />
               <Button variant="destructive" size="icon" type="submit">
                 <Trash2 className="h-4 w-4" />
               </Button>
