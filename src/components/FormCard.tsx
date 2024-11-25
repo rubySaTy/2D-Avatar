@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "./ui/alert";
 import {
   Card,
   CardContent,
@@ -10,13 +12,13 @@ import {
 
 interface AuthFormCardProps {
   title: string;
-  message?: string | null;
+  state: { success: boolean; message: string } | null;
   children: React.ReactNode;
 }
 
 export default function FormCard({
   title,
-  message,
+  state,
   children,
 }: AuthFormCardProps) {
   return (
@@ -26,7 +28,15 @@ export default function FormCard({
       </CardHeader>
       <CardContent className="p-4 md:p-6">{children}</CardContent>
       <CardFooter>
-        <p>{message}</p>
+        {state?.message && (
+          <Alert
+            variant={state.success ? "default" : "destructive"}
+            className="mb-4"
+          >
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{state.message}</AlertDescription>
+          </Alert>
+        )}
       </CardFooter>
     </Card>
   );

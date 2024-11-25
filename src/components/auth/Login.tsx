@@ -16,7 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <FormCard title="Sign in" message={state?.message}>
+    <FormCard title="Sign in" state={state}>
       <form action={formAction}>
         <div className="grid w-full items-center gap-3 md:gap-4">
           <Label htmlFor="identifier">Username or Email</Label>

@@ -18,7 +18,7 @@ export async function loginUser(prevState: any, formData: FormData) {
     const errorMessages = parsedResult.error.errors
       .map((err) => err.message)
       .join(", ");
-    return { message: errorMessages };
+    return { success: false, message: errorMessages };
   }
 
   const { identifier, password } = parsedResult.data;
@@ -29,12 +29,12 @@ export async function loginUser(prevState: any, formData: FormData) {
       isEmail ? undefined : identifier,
       isEmail ? identifier : undefined
     );
-    
-    if (!user) return { message: "Invalid credentials" };
+
+    if (!user) return { success: false, message: "Invalid credentials" };
 
     const validPassword = await argon2.verify(user.passwordHash, password);
     if (!validPassword) {
-      return { message: "Invalid credentials" };
+      return { success: false, message: "Invalid credentials" };
     }
 
     const session = await lucia.createSession(user.id, {});
@@ -44,9 +44,10 @@ export async function loginUser(prevState: any, formData: FormData) {
       sessionCookie.value,
       sessionCookie.attributes
     );
+    return { success: true, message: "Login successful" };
   } catch (error) {
     console.error(error);
-    return { message: "An unexpected error occurred" };
+    return { success: false, message: "An unexpected error occurred" };
   }
 
   redirect("/");
