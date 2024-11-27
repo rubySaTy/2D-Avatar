@@ -1,10 +1,10 @@
 import { editUser } from "@/app/actions/admin";
-import UserForm from "./UserForm";
+import BaseUserForm from "./BaseUserForm";
 import type { UserDto } from "@/lib/db/schema";
 
 export default function EditUserForm({ user }: { user: UserDto }) {
   return (
-    <UserForm
+    <BaseUserForm
       serverAction={editUser}
       initialData={user}
       title="Edit User"

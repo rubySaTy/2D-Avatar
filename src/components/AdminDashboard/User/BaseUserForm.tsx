@@ -19,11 +19,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { SubmitButton } from "../SubmitButton";
+import { SubmitButton } from "@/components/SubmitButton";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import type { UserDto } from "@/lib/db/schema";
 
-interface UserFormProps {
+interface BaseUserFormProps {
   serverAction: (
     prevState: any,
     formData: FormData
@@ -35,14 +35,14 @@ interface UserFormProps {
   isEditing?: boolean;
 }
 
-export default function UserForm({
+export default function BaseUserForm({
   serverAction,
   initialData = {},
   title,
   description,
   submitText,
   isEditing = false,
-}: UserFormProps) {
+}: BaseUserFormProps) {
   const [state, formAction] = useFormState(serverAction, null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);

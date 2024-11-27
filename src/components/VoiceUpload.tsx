@@ -39,7 +39,6 @@ export default function VoiceUpload() {
   const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
     fileRejections.forEach(({ file, errors }) => {
       errors.forEach((err) => {
-        // Handle errors, e.g., display a message to the user
         console.error(`Error uploading ${file.name}: ${err.message}`);
       });
     });

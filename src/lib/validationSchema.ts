@@ -93,7 +93,7 @@ export const createTalkStreamSchema = z
     }
   );
 
-export const avatarSchema = z.object({
+export const createAvatarSchema = z.object({
   avatarName: z.string().min(1),
   userIds: z.array(z.string()).min(1, "At least one user must be selected"),
   imageFile: z
@@ -138,3 +138,27 @@ export const avatarIdSchema = z.preprocess((val) => {
   }
   return val;
 }, z.number().min(1, { message: "Avatar ID must be a positive number." }));
+
+TODO: "Remove duplications of schema logic between create and edit";
+export const editAvatarSchema = z.object({
+  avatarId: avatarIdSchema,
+  avatarName: z.string().min(1),
+  userIds: z.array(z.string()).min(1, "At least one user must be selected"),
+  imageFile: z
+    .instanceof(File)
+    .optional()
+    .refine(
+      (file) => {
+        if (!file || file.size === 0) return true;
+        return file.size <= 5 * 1024 * 1024;
+      },
+      { message: "File size should be less than 5MB" }
+    )
+    .refine(
+      (file) => {
+        if (!file || file.size === 0) return true;
+        return file.type.startsWith("image/");
+      },
+      { message: "Only image files are allowed" }
+    ),
+});

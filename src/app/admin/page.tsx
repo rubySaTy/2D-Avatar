@@ -10,8 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import UserManagement from "@/components/AdminDashboard/UserManagement";
-import AvatarManagement from "@/components/AdminDashboard/AvatarManagement";
+import UserManagement from "@/components/AdminDashboard/User/UserManagement";
+import AvatarManagement from "@/components/AdminDashboard/Avatar/AvatarManagement";
 import { getUsersDto } from "@/lib/utils.server";
 
 export default async function AdminPage() {

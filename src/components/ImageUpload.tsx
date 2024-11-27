@@ -7,8 +7,14 @@ import { Label } from "@/components/ui/label";
 import { X, Image as LucideImage } from "lucide-react";
 import { fileArrayToFileList } from "@/lib/utils";
 
-export default function ImageUploader() {
-  const [preview, setPreview] = useState<string | null>(null);
+interface ImageUploaderProps {
+  existingImageUrl?: string;
+}
+
+export default function ImageUploader({
+  existingImageUrl,
+}: ImageUploaderProps) {
+  const [preview, setPreview] = useState(existingImageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -38,7 +44,6 @@ export default function ImageUploader() {
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/png": [".png"],
-      "image/webp": [".webp"],
     },
     maxFiles: 1,
     multiple: false,
@@ -70,7 +75,7 @@ export default function ImageUploader() {
         name="imageFile"
         ref={fileInputRef}
         className="sr-only" // "Required" message will appear even if it's hidden
-        required
+        required={existingImageUrl ? false : true}
       />
       <div
         {...getRootProps()}
@@ -90,6 +95,7 @@ export default function ImageUploader() {
               src={preview}
               alt="preview"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               style={{ objectFit: "contain" }}
             />
             <button
@@ -110,7 +116,7 @@ export default function ImageUploader() {
               Drag & drop an image here, or click to select
             </p>
             <p className="text-sm text-gray-500">
-              Supports: JPG, PNG, WebP (max 5MB)
+              Supports: JPG, PNG (max 5MB)
             </p>
           </div>
         )}

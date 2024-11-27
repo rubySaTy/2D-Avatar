@@ -1,9 +1,9 @@
 import { createUser } from "@/app/actions/admin";
-import UserForm from "./UserForm";
+import BaseUserForm from "./BaseUserForm";
 
 export default function CreateUserForm() {
   return (
-    <UserForm
+    <BaseUserForm
       serverAction={createUser}
       title="Create New User"
       description="Add a new user to the system."

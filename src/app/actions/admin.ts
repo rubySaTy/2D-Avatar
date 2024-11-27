@@ -22,8 +22,9 @@ import {
 } from "@/lib/utils.server";
 import {
   avatarIdSchema,
-  avatarSchema,
+  createAvatarSchema,
   createUserSchema,
+  editAvatarSchema,
   editUserSchema,
   userIdSchema,
 } from "@/lib/validationSchema";
@@ -31,24 +32,6 @@ import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
 import { sanitizeString, sanitizeFilename } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
-
-export async function deleteUser(formData: FormData) {
-  const id = formData.get("id");
-  const parseResult = userIdSchema.safeParse(id);
-
-  if (!parseResult.success) {
-    console.error(parseResult.error.errors);
-    return;
-  }
-
-  const userId = parseResult.data;
-  try {
-    await db.delete(users).where(eq(users.id, userId));
-    revalidatePath("/admin");
-  } catch (error) {
-    console.error("Error deleting user:", error);
-  }
-}
 
 export async function createUser(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({
@@ -161,8 +144,26 @@ export async function editUser(prevState: any, formData: FormData) {
   }
 }
 
+export async function deleteUser(formData: FormData) {
+  const id = formData.get("id");
+  const parseResult = userIdSchema.safeParse(id);
+
+  if (!parseResult.success) {
+    console.error(parseResult.error.errors);
+    return;
+  }
+
+  const userId = parseResult.data;
+  try {
+    await db.delete(users).where(eq(users.id, userId));
+    revalidatePath("/admin");
+  } catch (error) {
+    console.error("Error deleting user:", error);
+  }
+}
+
 export async function createAvatar(prevState: any, formData: FormData) {
-  const parsedData = avatarSchema.safeParse({
+  const parsedData = createAvatarSchema.safeParse({
     avatarName: formData.get("avatarName"),
     imageFile: formData.get("imageFile"),
     voiceFiles: formData.getAll("voiceFiles"),
@@ -251,6 +252,150 @@ export async function createAvatar(prevState: any, formData: FormData) {
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
+    return { success: false, message: "Internal server error" };
+  }
+}
+
+export async function editAvatar(prevState: any, formData: FormData) {
+  const parsedData = editAvatarSchema.safeParse({
+    avatarId: formData.get("avatarId"),
+    avatarName: formData.get("avatarName"),
+    imageFile: formData.get("imageFile"),
+    userIds: formData.getAll("userIds"),
+  });
+
+  if (!parsedData.success) {
+    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { avatarId, avatarName, imageFile, userIds } = parsedData.data;
+
+  try {
+    const existingAvatar = await db.query.avatars.findFirst({
+      where: eq(avatars.id, avatarId),
+    });
+
+    if (!existingAvatar) {
+      return { success: false, message: "Avatar not found" };
+    }
+
+    // Prepare update object
+    const updateData: Partial<typeof avatars.$inferInsert> = {
+      avatarName,
+    };
+
+    // Prepare files to delete (if any)
+    const filesToDelete: string[] = [];
+
+    // Check if image is being updated
+    let imageUrl = existingAvatar.imageUrl;
+    let imageKey = existingAvatar.imageKey;
+    let idleVideoUrl = existingAvatar.idleVideoUrl;
+    let idleVideoKey = existingAvatar.idleVideoKey;
+
+    if (imageFile && imageFile.size > 0) {
+      // Image is being updated
+      const sanitizedAvatarName = sanitizeString(avatarName);
+      const sanitizedFileName = sanitizeFilename(imageFile.name);
+      const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
+
+      // Upload new image
+      const newImageUpload = await uploadToS3(
+        imageFile.stream(),
+        "avatars/",
+        `${fileName}`,
+        imageFile.type
+      );
+
+      // Update image details
+      imageUrl = newImageUpload.url;
+      imageKey = newImageUpload.key;
+
+      // Create new idle video
+      const createdIdleVideoRes = await createIdleVideo(imageUrl);
+      if (!createdIdleVideoRes) {
+        return { success: false, message: "Error creating idle video" };
+      }
+
+      // Poll for idle video completion
+      const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
+      if (!idleVideo) {
+        return { success: false, message: "Error fetching idle video" };
+      }
+
+      // Download and upload final video
+      const res = await axios.get(idleVideo.result_url, {
+        responseType: "arraybuffer",
+      });
+      const videoBuffer = Buffer.from(res.data, "binary");
+
+      const uniqueId = randomUUID();
+      const videoFileName = `${uniqueId}.mp4`;
+      const newVideoUpload = await uploadToS3(
+        videoBuffer,
+        "videos/",
+        videoFileName,
+        "video/mp4"
+      );
+
+      // Update video details
+      idleVideoUrl = newVideoUpload.url;
+      idleVideoKey = newVideoUpload.key;
+
+      // Mark old files for deletion
+      if (existingAvatar.imageKey) filesToDelete.push(existingAvatar.imageKey);
+      if (existingAvatar.idleVideoKey)
+        filesToDelete.push(existingAvatar.idleVideoKey);
+    }
+
+    // Prepare update data with new or existing values
+    updateData.imageUrl = imageUrl;
+    updateData.imageKey = imageKey;
+    updateData.idleVideoUrl = idleVideoUrl;
+    updateData.idleVideoKey = idleVideoKey;
+
+    // Database Transaction
+    await db.transaction(async (tx) => {
+      await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
+
+      const existingAssociations = await tx
+        .select({ userId: usersToAvatars.userId })
+        .from(usersToAvatars)
+        .where(eq(usersToAvatars.avatarId, avatarId));
+
+      const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
+
+      if (
+        existingUserIds.length !== userIds.length ||
+        !userIds.every((userId) => existingUserIds.includes(userId))
+      ) {
+        // Delete existing user associations
+        await tx
+          .delete(usersToAvatars)
+          .where(eq(usersToAvatars.avatarId, avatarId));
+
+        // Insert new user associations (if any)
+        const associations = userIds.map((userId) => ({
+          userId,
+          avatarId,
+        }));
+
+        if (associations.length > 0) {
+          await tx.insert(usersToAvatars).values(associations);
+        }
+      }
+    });
+
+    // Delete old S3 files after successful upload and database transaction
+    if (filesToDelete.length > 0) {
+      await deleteS3Objects(filesToDelete);
+    }
+
+    revalidatePath("/admin");
+    return { success: true, message: "Avatar updated" };
+  } catch (error) {
+    console.error("Error updating avatar:", error);
     return { success: false, message: "Internal server error" };
   }
 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,15 +22,18 @@ import type { UserDto } from "@/lib/db/schema";
 
 interface MultiUserSelectorProps {
   users: Array<UserDto>;
+  associatedUsers: Array<UserDto>;
   currentUserId: string;
 }
 
 export default function MultiUserSelector({
   users,
   currentUserId,
+  associatedUsers,
 }: MultiUserSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<Array<UserDto>>([]);
+  const [selectedUsers, setSelectedUsers] =
+    useState<Array<UserDto>>(associatedUsers);
 
   const toggleUser = (user: UserDto) => {
     setSelectedUsers((current) =>
@@ -91,6 +93,7 @@ export default function MultiUserSelector({
           </Command>
         </PopoverContent>
       </Popover>
+
       <div className="flex flex-wrap gap-2">
         {selectedUsers.map((user) => (
           <Badge key={user.id} variant="secondary">
@@ -107,7 +110,6 @@ export default function MultiUserSelector({
         ))}
       </div>
 
-      {/* Hidden Inputs to Pass Selected User IDs */}
       {selectedUsers.map((user) => (
         <input key={user.id} type="hidden" name="userIds" value={user.id} />
       ))}

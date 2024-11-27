@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { TableCell, TableRow } from "../ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteUser } from "@/app/actions/admin";
 import EditUserForm from "./EditUserForm";
 import type { UserDto } from "@/lib/db/schema";

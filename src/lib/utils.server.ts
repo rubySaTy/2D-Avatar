@@ -64,7 +64,6 @@ export async function findUser(
   throw new Error("No valid identifier provided");
 }
 
-
 export async function getUsersDto(): Promise<UserDto[]> {
   const usersArray = await db
     .select({
