@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   closeStream,
   createDIDStream,
@@ -8,8 +9,9 @@ import {
   sendICECandidate,
   sendSdpAnswer,
 } from "@/app/actions";
-import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
+import { PlayCircle } from "lucide-react";
 
 interface StreamProps {
   meetingLink: string;
@@ -17,11 +19,10 @@ interface StreamProps {
 }
 
 export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
-  // State variables
+  const [hasStarted, setHasStarted] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [videoIsPlaying, setVideoIsPlaying] = useState(false);
-  const [userHasInteracted, setUserHasInteracted] = useState(false);
 
   // Refs for peer connection and data channel
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -32,8 +33,8 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   const sessionIdRef = useRef<string>();
 
   // Refs for the video elements
-  const videoRef = useRef<HTMLVideoElement>(null); // Live stream video
-  const idleVideoRef = useRef<HTMLVideoElement>(null); // Idle video
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const idleVideoRef = useRef<HTMLVideoElement>(null);
 
   // Refs for reconnection attempts
   const reconnectionAttemptsRef = useRef(0);
@@ -67,43 +68,34 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
       streamIdRef.current = id;
       sessionIdRef.current = session_id;
 
-      startStream(id, session_id, offer, ice_servers);
+      const pc = new RTCPeerConnection({ iceServers: ice_servers });
+      pcRef.current = pc;
+
+      // Event listeners for the peer connection
+      pc.addEventListener("icecandidate", onIceCandidate);
+      pc.addEventListener(
+        "iceconnectionstatechange",
+        onIceConnectionStateChange
+      );
+      pc.addEventListener("track", onTrack);
+
+      // Create data channel for stream events
+      const dataChannel = pc.createDataChannel("JanusDataChannel");
+      dataChannelRef.current = dataChannel;
+      dataChannel.addEventListener("message", onDataChannelMessage);
+
+      await pc.setRemoteDescription(offer);
+      const sessionClientAnswer = await pc.createAnswer();
+      await pc.setLocalDescription(sessionClientAnswer);
+
+      const answer = {
+        type: sessionClientAnswer.type,
+        sdp: sessionClientAnswer.sdp,
+      };
+      await sendSdpAnswer(id, answer, session_id);
     } else {
       console.error("Failed to get session parameters");
     }
-  }
-
-  async function startStream(
-    streamId: string,
-    sessionId: string,
-    offer: RTCSessionDescriptionInit,
-    iceServers: Array<RTCIceServer>
-  ) {
-    const pc = new RTCPeerConnection({ iceServers });
-    pcRef.current = pc;
-
-    // Event listeners for the peer connection
-    pc.addEventListener("icecandidate", onIceCandidate);
-    pc.addEventListener("iceconnectionstatechange", onIceConnectionStateChange);
-    pc.addEventListener("track", onTrack);
-    pc.addEventListener("icegatheringstatechange", onIceGatheringStateChange);
-    pc.addEventListener("connectionstatechange", onConnectionStateChange);
-    pc.addEventListener("signalingstatechange", onSignalingStateChange);
-
-    // Create data channel for stream events
-    const dataChannel = pc.createDataChannel("JanusDataChannel");
-    dataChannelRef.current = dataChannel;
-    dataChannel.addEventListener("message", onDataChannelMessage);
-
-    await pc.setRemoteDescription(offer);
-    const sessionClientAnswer = await pc.createAnswer();
-    await pc.setLocalDescription(sessionClientAnswer);
-
-    const answer = {
-      type: sessionClientAnswer.type,
-      sdp: sessionClientAnswer.sdp,
-    };
-    await sendSdpAnswer(streamId, answer, sessionId);
   }
 
   // Handle messages from the data channel
@@ -111,21 +103,10 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
     const message = event.data;
     const [eventType] = message.split(":");
 
-    console.log("Data channel message:", message);
-
-    if (eventType === "stream/ready") {
-      console.log("Stream is ready");
-      setIsStreamReady(true);
-    } else if (eventType === "stream/started") {
-      console.log("Stream started");
-      setVideoIsPlaying(true);
-    } else if (eventType === "stream/done") {
-      console.log("Stream done");
-      setVideoIsPlaying(false);
-    } else if (eventType === "stream/error") {
-      console.error("Stream error");
-      // Handle error if needed
-    }
+    if (eventType === "stream/ready") setIsStreamReady(true);
+    else if (eventType === "stream/started") setVideoIsPlaying(true);
+    else if (eventType === "stream/done") setVideoIsPlaying(false);
+    else if (eventType === "stream/error") console.error("Stream error");
   }
 
   function onIceCandidate(event: RTCPeerConnectionIceEvent) {
@@ -138,20 +119,17 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
     }
 
     if (event.candidate) {
-      console.log("Sending ICE candidate:", event.candidate);
       sendICECandidate(streamId, sessionId, event.candidate.toJSON());
     } else {
       // For the initial 2 sec idle stream at the beginning of the connection, we utilize a null ice candidate.
       // Notify that ICE gathering is complete
       notifyICEGatheringComplete(sessionId, streamId);
-      console.log("All ICE candidates have been sent.");
     }
   }
 
   function onIceConnectionStateChange() {
     const pc = pcRef.current;
     if (pc) {
-      console.log("ICE connection state changed:", pc.iceConnectionState);
       if (
         pc.iceConnectionState === "connected" ||
         pc.iceConnectionState === "completed"
@@ -185,51 +163,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
       setIsReady(false);
       setIsStreamReady(false);
       setVideoIsPlaying(false);
-
-      const streamId = streamIdRef.current;
-      const sessionId = sessionIdRef.current;
-
-      // Close the stream on the server side
-      if (streamId && sessionId) {
-        closeStream(streamId, sessionId);
-      }
-
-      // Clean up current peer connection
-      pc.removeEventListener("icecandidate", onIceCandidate);
-      pc.removeEventListener(
-        "iceconnectionstatechange",
-        onIceConnectionStateChange
-      );
-      pc.removeEventListener("track", onTrack);
-      pc.removeEventListener(
-        "icegatheringstatechange",
-        onIceGatheringStateChange
-      );
-      pc.removeEventListener("connectionstatechange", onConnectionStateChange);
-      pc.removeEventListener("signalingstatechange", onSignalingStateChange);
-      pc.close();
-      pcRef.current = null;
-
-      // Clean up data channel
-      const dataChannel = dataChannelRef.current;
-      if (dataChannel) {
-        dataChannel.removeEventListener("message", onDataChannelMessage);
-        dataChannel.close();
-        dataChannelRef.current = null;
-      }
-
-      // Reset streamId and sessionId
-      streamIdRef.current = undefined;
-      sessionIdRef.current = undefined;
-
-      // Reset video element
-      if (videoRef.current) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
-        }
-        videoRef.current.srcObject = null;
-      }
+      cleanupConnection();
 
       // Initiate a new connection after a delay
       const delay = Math.min(1000 * reconnectionAttemptsRef.current, 10000); // Cap delay at 10 seconds
@@ -239,28 +173,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
     }
   }
 
-  // Function to handle user interaction
-  function handleUserInteraction() {
-    setUserHasInteracted(true);
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.play().catch((error) => {
-        console.error("Error playing video after user interaction:", error);
-      });
-    }
-    if (idleVideoRef.current) {
-      idleVideoRef.current.muted = false;
-      idleVideoRef.current.play().catch((error) => {
-        console.error(
-          "Error playing idle video after user interaction:",
-          error
-        );
-      });
-    }
-  }
-
   function onTrack(event: RTCTrackEvent) {
-    console.log("Received track event:", event);
     const remoteStream = event.streams[0];
     const videoElement = videoRef.current;
 
@@ -268,39 +181,22 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
       // Check if the stream has changed
       if (videoElement.srcObject !== remoteStream) {
         videoElement.srcObject = remoteStream;
-
-        // Add event listeners to manage playback
-        videoElement.addEventListener("loadedmetadata", onLoadedMetadata);
-        videoElement.addEventListener("playing", onVideoPlaying);
-        videoElement.addEventListener("pause", onVideoPaused);
       }
     } else {
       console.error("Video element not found.");
     }
   }
 
-  function onIceGatheringStateChange() {
-    const pc = pcRef.current;
-    if (pc) {
-      console.log("ICE gathering state changed:", pc.iceGatheringState);
-    }
-  }
-
-  function onConnectionStateChange() {
-    const pc = pcRef.current;
-    if (pc) {
-      console.log("Connection state changed:", pc.connectionState);
-    }
-  }
-
-  function onSignalingStateChange() {
-    const pc = pcRef.current;
-    if (pc) {
-      console.log("Signaling state changed:", pc.signalingState);
-    }
-  }
-
   function cleanupConnection() {
+    const streamId = streamIdRef.current;
+    const sessionId = sessionIdRef.current;
+
+    // Close the stream on the server side
+    if (streamId && sessionId) {
+      closeStream(streamId, sessionId);
+    }
+
+    // Clean up current peer connection
     const pc = pcRef.current;
     if (pc) {
       pc.removeEventListener("icecandidate", onIceCandidate);
@@ -309,16 +205,11 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
         onIceConnectionStateChange
       );
       pc.removeEventListener("track", onTrack);
-      pc.removeEventListener(
-        "icegatheringstatechange",
-        onIceGatheringStateChange
-      );
-      pc.removeEventListener("connectionstatechange", onConnectionStateChange);
-      pc.removeEventListener("signalingstatechange", onSignalingStateChange);
       pc.close();
       pcRef.current = null;
     }
 
+    // Clean up data channel
     const dataChannel = dataChannelRef.current;
     if (dataChannel) {
       dataChannel.removeEventListener("message", onDataChannelMessage);
@@ -326,12 +217,9 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
       dataChannelRef.current = null;
     }
 
-    const streamId = streamIdRef.current;
-    const sessionId = sessionIdRef.current;
-
-    if (streamId && sessionId) {
-      closeStream(streamId, sessionId);
-    }
+    // Reset streamId and sessionId
+    streamIdRef.current = undefined;
+    sessionIdRef.current = undefined;
 
     // Reset video element
     if (videoRef.current) {
@@ -343,80 +231,109 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
     }
   }
 
-  // Handle video loadedmetadata event
-  function onLoadedMetadata() {
-    const videoElement = videoRef.current;
-    if (videoElement) {
-      // Only play if the user has interacted or the video is muted
-      if (userHasInteracted || videoElement.muted) {
-        videoElement.play().catch((error) => {
-          console.error("Error playing video:", error);
-        });
-      } else {
-        console.log(
-          "User has not interacted yet; video will not play with sound."
-        );
-      }
-    }
-  }
-
-  // Handle video playing event
-  function onVideoPlaying() {
-    console.log("Video is playing.");
-  }
-
-  // Handle video paused event
-  function onVideoPaused() {
-    console.log("Video is paused.");
-  }
-
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto overflow-hidden">
       <CardContent className="p-4">
-        <div className="relative aspect-video  bg-gray-900">
-          {!(isReady && isStreamReady) && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-white animate-spin" />
-            </div>
-          )}
-
-          {/* Idle Video */}
-          <video
-            id="idleVideo"
-            ref={idleVideoRef}
-            className={`w-full h-full object-contain ${
-              !videoIsPlaying ? "opacity-100" : "opacity-0"
-            }`}
-            src={idleVideoUrl}
-            autoPlay
-            loop
-            playsInline
-            muted={!userHasInteracted}
-          />
-
-          {/* Live Stream Video */}
-          <video
-            id="remoteVideo"
-            ref={videoRef}
-            className={`w-full h-full object-contain absolute top-0 left-0 ${
-              videoIsPlaying ? "opacity-100" : "opacity-0"
-            }`}
-            autoPlay
-            playsInline
-            muted={!userHasInteracted}
-          />
-
-          {!userHasInteracted && isReady && isStreamReady && (
-            // Overlay a button to prompt user interaction
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <button
-                onClick={handleUserInteraction}
-                className="bg-white text-black px-4 py-2 rounded"
+        <div className="relative aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg overflow-hidden">
+          <AnimatePresence mode="wait">
+            {!hasStarted ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm"
               >
-                Click to Unmute
-              </button>
-            </div>
-          )}
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-center"
+                >
+                  <h2 className="text-2xl font-bold text-white mb-4">
+                    Ready to Start?
+                  </h2>
+                  <Button
+                    onClick={() => setHasStarted(true)}
+                    size="lg"
+                    className="bg-white text-gray-900 hover:bg-gray-100 transition-colors group relative overflow-hidden"
+                  >
+                    <motion.span
+                      initial={{ x: -10, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      className="flex items-center gap-2"
+                    >
+                      <PlayCircle className="size-5" />
+                      Start Stream
+                    </motion.span>
+                  </Button>
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="relative w-full h-full"
+              >
+                {/* Connection Status */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-black/50 rounded-full px-3 py-1.5 backdrop-blur-sm"
+                >
+                  <motion.div
+                    animate={{
+                      scale: isReady && isStreamReady ? [1, 1.2, 1] : 1,
+                      backgroundColor:
+                        isReady && isStreamReady ? "#22c55e" : "#eab308",
+                    }}
+                    transition={{
+                      scale: {
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        duration: 1,
+                        ease: "easeInOut",
+                      },
+                      backgroundColor: { duration: 0.3 },
+                    }}
+                    className="size-2 rounded-full"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm text-white font-medium">
+                    {isReady && isStreamReady ? "Connected" : "Connecting..."}
+                  </span>
+                </motion.div>
+
+                {/* Idle Video */}
+                <motion.video
+                  id="idleVideo"
+                  ref={idleVideoRef}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: videoIsPlaying ? 0 : 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full h-full object-contain"
+                  src={idleVideoUrl}
+                  autoPlay
+                  loop
+                  playsInline
+                  muted
+                />
+
+                {/* Live Stream Video */}
+                <motion.video
+                  id="remoteVideo"
+                  ref={videoRef}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: videoIsPlaying ? 1 : 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full h-full object-contain absolute top-0 left-0"
+                  autoPlay
+                  playsInline
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
     </Card>
