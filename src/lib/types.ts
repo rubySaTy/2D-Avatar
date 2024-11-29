@@ -1,11 +1,13 @@
 interface Language {
   locale: string;
   language: string;
+  preview: string;
 }
 
 export interface MicrosoftVoice {
   id: string;
   name: string;
+  description: string;
   gender: string;
   languages: Language[];
   access: string;

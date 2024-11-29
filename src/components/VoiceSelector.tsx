@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Label } from "./ui/label";
 import {
   Select,
@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import type { MicrosoftVoice } from "@/lib/types";
+import { Button } from "./ui/button";
+import { Pause, Play } from "lucide-react";
 
 const GenderSelect: React.FC<{
   genders: string[];
@@ -62,34 +64,100 @@ const LanguageSelect: React.FC<{
 const VoiceSelect: React.FC<{
   voices: MicrosoftVoice[];
   selectedVoice: string;
+  selectedLanguage: string;
   onChange: (value: string) => void;
   disabled: boolean;
-}> = ({ voices, selectedVoice, onChange, disabled }) => (
-  <div className="space-y-2">
-    <Label htmlFor="voice-select">Voice</Label>
-    <Select
-      name="voiceId"
-      value={selectedVoice}
-      onValueChange={onChange}
-      disabled={disabled}
-    >
-      <SelectTrigger id="voice-select">
-        <SelectValue
-          placeholder={
-            voices.length > 0 ? "Choose a Voice" : "No Voices Available"
-          }
-        />
-      </SelectTrigger>
-      <SelectContent>
-        {voices.map((voice) => (
-          <SelectItem key={voice.id} value={voice.id}>
-            {voice.name} ({voice.gender})
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
+  onPreview: (voiceId: string, language: string) => Promise<string>;
+}> = ({
+  voices,
+  selectedVoice,
+  selectedLanguage,
+  onChange,
+  disabled,
+  onPreview,
+}) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handlePreview = async () => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      try {
+        const audioUrl = await onPreview(selectedVoice, selectedLanguage);
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error("Error playing audio:", error);
+      }
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="voice-select">Voice</Label>
+      <div className="flex items-center space-x-2">
+        <Select
+          name="voiceId"
+          value={selectedVoice}
+          onValueChange={onChange}
+          disabled={disabled}
+        >
+          <SelectTrigger id="voice-select" className="flex-grow">
+            <SelectValue
+              placeholder={
+                voices.length > 0 ? "Choose a Voice" : "No Voices Available"
+              }
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {voices.map((voice) => (
+              <SelectItem key={voice.id} value={voice.id}>
+                {voice.name} ({voice.gender})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedVoice && (
+          <Button
+            type="button"
+            onClick={handlePreview}
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            disabled={disabled}
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {isPlaying ? "Pause" : "Play"} Voice Preview
+            </span>
+          </Button>
+        )}
+      </div>
+      <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" />
+
+      {selectedVoice && (
+        <div className="mt-2">
+          <p className="text-sm">
+            {voices.find((voice) => voice.id === selectedVoice)?.description}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const StyleSelect: React.FC<{
   styles: string[];
@@ -183,18 +251,33 @@ export default function VoiceSelector({
     });
   };
 
+  // Handle voice preview
+  const handlePreview = async (
+    voiceId: string,
+    selectedLanguage: string
+  ): Promise<string> => {
+    const voice = voices.find((v) => v.id === voiceId);
+    if (voice) {
+      const languagePreview = voice.languages.find(
+        (lang) => lang.language === selectedLanguage
+      );
+      if (languagePreview) {
+        return languagePreview.preview;
+      }
+    }
+    throw new Error("Preview not available");
+  };
+
   return (
     <>
       <input type="hidden" name="providerType" value="microsoft" />
 
-      {/* Gender Selection */}
       <GenderSelect
         genders={genders}
         selectedGender={gender}
         onChange={(value) => handleChange("gender", value)}
       />
 
-      {/* Language Selection */}
       <LanguageSelect
         languages={languages}
         selectedLanguage={language}
@@ -202,15 +285,15 @@ export default function VoiceSelector({
         disabled={isLanguageDisabled}
       />
 
-      {/* Voice Selection */}
       <VoiceSelect
         voices={filteredVoices}
         selectedVoice={voice}
+        selectedLanguage={language}
         onChange={(value) => handleChange("voice", value)}
         disabled={isVoiceDisabled}
+        onPreview={handlePreview}
       />
 
-      {/* Style Selection */}
       <StyleSelect
         styles={
           voice !== ""

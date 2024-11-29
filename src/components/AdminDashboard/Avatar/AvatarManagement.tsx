@@ -22,6 +22,11 @@ export default async function AvatarManagement({
 
   const usersToAvatarsArray = await db.select().from(usersToAvatars);
 
+  const sortedAvatars = avatars.sort((a, b) => {
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return dateA.getTime() - dateB.getTime();
+  });
   return (
     <div>
       <div className="mb-4">
@@ -39,7 +44,7 @@ export default async function AvatarManagement({
         </Dialog>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {avatars.map((avatar) => (
+        {sortedAvatars.map((avatar) => (
           <AvatarCard
             key={avatar.id}
             avatar={avatar}
