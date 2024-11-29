@@ -1,4 +1,5 @@
 "use client";
+
 import { logout } from "@/app/actions/auth";
 import { Button } from "../ui/button";
 import { LogOut } from "lucide-react";
@@ -9,8 +10,8 @@ export default function Logout() {
 
   return (
     <form action={formAction}>
-      <Button variant={"link"}>
-        <LogOut /> Logout
+      <Button variant="link">
+        <LogOut /> Log out
       </Button>
     </form>
   );

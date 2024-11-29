@@ -49,8 +49,6 @@ export async function loginUser(prevState: any, formData: FormData) {
     console.error(error);
     return { success: false, message: "An unexpected error occurred" };
   }
-
-  redirect("/");
 }
 
 export async function logout() {

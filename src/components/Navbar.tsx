@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +7,16 @@ import { Menu, X } from "lucide-react";
 import { ModeToggle } from "./dark-mode-toggle";
 import logo from "../app/logo.png";
 import Logout from "./auth/Logout";
+import type { User } from "lucia";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
 
 const NavItem = ({ href, text }: { href: string; text: string }) => (
   <Link
@@ -17,9 +28,9 @@ const NavItem = ({ href, text }: { href: string; text: string }) => (
 );
 
 interface NavbarProps {
-  currentUserRole?: string;
+  currentUser: User;
 }
-export default function Navbar({ currentUserRole: role }: NavbarProps) {
+export default function Navbar({ currentUser }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -34,7 +45,7 @@ export default function Navbar({ currentUserRole: role }: NavbarProps) {
               <div className="ml-10 flex items-baseline space-x-4">
                 <NavItem href="/" text="Home" />
                 <NavItem href="/therapist" text="Therapist Dashboard" />
-                {role === "admin" && (
+                {currentUser.role === "admin" && (
                   <NavItem href="/admin" text="Admin Dashboard" />
                 )}
               </div>
@@ -42,7 +53,20 @@ export default function Navbar({ currentUserRole: role }: NavbarProps) {
           </div>
           <div className="hidden md:flex items-center space-x-4">
             <ModeToggle />
-            {role && <Logout />}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="link" className="text-white">
+                  {currentUser.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Logout />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="md:hidden flex items-center">
             <ModeToggle />

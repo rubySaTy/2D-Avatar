@@ -39,9 +39,11 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <header>
-            <Navbar currentUserRole={user?.role} />
-          </header>
+          {user && (
+            <header>
+              <Navbar currentUser={user} />
+            </header>
+          )}
           {children}
         </ThemeProvider>
       </body>
