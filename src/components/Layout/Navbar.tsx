@@ -4,9 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
-import { ModeToggle } from "./dark-mode-toggle";
 import logo from "../app/logo.png";
-import Logout from "./auth/Logout";
+import Logout from "../auth/Logout";
 import type { User } from "lucia";
 import {
   DropdownMenu,
@@ -15,8 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import { ModeToggle } from "./dark-mode-toggle";
 
 const NavItem = ({ href, text }: { href: string; text: string }) => (
   <Link

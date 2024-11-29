@@ -6,7 +6,7 @@ import { lucia } from "@/auth";
 import * as argon2 from "argon2"; // downgraded version because of an error with vercel - https://github.com/vercel/next.js/discussions/65978
 import { loginUserSchema } from "@/lib/validationSchema";
 import { validateRequest } from "@/lib/auth";
-import { findUser } from "@/lib/utils.server";
+import { findUser } from "@/services";
 
 export async function loginUser(prevState: any, formData: FormData) {
   const parsedResult = loginUserSchema.safeParse({

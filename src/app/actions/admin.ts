@@ -14,13 +14,6 @@ import {
   sessions,
 } from "@/lib/db/schema";
 import {
-  createIdleVideo,
-  deleteS3Objects,
-  findUser,
-  getIdleVideo,
-  uploadToS3,
-} from "@/lib/utils.server";
-import {
   avatarIdSchema,
   createAvatarSchema,
   createUserSchema,
@@ -32,6 +25,13 @@ import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
 import { sanitizeString, sanitizeFilename } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
+import {
+  uploadToS3,
+  createIdleVideo,
+  getIdleVideo,
+  deleteS3Objects,
+  findUser,
+} from "@/services";
 
 export async function createUser(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({

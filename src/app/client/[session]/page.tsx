@@ -1,6 +1,6 @@
-import Stream from "@/components/Stream";
-import { getAvatarByMeetingLink } from "@/lib/utils.server";
 import { notFound } from "next/navigation";
+import Stream from "@/components/Stream";
+import { getAvatarByMeetingLink } from "@/services";
 
 export default async function ClientSessionPage({
   params,

@@ -2,11 +2,6 @@
 
 import { AxiosError } from "axios";
 import { db } from "@/lib/db/db";
-import {
-  shortUUID,
-  getAvatarByMeetingLink,
-  getMeetingDataByLink,
-} from "@/lib/utils.server";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -15,6 +10,11 @@ import { createTalkStreamSchema } from "@/lib/validationSchema";
 import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 import type { ProviderConfig } from "@/lib/types";
 import didApi from "@/lib/d-idApi";
+import { shortUUID } from "@/lib/utils";
+import {
+  getMeetingDataByMeetingLink,
+  getAvatarByMeetingLink,
+} from "@/services";
 
 export async function createSession(prevState: any, formData: FormData) {
   const avatarJson = formData.get("avatar")?.toString();
@@ -127,7 +127,7 @@ export async function createTalkStream(
   } = ParsedData.data;
   const message = premadeMessage ?? userMessage;
 
-  const meetingData = await getMeetingDataByLink(meetingLink);
+  const meetingData = await getMeetingDataByMeetingLink(meetingLink);
   if (!meetingData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
     return { success: false, message: "Meeting data not found" };

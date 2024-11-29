@@ -39,3 +39,28 @@ export function getMessageTimestamp(): string {
 
   return timestamp;
 }
+
+export function shortUUID(): string {
+  const uuid: string = crypto.randomUUID();
+
+  // Remove dashes and convert to a Uint8Array
+  const byteArray: Uint8Array = new Uint8Array(16);
+  const hexWithoutDashes: string = uuid.replace(/[-]/g, "");
+
+  const matches = hexWithoutDashes.match(/.{1,2}/g);
+  if (matches) {
+    matches.forEach((byte, i) => {
+      byteArray[i] = parseInt(byte, 16);
+    });
+  }
+
+  // Convert Uint8Array to a regular array and then to base64
+  const base64: string = btoa(
+    String.fromCharCode.apply(null, Array.from(byteArray))
+  );
+  return base64
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .substring(0, 10);
+}

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import SessionLink from "@/components/SessionLink";
 import TherapistInteractionPanel from "@/components/TherapistInteractionPanel";
 import { Button } from "@/components/ui/button";
-import { getAvatarByMeetingLink } from "@/lib/utils.server";
+import { getAvatarByMeetingLink } from "@/services";
 import type { MicrosoftVoice } from "@/lib/types";
 
 export default async function TherapistSessionPage({

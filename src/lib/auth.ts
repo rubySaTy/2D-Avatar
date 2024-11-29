@@ -1,6 +1,6 @@
+import { cache } from "react";
 import { lucia } from "@/auth";
 import { cookies } from "next/headers";
-import { cache } from "react";
 import type { Session, User } from "lucia";
 
 export const getUser = cache(async () => {

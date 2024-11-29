@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import UserManagement from "@/components/AdminDashboard/User/UserManagement";
 import AvatarManagement from "@/components/AdminDashboard/Avatar/AvatarManagement";
-import { getUsersDto } from "@/lib/utils.server";
+import { getUsersDto } from "@/services";
 
 export default async function AdminPage() {
   const user = await getUser();
