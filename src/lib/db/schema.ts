@@ -15,21 +15,20 @@ export const users = pgTable("user", {
   username: varchar("username", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: varchar("role", { length: 50 })
-    .$type<"admin" | "therapist">()
-    .notNull(),
+  role: text("role", { enum: ["admin", "therapist"] }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
   usersToAvatars: many(usersToAvatars),
+  meetingSessions: many(meetingSessions),
 }));
 
 export const avatars = pgTable("avatar", {
   id: serial("id").primaryKey(),
   avatarName: varchar("avatar_name", { length: 50 }).notNull(),
   imageUrl: text("image_url").notNull(),
-  imageKey: text("image_key").notNull(),   
+  imageKey: text("image_key").notNull(),
   idleVideoUrl: text("idle_video_url"),
   idleVideoKey: text("idle_video_key"),
   elevenlabsVoiceId: text("elevenlabs_voice_id"),
@@ -38,6 +37,7 @@ export const avatars = pgTable("avatar", {
 
 export const avatarsRelations = relations(avatars, ({ many }) => ({
   usersToAvatars: many(usersToAvatars),
+  meetingSessions: many(meetingSessions),
 }));
 
 export const usersToAvatars = pgTable(
@@ -79,10 +79,12 @@ export const sessions = pgTable("session", {
 
 export const meetingSessions = pgTable("meeting_session", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-  avatarId: integer("avatar_id").references(() => avatars.id, {
-    onDelete: "cascade",
-  }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  avatarId: integer("avatar_id")
+    .notNull()
+    .references(() => avatars.id, { onDelete: "cascade" }),
   meetingLink: varchar("meeting_link", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   didStreamId: text("did_stream_id"),
@@ -90,6 +92,36 @@ export const meetingSessions = pgTable("meeting_session", {
   offer: jsonb("offer"), // (RTCSessionDescriptionInit stored as JSONB)
   iceServers: jsonb("ice_servers"),
 });
+
+export const meetingSessionsRelations = relations(
+  meetingSessions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [meetingSessions.userId],
+      references: [users.id],
+    }),
+    avatar: one(avatars, {
+      fields: [meetingSessions.avatarId],
+      references: [avatars.id],
+    }),
+    talks: many(talks),
+  })
+);
+
+export const talks = pgTable("talk", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  meetingSessionId: integer("meeting_session_id")
+    .notNull()
+    .references(() => meetingSessions.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const talksRelations = relations(talks, ({ one }) => ({
+  meetingSession: one(meetingSessions, {
+    fields: [talks.meetingSessionId],
+    references: [meetingSessions.id],
+  }),
+}));
 
 export type User = typeof users.$inferSelect;
 export type UserDto = Omit<User, "passwordHash">;
@@ -100,3 +132,6 @@ export type NewAvatar = typeof avatars.$inferInsert;
 
 export type MeetingSession = typeof meetingSessions.$inferSelect;
 export type NewMeetingSession = typeof meetingSessions.$inferInsert;
+
+export type Talk = typeof talks.$inferSelect;
+export type NewTalk = typeof talks.$inferInsert;

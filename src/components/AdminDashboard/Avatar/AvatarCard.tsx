@@ -49,12 +49,12 @@ export default function AvatarCard({
         <CardTitle className="text-center text-xl">
           {avatar.avatarName}
         </CardTitle>
-        <CardDescription className="text-center">
+        <div className="flex justify-center mt-2">
           <Badge variant="secondary" className="mt-1">
             <Users className="mr-1 h-3 w-3" />
             {associatedUsers.length} user{associatedUsers.length !== 1 && "s"}
           </Badge>
-        </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <ScrollArea className="h-24 rounded-md border px-4">

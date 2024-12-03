@@ -64,3 +64,16 @@ export function shortUUID(): string {
     .replace(/\//g, "_")
     .substring(0, 10);
 }
+
+export function formatDate(date: Date): string {
+  const pad = (num: number): string => num.toString().padStart(2, "0");
+
+  const d = new Date(date);
+  const day = pad(d.getDate());
+  const month = pad(d.getMonth() + 1); // Months are 0-indexed
+  const year = d.getFullYear();
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}

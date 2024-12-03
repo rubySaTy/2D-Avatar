@@ -2,16 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  closeStream,
-  createDIDStream,
-  notifyICEGatheringComplete,
-  sendICECandidate,
-  sendSdpAnswer,
-} from "@/app/actions";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { PlayCircle } from "lucide-react";
+import {
+  createDIDStream,
+  sendSDPAnswer,
+  sendICECandidate,
+  notifyICEGatheringComplete,
+  closeStream,
+} from "@/app/actions/d-id";
 
 interface StreamProps {
   meetingLink: string;
@@ -62,40 +62,38 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
 
   async function initiateConnection() {
     const sessionResponse = await createDIDStream(meetingLink);
-
-    if (sessionResponse) {
-      const { id, session_id, offer, ice_servers } = sessionResponse;
-      streamIdRef.current = id;
-      sessionIdRef.current = session_id;
-
-      const pc = new RTCPeerConnection({ iceServers: ice_servers });
-      pcRef.current = pc;
-
-      // Event listeners for the peer connection
-      pc.addEventListener("icecandidate", onIceCandidate);
-      pc.addEventListener(
-        "iceconnectionstatechange",
-        onIceConnectionStateChange
-      );
-      pc.addEventListener("track", onTrack);
-
-      // Create data channel for stream events
-      const dataChannel = pc.createDataChannel("JanusDataChannel");
-      dataChannelRef.current = dataChannel;
-      dataChannel.addEventListener("message", onDataChannelMessage);
-
-      await pc.setRemoteDescription(offer);
-      const sessionClientAnswer = await pc.createAnswer();
-      await pc.setLocalDescription(sessionClientAnswer);
-
-      const answer = {
-        type: sessionClientAnswer.type,
-        sdp: sessionClientAnswer.sdp,
-      };
-      await sendSdpAnswer(id, answer, session_id);
-    } else {
-      console.error("Failed to get session parameters");
+    if (!sessionResponse) {
+      console.error("Failed to get session parameters and create a stream.");
+      return;
     }
+
+    const { id: streamId, session_id, offer, ice_servers } = sessionResponse;
+
+    streamIdRef.current = streamId;
+    sessionIdRef.current = session_id;
+
+    const pc = new RTCPeerConnection({ iceServers: ice_servers });
+    pcRef.current = pc;
+
+    // Event listeners for the peer connection
+    pc.addEventListener("icecandidate", onIceCandidate);
+    pc.addEventListener("iceconnectionstatechange", onIceConnectionStateChange);
+    pc.addEventListener("track", onTrack);
+
+    // Create data channel for stream events
+    const dataChannel = pc.createDataChannel("JanusDataChannel");
+    dataChannelRef.current = dataChannel;
+    dataChannel.addEventListener("message", onDataChannelMessage);
+
+    await pc.setRemoteDescription(offer);
+    const sessionClientAnswer = await pc.createAnswer();
+    await pc.setLocalDescription(sessionClientAnswer);
+
+    const answer: RTCSessionDescriptionInit = {
+      type: sessionClientAnswer.type,
+      sdp: sessionClientAnswer.sdp,
+    };
+    await sendSDPAnswer(streamId, answer, session_id);
   }
 
   // Handle messages from the data channel

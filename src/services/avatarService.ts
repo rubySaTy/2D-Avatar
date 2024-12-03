@@ -19,16 +19,18 @@ export async function getUserAvatars(userId: string) {
 export async function getAvatarByMeetingLink(
   meetingLink: string
 ): Promise<Avatar | null> {
-  const result = await db
-    .select()
-    .from(meetingSessions)
-    .innerJoin(avatars, eq(meetingSessions.avatarId, avatars.id))
-    .where(eq(meetingSessions.meetingLink, meetingLink))
-    .limit(1);
+  try {
+    const result = await db.query.meetingSessions.findFirst({
+      where: eq(meetingSessions.meetingLink, meetingLink),
+      with: {
+        avatar: true,
+      },
+    });
 
-  if (result.length === 0) {
+    if (!result) return null;
+    return result.avatar;
+  } catch (error) {
+    console.error("Error getting avatar by meeting link from DB:", error);
     return null;
   }
-
-  return result[0].avatar || null;
 }

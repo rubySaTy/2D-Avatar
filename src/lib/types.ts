@@ -15,7 +15,7 @@ export interface MicrosoftVoice {
   styles: string[];
 }
 
-export interface ProviderConfig {
+export interface VoiceProviderConfig {
   type: string;
   voice_id: string;
   voice_config: {
@@ -23,7 +23,7 @@ export interface ProviderConfig {
   };
 }
 
-export interface DIDCreateTalkApiResponse {
+export interface DIDCreateTalkResponse {
   id: string;
   created_at: string;
   created_by: string;
@@ -31,7 +31,7 @@ export interface DIDCreateTalkApiResponse {
   object: string;
 }
 
-export interface DIDGetTalkApiResponse {
+export interface DIDGetTalkResponse {
   user: {
     features: (string | null)[];
     stripe_customer_id: string;
@@ -102,6 +102,39 @@ export interface DIDGetTalkApiResponse {
   duration: number;
   started_at: string;
   result_url: string;
+}
+
+export interface DIDCreateWebRTCStreamResponse {
+  id: string;
+  offer: RTCSessionDescriptionInit;
+  ice_servers: RTCIceServer[];
+  session_id: string;
+}
+
+export interface DIDCreateTalkStreamResponse {
+  status: string;
+  video_id: string;
+}
+
+interface DIDCredit {
+  owner_id: string;
+  expire_at: string;
+  created_at: string;
+  remaining: number;
+  valid_from: string;
+  last_charge_entity_id: string;
+  total: number;
+  product_billing_interval: string;
+  plan_group: string;
+  product_id: string;
+  modified_at: string;
+  price_id: string;
+}
+
+export interface DIDCreditsResponse {
+  credits: DIDCredit[];
+  remaining: number;
+  total: number;
 }
 
 export interface RetryConfig {

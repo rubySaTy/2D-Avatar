@@ -1,14 +1,49 @@
 import didApi from "../lib/d-idApi";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import type {
-  DIDCreateTalkApiResponse,
-  DIDGetTalkApiResponse,
+  DIDCreditsResponse,
+  DIDCreateTalkResponse,
+  DIDCreateWebRTCStreamResponse,
+  DIDGetTalkResponse,
   PollConfig,
+  VoiceProviderConfig,
+  DIDCreateTalkStreamResponse,
 } from "../lib/types";
+import axios from "axios";
+
+export async function createTalkStream(
+  streamId: string,
+  sessionId: string,
+  voiceProvider: VoiceProviderConfig,
+  message?: string
+): Promise<DIDCreateTalkStreamResponse> {
+  const res = await didApi.post<DIDCreateTalkStreamResponse>(
+    `/streams/${streamId}`,
+    {
+      script: {
+        type: "text",
+        provider: voiceProvider,
+        ssml: "false",
+        input: message,
+      },
+      config: { fluent: true, pad_audio: "0.0" },
+      session_id: sessionId,
+    },
+    {
+      headers: {
+        "x-api-key-external": JSON.stringify({
+          elevenlabs: process.env.ELEVENLABS_API_KEY,
+        }),
+      },
+    }
+  );
+
+  return res.data;
+}
 
 export async function createIdleVideo(imageUrl: string) {
   try {
-    const res = await didApi.post<DIDCreateTalkApiResponse>("", {
+    const res = await didApi.post<DIDCreateTalkResponse>("", {
       source_url: imageUrl,
       driver_url: "bank://lively/driver-06",
       script: {
@@ -32,7 +67,7 @@ export async function createIdleVideo(imageUrl: string) {
 
 export async function getIdleVideo(
   id: string
-): Promise<DIDGetTalkApiResponse | null> {
+): Promise<DIDGetTalkResponse | null> {
   try {
     const url = `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/${id}`;
     const config: AxiosRequestConfig = {
@@ -43,14 +78,14 @@ export async function getIdleVideo(
         "Content-Type": "application/json",
       },
     };
-    const pollConfig: PollConfig<DIDGetTalkApiResponse> = {
+    const pollConfig: PollConfig<DIDGetTalkResponse> = {
       maxRetries: 10,
       initialRetryDelay: 1000,
       maxRetryDelay: 10000,
       shouldRetry: (data) => data.status !== "done",
     };
 
-    const res = await fetchWithRetries<DIDGetTalkApiResponse>(
+    const res = await fetchWithRetries<DIDGetTalkResponse>(
       url,
       config,
       pollConfig
@@ -60,6 +95,37 @@ export async function getIdleVideo(
     console.error("Error fetching idle video:", error);
     return null;
   }
+}
+
+export async function createWebRTCStream(imageUrl: string) {
+  try {
+    const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>(
+      "/streams",
+      {
+        source_url: imageUrl,
+        stream_warmup: true,
+      }
+    );
+
+    return sessionResponse.data;
+  } catch (error) {
+    console.error("Failed to create a WebRTC stream:", error);
+    return null;
+  }
+}
+
+export async function getCredits() {
+  const res = await axios.get<DIDCreditsResponse>(
+    "https://api.d-id.com/credits",
+    {
+      headers: {
+        Authorization: `Basic ${process.env.DID_API_KEY}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  console.log(res.data.remaining);
 }
 
 async function fetchWithRetries<T>(

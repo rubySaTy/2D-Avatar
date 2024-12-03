@@ -3,6 +3,7 @@ import { z } from "zod";
 export const userIdSchema = z
   .string()
   .min(1, { message: "User ID cannot be empty." });
+
 const usernameField = z
   .string()
   .min(3, { message: "Username must be at least 3 characters long" })
@@ -93,43 +94,44 @@ export const createTalkStreamSchema = z
     }
   );
 
-export const createAvatarSchema = z.object({
-  avatarName: z.string().min(1),
-  userIds: z.array(z.string()).min(1, "At least one user must be selected"),
-  imageFile: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: "File size should be less than 5MB",
-    })
-    .refine((file) => file.type.startsWith("image/"), {
-      message: "Only image files are allowed",
-    }),
-  voiceFiles: z
-    .array(z.instanceof(File))
-    .transform((files) =>
-      files.filter((file) => file.size > 0 && file.name !== "undefined")
-    )
-    .pipe(
-      z
-        .array(z.instanceof(File))
-        .max(25, { message: "You can upload up to 25 voice files" })
-        .refine(
-          (files) => files.every((file) => file.size <= 10 * 1024 * 1024),
-          {
-            message: "Each file must be less than or equal to 10MB",
-          }
-        )
-        .refine(
-          (files) =>
-            files.every((file) =>
-              ["audio/mp3", "audio/wav", "audio/mpeg", "audio/ogg"].includes(
-                file.type
-              )
-            ),
-          { message: "Only MP3, WAV, OGG and MPEG files are allowed" }
-        )
-    ),
-});
+const imageFileSchema = z
+  .instanceof(File)
+  .refine((file) => file.size <= 10 * 1024 * 1024, {
+    message: "File size should be less than 10MB",
+  })
+  .refine(
+    (file) =>
+      ["image/jpeg", "image/jpg", "image/png"].includes(
+        file.type.toLowerCase()
+      ),
+    { message: "Only JPEG, JPG, and PNG files are allowed" }
+  )
+  .refine((file) => /\.(jpeg|jpg|png)$/i.test(file.name), {
+    message: "File extension must be .jpeg, .jpg, or .png",
+  });
+
+const voiceFilesSchema = z
+  .array(z.instanceof(File))
+  .transform((files) =>
+    files.filter((file) => file.size > 0 && file.name !== "undefined")
+  )
+  .pipe(
+    z
+      .array(z.instanceof(File))
+      .max(25, { message: "You can upload up to 25 voice files" })
+      .refine((files) => files.every((file) => file.size <= 10 * 1024 * 1024), {
+        message: "Each file must be less than or equal to 10MB",
+      })
+      .refine(
+        (files) =>
+          files.every((file) =>
+            ["audio/mp3", "audio/wav", "audio/mpeg", "audio/ogg"].includes(
+              file.type
+            )
+          ),
+        { message: "Only MP3, WAV, OGG and MPEG files are allowed" }
+      )
+  );
 
 export const avatarIdSchema = z.preprocess((val) => {
   if (typeof val === "string") {
@@ -139,26 +141,19 @@ export const avatarIdSchema = z.preprocess((val) => {
   return val;
 }, z.number().min(1, { message: "Avatar ID must be a positive number." }));
 
-TODO: "Remove duplications of schema logic between create and edit";
-export const editAvatarSchema = z.object({
+const baseAvatarSchema = z.object({
+  avatarName: z.string().min(1, { message: "Avatar name is required" }),
+  userIds: z
+    .array(z.string())
+    .min(1, { message: "At least one user must be selected" }),
+});
+
+export const createAvatarSchema = baseAvatarSchema.extend({
+  imageFile: imageFileSchema,
+  voiceFiles: voiceFilesSchema,
+});
+
+export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
-  avatarName: z.string().min(1),
-  userIds: z.array(z.string()).min(1, "At least one user must be selected"),
-  imageFile: z
-    .instanceof(File)
-    .optional()
-    .refine(
-      (file) => {
-        if (!file || file.size === 0) return true;
-        return file.size <= 5 * 1024 * 1024;
-      },
-      { message: "File size should be less than 5MB" }
-    )
-    .refine(
-      (file) => {
-        if (!file || file.size === 0) return true;
-        return file.type.startsWith("image/");
-      },
-      { message: "Only image files are allowed" }
-    ),
+  imageFile: imageFileSchema,
 });

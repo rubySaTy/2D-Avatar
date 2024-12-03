@@ -47,7 +47,7 @@ export default function ImageUploader({
     },
     maxFiles: 1,
     multiple: false,
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 10 * 1024 * 1024, // 10MB
   });
 
   const removeImage = useCallback(() => {
@@ -116,7 +116,7 @@ export default function ImageUploader({
               Drag & drop an image here, or click to select
             </p>
             <p className="text-sm text-gray-500">
-              Supports: JPG, PNG (max 5MB)
+              Supports: JPEG, JPG, PNG (max 10MB)
             </p>
           </div>
         )}

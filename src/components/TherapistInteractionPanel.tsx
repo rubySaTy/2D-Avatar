@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
-import { createTalkStream } from "@/app/actions";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
@@ -11,6 +10,7 @@ import VoiceSelector from "./VoiceSelector";
 import PremadeMessages from "./PremadeMessages";
 import { getMessageTimestamp } from "@/lib/utils";
 import type { MicrosoftVoice } from "@/lib/types";
+import { submitMessageToDID } from "@/app/actions/d-id";
 
 interface TherapistInteractionPanelProps {
   meetingLink: string;
@@ -24,7 +24,7 @@ interface TherapistInteractionPanelProps {
 // Wrapper for submitting message with ID
 const submitMessage = (meetingLink: string) => {
   return async (prevState: any, formData: FormData) => {
-    const res = await createTalkStream(meetingLink, formData);
+    const res = await submitMessageToDID(meetingLink, formData);
     return res;
   };
 };
