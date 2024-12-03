@@ -31,6 +31,7 @@ export default async function UserTable({ users }: UserTableProps) {
           <TableHead>Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Role</TableHead>
+          <TableHead>Credits</TableHead>
           <TableHead>Created at</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>

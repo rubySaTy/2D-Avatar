@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { type Avatar, avatars, meetingSessions, users } from "@/lib/db/schema";
+import { type Avatar, meetingSessions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getUserAvatars(userId: string) {
@@ -33,4 +33,8 @@ export async function getAvatarByMeetingLink(
     console.error("Error getting avatar by meeting link from DB:", error);
     return null;
   }
+}
+
+export async function getAvatars() {
+  return db.query.avatars.findMany();
 }

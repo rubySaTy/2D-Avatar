@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db/db";
-import { avatars } from "@/lib/db/schema";
 import { getUser } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -10,22 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import UserManagement from "@/components/AdminDashboard/User/UserManagement";
-import AvatarManagement from "@/components/AdminDashboard/Avatar/AvatarManagement";
-import TalksDisplay from "@/components/AdminDashboard/Talk/TalksDisplay";
-import { getUsersDto } from "@/services";
-import { getTalksWithUser } from "@/services/talkService";
+import {
+  UserManagement,
+  AvatarManagement,
+  TalksDisplay,
+} from "@/components/AdminDashboard";
+import { getAvatars, getUsersDto, getTalksWithUser } from "@/services";
 
 export default async function AdminPage() {
   const user = await getUser();
   if (!user || user.role !== "admin") redirect("/login");
 
-  const [usersDto, avatarsArray] = await Promise.all([
+  const [usersDto, avatars, talks] = await Promise.all([
     getUsersDto(),
-    db.select().from(avatars),
+    getAvatars(),
+    getTalksWithUser(),
   ]);
 
-  const talks = await getTalksWithUser();
   return (
     <div className="container mx-auto py-10">
       <Card>
@@ -46,7 +45,7 @@ export default async function AdminPage() {
               <UserManagement users={usersDto} />
             </TabsContent>
             <TabsContent value="avatars">
-              <AvatarManagement avatars={avatarsArray} users={usersDto} />
+              <AvatarManagement avatars={avatars} users={usersDto} />
             </TabsContent>
             <TabsContent value="talks">
               <TalksDisplay talks={talks} />

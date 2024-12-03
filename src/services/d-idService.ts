@@ -114,7 +114,7 @@ export async function createWebRTCStream(imageUrl: string) {
   }
 }
 
-export async function getCredits() {
+export async function getDIDCredits() {
   const res = await axios.get<DIDCreditsResponse>(
     "https://api.d-id.com/credits",
     {
@@ -125,7 +125,7 @@ export async function getCredits() {
       },
     }
   );
-  console.log(res.data.remaining);
+  return res.data.remaining;
 }
 
 async function fetchWithRetries<T>(

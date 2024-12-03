@@ -29,6 +29,7 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
           {user.role}
         </Badge>
       </TableCell>
+      <TableCell>{user.role === "admin" ? "N/A" : user.credits}</TableCell>
       <TableCell>
         {user.createdAt
           .toLocaleString("en-GB", {

@@ -10,18 +10,27 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 
+const timestamps = {
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+  // deleted_at: timestamp(),
+};
+
+TODO: "Add user versioning for optimistic concurrency control?";
 export const users = pgTable("user", {
   id: text("id").primaryKey(),
   username: varchar("username", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "therapist"] }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  credits: integer("credits").default(40).notNull(),
+  ...timestamps,
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
   usersToAvatars: many(usersToAvatars),
   meetingSessions: many(meetingSessions),
+  creditTransactions: many(creditTransactions),
 }));
 
 export const avatars = pgTable("avatar", {
@@ -32,7 +41,7 @@ export const avatars = pgTable("avatar", {
   idleVideoUrl: text("idle_video_url"),
   idleVideoKey: text("idle_video_key"),
   elevenlabsVoiceId: text("elevenlabs_voice_id"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  ...timestamps,
 });
 
 export const avatarsRelations = relations(avatars, ({ many }) => ({
@@ -86,11 +95,11 @@ export const meetingSessions = pgTable("meeting_session", {
     .notNull()
     .references(() => avatars.id, { onDelete: "cascade" }),
   meetingLink: varchar("meeting_link", { length: 255 }).notNull().unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
   didStreamId: text("did_stream_id"),
   didSessionId: text("did_session_id"),
   offer: jsonb("offer"), // (RTCSessionDescriptionInit stored as JSONB)
   iceServers: jsonb("ice_servers"),
+  ...timestamps,
 });
 
 export const meetingSessionsRelations = relations(
@@ -123,6 +132,26 @@ export const talksRelations = relations(talks, ({ one }) => ({
   }),
 }));
 
+export const creditTransactions = pgTable("credit_transactions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(), // Positive for addition, negative for removal
+  reason: varchar("reason", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const creditTransactionsRelations = relations(
+  creditTransactions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [creditTransactions.userId],
+      references: [users.id],
+    }),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type UserDto = Omit<User, "passwordHash">;
 export type NewUser = typeof users.$inferInsert;
@@ -135,3 +164,6 @@ export type NewMeetingSession = typeof meetingSessions.$inferInsert;
 
 export type Talk = typeof talks.$inferSelect;
 export type NewTalk = typeof talks.$inferInsert;
+
+export type CreditTransaction = typeof creditTransactions.$inferSelect;
+export type NewCreditTransaction = typeof creditTransactions.$inferInsert;

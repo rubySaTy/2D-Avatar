@@ -2,6 +2,7 @@ import { db } from "@/lib/db/db";
 import { users, type UserDto, type User } from "@/lib/db/schema";
 import { eq, or } from "drizzle-orm";
 
+// TODO: omit `passwordHash` field from user object that the function returns?
 export async function findUser(
   username?: string,
   email?: string
@@ -30,7 +31,9 @@ export async function getUsersDto(): Promise<UserDto[]> {
       username: users.username,
       email: users.email,
       role: users.role,
+      credits: users.credits,
       createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
     })
     .from(users);
 
