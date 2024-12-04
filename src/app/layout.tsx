@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/Layout/theme-provider";
-import Navbar from "@/components/Layout/Navbar";
 import { getUser } from "@/lib/auth";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,6 +30,9 @@ export default async function RootLayout({
 }>) {
   const user = await getUser();
 
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+
   return (
     <html lang="en">
       <body
@@ -39,12 +44,17 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {user && (
-            <header>
-              <Navbar currentUser={user} />
-            </header>
+          {user ? (
+            <SidebarProvider defaultOpen={defaultOpen}>
+              <AppSidebar currentUser={user} />
+              <main className="flex-1">
+                <SidebarTrigger />
+                {children}
+              </main>
+            </SidebarProvider>
+          ) : (
+            <main>{children}</main>
           )}
-          {children}
         </ThemeProvider>
       </body>
     </html>
