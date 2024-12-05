@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteUser } from "@/app/actions/admin";
 import EditUserForm from "./EditUserForm";
+import UpdateCreditsForm from "./UpdateCreditsForm";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserRowProps = {
@@ -29,7 +30,16 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
           {user.role}
         </Badge>
       </TableCell>
-      <TableCell>{user.role === "admin" ? "N/A" : user.credits}</TableCell>
+      <TableCell>
+        {user.role === "admin" ? (
+          "N/A"
+        ) : (
+          <div className="flex items-center space-x-2">
+            <span>{user.credits}</span>
+            <UpdateCreditsForm userId={user.id} currentCredits={user.credits} />
+          </div>
+        )}
+      </TableCell>
       <TableCell>
         {user.createdAt
           .toLocaleString("en-GB", {

@@ -19,6 +19,7 @@ import {
   createUserSchema,
   editAvatarSchema,
   editUserSchema,
+  updateCreditsSchema,
   userIdSchema,
 } from "@/lib/validationSchema";
 import { eq } from "drizzle-orm";
@@ -31,6 +32,7 @@ import {
   getIdleVideo,
   deleteS3Objects,
   findUser,
+  updateUserCredits,
 } from "@/services";
 
 export async function createUser(prevState: any, formData: FormData) {
@@ -426,5 +428,32 @@ export async function deleteAvatar(formData: FormData) {
     revalidatePath("/admin");
   } catch (error) {
     console.error("Error deleting avatar:", error);
+  }
+}
+
+export async function handleUpdateCredits(prevState: any, formData: FormData) {
+  const parseResult = updateCreditsSchema.safeParse({
+    userId: formData.get("userId"),
+    amount: Number(formData.get("amount")),
+    reason: formData.get("reason"),
+  });
+
+  if (!parseResult.success) {
+    const errorMessages = parseResult.error.errors.map((err) => err.message);
+    return { success: false, message: errorMessages.join(", ") };
+  }
+
+  const { userId, amount, reason } = parseResult.data;
+
+  try {
+    await updateUserCredits(userId, amount, reason);
+
+    TODO: "Use revalidateTag when upgrading to NextJS 15,";
+    revalidatePath("/admin");
+
+    return { success: true, message: "Credits updated successfully." };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "An unexpected error occurred." };
   }
 }

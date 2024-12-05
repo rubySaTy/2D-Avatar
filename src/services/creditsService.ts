@@ -72,6 +72,44 @@ export async function removeCredits(
   });
 }
 
+export async function updateUserCredits(
+  userId: string,
+  amount: number,
+  reason: string
+) {
+  return db.transaction(async (tx) => {
+    const user = await tx.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) throw new Error("User not found");
+    if (user.role === "admin")
+      throw new Error("Cannot modify credits for an admin.");
+
+    const updatedCreditsAmount = user.credits + amount;
+
+    if (updatedCreditsAmount < 0) {
+      throw new Error("Insufficient credits for this operation.");
+    }
+
+    // Optionally, enforce maximum credit limits here
+    // if (updatedCreditsAmount > MAX_CREDITS) {
+    //   throw new Error("Credit limit exceeded.");
+    // }
+
+    await tx
+      .update(users)
+      .set({ credits: updatedCreditsAmount })
+      .where(eq(users.id, userId));
+
+    await tx.insert(creditTransactions).values({
+      userId,
+      amount,
+      reason,
+    });
+  });
+}
+
 export async function getUserCredits(userId: string) {
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),

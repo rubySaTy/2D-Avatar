@@ -157,3 +157,9 @@ export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
   imageFile: imageFileSchema,
 });
+
+export const updateCreditsSchema = z.object({
+  userId: z.string(),
+  amount: z.number(),
+  reason: z.string().min(1, "Reason is required."),
+});

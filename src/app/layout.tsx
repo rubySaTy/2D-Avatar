@@ -30,8 +30,8 @@ export default async function RootLayout({
 }>) {
   const user = await getUser();
 
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+  // const cookieStore = await cookies();
+  // const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
 
   return (
     <html lang="en">
@@ -45,7 +45,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {user ? (
-            <SidebarProvider defaultOpen={defaultOpen}>
+            <SidebarProvider defaultOpen={true}>
               <AppSidebar currentUser={user} />
               <main className="flex-1">
                 <SidebarTrigger />
