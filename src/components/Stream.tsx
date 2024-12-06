@@ -29,8 +29,8 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
 
   // Refs for stream and session IDs
-  const streamIdRef = useRef<string>();
-  const sessionIdRef = useRef<string>();
+  const streamIdRef = useRef<string>(undefined);
+  const sessionIdRef = useRef<string>(undefined);
 
   // Refs for the video elements
   const videoRef = useRef<HTMLVideoElement>(null);

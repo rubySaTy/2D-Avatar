@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useFormState } from "react-dom";
+import { useState, useEffect, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +23,7 @@ export default function UpdateCreditsForm({
   userId,
   currentCredits,
 }: UpdateCreditsFormProps) {
-  const [state, formAction] = useFormState(handleUpdateCredits, null);
+  const [state, formAction] = useActionState(handleUpdateCredits, null);
   const [isOpen, setIsOpen] = useState(false);
   const [operation, setOperation] = useState<"add" | "subtract">("add");
   const [amount, setAmount] = useState(1);

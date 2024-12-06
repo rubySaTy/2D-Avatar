@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState } from "react-dom";
+import { useState, useActionState } from "react";
 import { Separator } from "../ui/separator";
 import FormCard from "../FormCard";
 import { SubmitButton } from "../SubmitButton";
@@ -12,7 +11,7 @@ import { Button } from "../ui/button";
 import { EyeOff, Eye } from "lucide-react";
 
 export default function Login() {
-  const [state, formAction] = useFormState(loginUser, null);
+  const [state, formAction] = useActionState(loginUser, null);
   const [showPassword, setShowPassword] = useState(false);
 
   return (

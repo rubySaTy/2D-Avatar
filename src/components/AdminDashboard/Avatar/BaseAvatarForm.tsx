@@ -1,6 +1,5 @@
 "use client";
-
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,7 +43,7 @@ export default function BaseAvatarForm({
   submitText,
   isEditing = false,
 }: BaseAvatarFormProps) {
-  const [state, formAction] = useFormState(serverAction, null);
+  const [state, formAction] = useActionState(serverAction, null);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -56,7 +55,6 @@ export default function BaseAvatarForm({
           {description}
         </DialogDescription>
       </DialogHeader>
-
       <div className="space-y-4">
         {initialData && (
           <input type="hidden" name="avatarId" value={initialData.id} />
@@ -89,7 +87,6 @@ export default function BaseAvatarForm({
           />
         </div>
       </div>
-
       {state?.message && (
         <Alert
           variant={state.success ? "default" : "destructive"}
@@ -99,7 +96,6 @@ export default function BaseAvatarForm({
           <AlertDescription>{state.message}</AlertDescription>
         </Alert>
       )}
-
       <DialogFooter>
         <SubmitButton>{submitText}</SubmitButton>
       </DialogFooter>

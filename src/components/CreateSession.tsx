@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import type { Avatar } from "@/lib/db/schema";
 import { Label } from "./ui/label";
 import {
@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import Image from "next/image";
-import { useFormState } from "react-dom";
 import { createSession } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
 import {
@@ -29,7 +28,7 @@ interface CreateSessionProps {
 
 export default function CreateSession({ avatars }: CreateSessionProps) {
   const [avatarImgUrl, setAvatarImgUrl] = useState("");
-  const [state, formAction] = useFormState(createSession, null);
+  const [state, formAction] = useActionState(createSession, null);
 
   return (
     <Card className="w-[400px]">

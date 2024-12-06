@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import Stream from "@/components/Stream";
 import { getAvatarByMeetingLink } from "@/services";
 
-export default async function ClientSessionPage({
-  params,
-}: {
-  params: { session: string };
-}) {
+export default async function ClientSessionPage(
+  props: {
+    params: Promise<{ session: string }>;
+  }
+) {
+  const params = await props.params;
   const meetingLink = params.session;
   const avatar = await getAvatarByMeetingLink(meetingLink);
 

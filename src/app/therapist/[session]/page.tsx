@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { getAvatarByMeetingLink } from "@/services";
 import type { MicrosoftVoice } from "@/lib/types";
 
-export default async function TherapistSessionPage({
-  params,
-}: {
-  params: { session: string };
-}) {
+export default async function TherapistSessionPage(
+  props: {
+    params: Promise<{ session: string }>;
+  }
+) {
+  const params = await props.params;
   const meetingLink = params.session;
   const avatar = await getAvatarByMeetingLink(meetingLink);
   if (!avatar) {

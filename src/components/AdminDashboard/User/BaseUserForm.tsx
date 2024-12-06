@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useRef, useState, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +42,7 @@ export default function BaseUserForm({
   submitText,
   isEditing = false,
 }: BaseUserFormProps) {
-  const [state, formAction] = useFormState(serverAction, null);
+  const [state, formAction] = useActionState(serverAction, null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
 

@@ -39,7 +39,7 @@ export async function loginUser(prevState: any, formData: FormData) {
 
     const session = await lucia.createSession(user.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(
+    (await cookies()).set(
       sessionCookie.name,
       sessionCookie.value,
       sessionCookie.attributes
@@ -60,7 +60,7 @@ export async function logout() {
   await lucia.invalidateSession(session.id);
 
   const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes

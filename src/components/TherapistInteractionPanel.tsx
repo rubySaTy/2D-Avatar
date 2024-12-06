@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useRef, useState, useActionState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
@@ -34,7 +33,7 @@ export default function TherapistInteractionPanel({
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
   const [history, setHistory] = useState([""]);
-  const [state, formAction] = useFormState(submitMessage(meetingLink), null);
+  const [state, formAction] = useActionState(submitMessage(meetingLink), null);
 
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
