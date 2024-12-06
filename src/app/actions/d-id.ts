@@ -8,7 +8,8 @@ import {
   createTalkStream,
   createWebRTCStream,
   getAvatarByMeetingLink,
-  getMeetingSessionWithAvatar,
+  getMeetingSessionWithAvatarAndUser,
+  removeCredits,
 } from "@/services";
 import { meetingSessions, type NewTalk, talks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -96,15 +97,17 @@ export async function submitMessageToDID(
   } = parsedData.data;
   const message = premadeMessage ?? userMessage;
 
-  const meetingData = await getMeetingSessionWithAvatar(meetingLink);
+  const meetingData = await getMeetingSessionWithAvatarAndUser(meetingLink);
   if (!meetingData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
     return { success: false, message: "Meeting data not found" };
   }
   const {
+    id: meetingSessionId,
+    userId,
+    user,
     didStreamId,
     didSessionId,
-    id: meetingSessionId,
     avatar,
   } = meetingData;
 
@@ -131,6 +134,10 @@ export async function submitMessageToDID(
       voiceProvider,
       message
     );
+
+    if (user.role !== "admin") {
+      await removeCredits(userId, 0.5, "Created a talk/stream");
+    }
 
     const newTalk: NewTalk = { id: newTalkStream.video_id, meetingSessionId };
     await db.insert(talks).values(newTalk);

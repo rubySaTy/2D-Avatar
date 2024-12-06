@@ -8,6 +8,7 @@ import {
   jsonb,
   primaryKey,
   integer,
+  real,
 } from "drizzle-orm/pg-core";
 
 const timestamps = {
@@ -23,7 +24,7 @@ export const users = pgTable("user", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "therapist"] }).notNull(),
-  credits: integer("credits").default(40).notNull(),
+  credits: real("credits").default(40).notNull(),
   ...timestamps,
 });
 
@@ -137,7 +138,7 @@ export const creditTransactions = pgTable("credit_transactions", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  amount: integer("amount").notNull(), // Positive for addition, negative for removal
+  amount: real("amount").notNull(), // Positive for addition, negative for removal
   reason: varchar("reason", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -42,6 +42,7 @@ export default function UpdateCreditsForm({
 
   useEffect(() => {
     if (state?.success) {
+      setAmount(1);
       setIsOpen(false);
     }
   }, [state]);
