@@ -1,8 +1,8 @@
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import CreateUserForm from "./CreateUserForm";
 import UserTable from "./UserTable";
+import { CreateUserForm } from "./UserForm";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserManagementProps = {

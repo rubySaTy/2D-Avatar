@@ -1,13 +1,7 @@
 import Image from "next/image";
 import { Pencil, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { deleteAvatar } from "@/app/actions/admin";
 import EditAvatarForm from "./EditAvatarForm";

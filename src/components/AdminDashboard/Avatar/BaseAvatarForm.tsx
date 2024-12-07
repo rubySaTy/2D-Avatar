@@ -1,4 +1,5 @@
 "use client";
+
 import { useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +12,10 @@ import {
 import ImageUpload from "@/components/ImageUpload";
 import VoiceUpload from "@/components/VoiceUpload";
 import MultiUserSelector from "./MultiUserSelector";
-import { Alert, AlertDescription } from "../../ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Separator } from "../../ui/separator";
-import { SubmitButton } from "../../SubmitButton";
+import { Separator } from "@/components/ui/separator";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { UserDto, Avatar } from "@/lib/db/schema";
 
 interface BaseAvatarFormProps {

@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteUser } from "@/app/actions/admin";
-import EditUserForm from "./EditUserForm";
 import UpdateCreditsForm from "./UpdateCreditsForm";
+import { EditUserForm } from "./UserForm";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserRowProps = {

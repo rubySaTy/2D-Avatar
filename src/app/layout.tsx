@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/Layout/theme-provider";
@@ -29,9 +28,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getUser();
-
-  // const cookieStore = await cookies();
-  // const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
 
   return (
     <html lang="en" suppressHydrationWarning>

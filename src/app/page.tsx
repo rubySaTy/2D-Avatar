@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 

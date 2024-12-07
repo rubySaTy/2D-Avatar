@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useActionState } from "react";
+import { useState, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,31 @@ import {
 import { SubmitButton } from "@/components/SubmitButton";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import type { UserDto } from "@/lib/db/schema";
+import { createUser, editUser } from "@/app/actions/admin";
+
+export function EditUserForm({ user }: { user: UserDto }) {
+  return (
+    <BaseUserForm
+      serverAction={editUser}
+      initialData={user}
+      title="Edit User"
+      description="Update user details."
+      submitText="Update User"
+      isEditing={true}
+    />
+  );
+}
+
+export function CreateUserForm() {
+  return (
+    <BaseUserForm
+      serverAction={createUser}
+      title="Create New User"
+      description="Add a new user to the system."
+      submitText="Create User"
+    />
+  );
+}
 
 interface BaseUserFormProps {
   serverAction: (
@@ -34,7 +59,7 @@ interface BaseUserFormProps {
   isEditing?: boolean;
 }
 
-export default function BaseUserForm({
+function BaseUserForm({
   serverAction,
   initialData = {},
   title,
@@ -44,16 +69,10 @@ export default function BaseUserForm({
 }: BaseUserFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state?.success && formRef.current && !isEditing) {
-      formRef.current.reset();
-    }
-  }, [state]);
-
+  // TODO: "Add zod validation on client side too";
   return (
-    <form ref={formRef} action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-6">
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
