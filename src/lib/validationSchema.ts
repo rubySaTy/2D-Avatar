@@ -94,20 +94,16 @@ export const createTalkStreamSchema = z
     }
   );
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+
 const imageFileSchema = z
   .instanceof(File)
-  .refine((file) => file.size <= 10 * 1024 * 1024, {
-    message: "File size should be less than 10MB",
+  .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
+    message: "Only JPEG, JPG, or PNG images are allowed.",
   })
-  .refine(
-    (file) =>
-      ["image/jpeg", "image/jpg", "image/png"].includes(
-        file.type.toLowerCase()
-      ),
-    { message: "Only JPEG, JPG, and PNG files are allowed" }
-  )
-  .refine((file) => /\.(jpeg|jpg|png)$/i.test(file.name), {
-    message: "File extension must be .jpeg, .jpg, or .png",
+  .refine((file) => file.size <= MAX_FILE_SIZE, {
+    message: "File size cannot exceed 10MB.",
   });
 
 const voiceFilesSchema = z
@@ -155,7 +151,7 @@ export const createAvatarSchema = baseAvatarSchema.extend({
 
 export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
-  imageFile: imageFileSchema,
+  imageFile: imageFileSchema.optional(),
 });
 
 export const updateCreditsSchema = z.object({

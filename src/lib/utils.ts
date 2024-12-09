@@ -77,3 +77,14 @@ export function formatDate(date: Date): string {
 
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
+
+export function isValidFileUpload(file: File | null | undefined): boolean {
+  if (!file || !(file instanceof File)) return false;
+
+  const isEmptyDefaultFile = 
+    file.size === 0 && 
+    file.type === 'application/octet-stream' && 
+    file.name === 'undefined';
+
+  return !isEmptyDefaultFile;
+}

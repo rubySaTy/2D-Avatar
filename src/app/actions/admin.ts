@@ -8,10 +8,11 @@ import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
 import {
   users,
-  NewUser,
+  type NewUser,
   avatars,
   usersToAvatars,
   sessions,
+  type NewAvatar,
 } from "@/lib/db/schema";
 import {
   avatarIdSchema,
@@ -24,7 +25,11 @@ import {
 } from "@/lib/validationSchema";
 import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
-import { sanitizeString, sanitizeFilename } from "@/lib/utils";
+import {
+  sanitizeString,
+  sanitizeFilename,
+  isValidFileUpload,
+} from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 import {
   uploadToS3,
@@ -259,13 +264,13 @@ export async function createAvatar(prevState: any, formData: FormData) {
 }
 
 export async function editAvatar(prevState: any, formData: FormData) {
+  const image = formData.get("imageFile") as File;
   const parsedData = editAvatarSchema.safeParse({
     avatarId: formData.get("avatarId"),
     avatarName: formData.get("avatarName"),
-    imageFile: formData.get("imageFile"),
+    imageFile: isValidFileUpload(image) ? image : undefined,
     userIds: formData.getAll("userIds"),
   });
-
   if (!parsedData.success) {
     const errors = parsedData.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: `Validation failed: ${errors}` };
@@ -283,7 +288,7 @@ export async function editAvatar(prevState: any, formData: FormData) {
     }
 
     // Prepare update object
-    const updateData: Partial<typeof avatars.$inferInsert> = {
+    const updateData: Partial<NewAvatar> = {
       avatarName,
     };
 
