@@ -142,5 +142,56 @@
     "access": "public",
     "provider": "microsoft",
     "styles": ["empathetic", "relieved"]
+  },
+  {
+    "id": "zh-CN-XiaoyuMultilingualNeural",
+    "name": "Xiaoyu Multilingual",
+    "gender": "female",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-enGB-Audio.wav"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-enUS-Audio.wav"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-heIL-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
+  },
+  {
+    "id": "zh-CN-YunyiMultilingualNeural",
+    "name": "Yunyi Multilingual",
+    "description": "A gentle, casual, and friendly voice, creating a calm and approachable tone in any context.",
+    "gender": "male",
+    "languages": [
+      {
+        "locale": "en-GB",
+        "language": "English (United Kingdom)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-engb-Audio.wav"
+      },
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-enus-Audio.wav"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)",
+        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-heIL-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": []
   }
 ]
