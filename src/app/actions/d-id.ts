@@ -46,8 +46,8 @@ export async function notifyICEGatheringComplete(
 
 export async function sendSDPAnswer(
   streamId: string,
-  answer: RTCSessionDescriptionInit,
-  sessionId: string
+  sessionId: string,
+  answer: RTCSessionDescriptionInit
 ) {
   try {
     await didApi.post(`/streams/${streamId}/sdp`, {

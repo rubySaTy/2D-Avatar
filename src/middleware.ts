@@ -5,7 +5,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Define public paths that can be accessed without authentication
-  const publicPaths = ["/login", "/client"];
+  const publicPaths = [
+    "/login",
+    "/client",
+    "/forgot-password",
+    "/reset-password",
+  ];
 
   // If the path is public, allow access
   if (publicPaths.some((path) => pathname.startsWith(path))) {

@@ -25,6 +25,8 @@ export const users = pgTable("user", {
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "therapist"] }).notNull(),
   credits: real("credits").default(40).notNull(),
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   ...timestamps,
 });
 
@@ -154,8 +156,11 @@ export const creditTransactionsRelations = relations(
 );
 
 export type User = typeof users.$inferSelect;
-export type UserDto = Omit<User, "passwordHash">;
 export type NewUser = typeof users.$inferInsert;
+export type UserDto = Omit<
+  User,
+  "passwordHash" | "resetToken" | "resetTokenExpires"
+>;
 
 export type Avatar = typeof avatars.$inferSelect;
 export type NewAvatar = typeof avatars.$inferInsert;

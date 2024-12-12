@@ -2,25 +2,25 @@
 
 import { useState, useActionState } from "react";
 import type { Avatar } from "@/lib/db/schema";
-import { Label } from "./ui/label";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
 import Image from "next/image";
 import { createSession } from "@/app/actions";
-import { SubmitButton } from "./SubmitButton";
+import { SubmitButton } from "@/components/SubmitButton";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardFooter,
-} from "./ui/card";
-import Spinner from "./ui/spinner";
+} from "@/components/ui/card";
+import Spinner from "@/components/ui/spinner";
 
 interface CreateSessionProps {
   avatars: Array<Avatar>;

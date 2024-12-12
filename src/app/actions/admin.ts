@@ -36,7 +36,7 @@ import {
   createIdleVideo,
   getIdleVideo,
   deleteS3Objects,
-  findUser,
+  findUserByUsernameOrEmail,
   updateUserCredits,
 } from "@/services";
 
@@ -56,7 +56,7 @@ export async function createUser(prevState: any, formData: FormData) {
   const { username, email, password, role } = parseResult.data;
 
   try {
-    const foundUser = await findUser(username, email);
+    const foundUser = await findUserByUsernameOrEmail(username, email);
     if (foundUser) {
       const conflicts: string[] = [];
 
@@ -101,6 +101,7 @@ export async function editUser(prevState: any, formData: FormData) {
     email: formData.get("email"),
     role: formData.get("role"),
   });
+
   if (!parseResult.success) {
     const errorMessages = parseResult.error.errors.map((err) => err.message);
     return { success: false, message: errorMessages.join(", ") };

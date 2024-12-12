@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { randomBytes } from "crypto";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -40,7 +41,7 @@ export function getMessageTimestamp(): string {
   return timestamp;
 }
 
-export function shortUUID(): string {
+export function generateShortUUID(): string {
   const uuid: string = crypto.randomUUID();
 
   // Remove dashes and convert to a Uint8Array
@@ -81,10 +82,15 @@ export function formatDate(date: Date): string {
 export function isValidFileUpload(file: File | null | undefined): boolean {
   if (!file || !(file instanceof File)) return false;
 
-  const isEmptyDefaultFile = 
-    file.size === 0 && 
-    file.type === 'application/octet-stream' && 
-    file.name === 'undefined';
+  const isEmptyDefaultFile =
+    file.size === 0 &&
+    file.type === "application/octet-stream" &&
+    file.name === "undefined";
 
   return !isEmptyDefaultFile;
+}
+
+// TODO: is redundant with the shortUUID function?
+export function generateResetToken() {
+  return randomBytes(32).toString("hex");
 }

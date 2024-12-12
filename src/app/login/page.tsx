@@ -1,6 +1,6 @@
-import Login from "@/components/auth/Login";
-import { validateRequest } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { validateRequest } from "@/lib/auth";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 export default async function LoginPage() {
   const { session } = await validateRequest();
@@ -11,7 +11,7 @@ export default async function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 max-w-md mx-auto">
-      <Login />
+      <LoginForm />
     </div>
   );
 }

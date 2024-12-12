@@ -4,7 +4,7 @@ import { db } from "@/lib/db/db";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { meetingSessions } from "@/lib/db/schema";
-import { shortUUID } from "@/lib/utils";
+import { generateShortUUID } from "@/lib/utils";
 import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
 
 export async function createSession(prevState: any, formData: FormData) {
@@ -19,7 +19,7 @@ export async function createSession(prevState: any, formData: FormData) {
     return { message: "Invalid credentials" };
   }
 
-  const meetingLink = shortUUID();
+  const meetingLink = generateShortUUID();
   try {
     const newMeetingSession: NewMeetingSession = {
       userId: user.id,

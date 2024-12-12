@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, useActionState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Textarea } from "./ui/textarea";
-import { Button } from "./ui/button";
-import { SubmitButton } from "./SubmitButton";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import { SubmitButton } from "../SubmitButton";
 import VoiceSelector from "./VoiceSelector";
-import PremadeMessages from "./PremadeMessages";
 import { getMessageTimestamp } from "@/lib/utils";
-import type { MicrosoftVoice } from "@/lib/types";
 import { submitMessageToDID } from "@/app/actions/d-id";
+import PremadeMessages from "./PremadeMessages";
+import type { MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
   meetingLink: string;

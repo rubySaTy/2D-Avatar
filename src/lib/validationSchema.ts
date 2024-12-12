@@ -10,12 +10,12 @@ const usernameField = z
   .max(30, { message: "Username must be at most 30 characters long" })
   .regex(/^[a-zA-Z0-9._-]+$/, {
     message:
-      "Username can only contain letters, numbers, underscores, hyphens, and periods",
+      "Username can only contain English letters, numbers, underscores, hyphens, and periods",
   });
 
 const passwordField = z
   .string()
-  .min(1, { message: "Password must be at least 1 character long." })
+  .min(6, { message: "Password must be at least 6 character long." })
   .max(16, { message: "Password must be at most 16 characters long." });
 
 const emailField = z.string().email({ message: "Invalid email address." });
@@ -29,33 +29,36 @@ const roleEnum = z.enum(["admin", "therapist"], {
 const baseUserSchema = z.object({
   username: usernameField,
   email: emailField,
+  role: roleEnum,
 });
 
 export const createUserSchema = baseUserSchema.extend({
   password: passwordField,
-  role: roleEnum,
 });
 
 export const editUserSchema = baseUserSchema.extend({
-  role: roleEnum.optional().nullable(),
   userId: userIdSchema,
 });
 
 export const loginUserSchema = z.object({
-  identifier: z
-    .string()
-    .min(1, "Username or Email is required")
-    .refine(
-      (val) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(val) || val.length >= 3;
-      },
-      {
-        message: "Enter a valid email or a username with at least 3 characters",
-      }
-    ),
-  password: z.string().min(1, "Password must be at least 1 characters"),
+  identifier: z.union([usernameField, emailField]),
+  password: passwordField,
 });
+
+export const forgotPasswordSchema = z.object({
+  email: emailField,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordField,
+    confirmPassword: passwordField,
+    resetToken: z.string().min(1),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"], // This targets the specific field where the error will show
+  });
 
 export const createTalkStreamSchema = z
   .object({
@@ -137,10 +140,19 @@ export const avatarIdSchema = z.preprocess((val) => {
   return val;
 }, z.number().min(1, { message: "Avatar ID must be a positive number." }));
 
+const avatarNameField = z
+  .string()
+  .min(3, { message: "Avatar name must be at least 3 characters long" })
+  .max(20, { message: "Avatar name must be at most 20 characters long" })
+  .regex(/^[a-zA-Z0-9._-]+$/, {
+    message:
+      "Avatar name can only contain English letters, numbers, underscores, hyphens, and periods",
+  });
+
 const baseAvatarSchema = z.object({
-  avatarName: z.string().min(1, { message: "Avatar name is required" }),
+  avatarName: avatarNameField,
   userIds: z
-    .array(z.string())
+    .array(userIdSchema)
     .min(1, { message: "At least one user must be selected" }),
 });
 

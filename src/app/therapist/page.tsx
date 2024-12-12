@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import CreateSession from "@/components/CreateSession";
+import CreateSession from "@/components/TherapistPanel/CreateSession";
 import { getUser } from "@/lib/auth";
 import { getUserAvatars } from "@/services";
 

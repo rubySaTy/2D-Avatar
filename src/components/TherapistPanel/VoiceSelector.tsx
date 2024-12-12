@@ -1,14 +1,14 @@
 import { useState, useMemo, useRef } from "react";
-import { Label } from "./ui/label";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import type { MicrosoftVoice } from "@/lib/types";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { Pause, Play } from "lucide-react";
 
 const GenderSelect: React.FC<{

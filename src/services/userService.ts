@@ -1,9 +1,8 @@
 import { db } from "@/lib/db/db";
 import { users, type UserDto, type User } from "@/lib/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, gt } from "drizzle-orm";
 
-// TODO: omit `passwordHash` field from user object that the function returns?
-export async function findUser(
+export async function findUserByUsernameOrEmail(
   username?: string,
   email?: string
 ): Promise<User | null> {
@@ -38,4 +37,45 @@ export async function getUsersDto(): Promise<UserDto[]> {
     .from(users);
 
   return usersArray;
+}
+
+export async function findUserByEmail(email: string) {
+  return await db.query.users.findFirst({ where: eq(users.email, email) });
+}
+
+export async function findUserByResetToken(token: string) {
+  return await db.query.users.findFirst({
+    where: and(
+      eq(users.resetToken, token),
+      gt(users.resetTokenExpires, new Date())
+    ),
+  });
+}
+
+export async function setResetToken(
+  email: string,
+  token: string,
+  expires: Date
+) {
+  await db
+    .update(users)
+    .set({ resetToken: token, resetTokenExpires: expires })
+    .where(eq(users.email, email));
+}
+
+export async function clearResetToken(userId: string) {
+  await db
+    .update(users)
+    .set({ resetToken: null, resetTokenExpires: null })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserPassword(
+  userId: string,
+  hashedPassword: string
+) {
+  await db
+    .update(users)
+    .set({ passwordHash: hashedPassword })
+    .where(eq(users.id, userId));
 }

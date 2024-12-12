@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import ImageUpload from "@/components/ImageUpload";
-import VoiceUpload from "@/components/VoiceUpload";
+import VoiceUpload from "@/components/TherapistPanel/VoiceUpload";
 import MultiUserSelector from "./MultiUserSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";

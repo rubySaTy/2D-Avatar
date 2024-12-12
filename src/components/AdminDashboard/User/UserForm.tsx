@@ -22,6 +22,8 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import type { UserDto } from "@/lib/db/schema";
 import { createUser, editUser } from "@/app/actions/admin";
+import PasswordInputWithToggle from "@/components/PasswordInputWithToggle";
+import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 
 export function EditUserForm({ user }: { user: UserDto }) {
   return (
@@ -117,26 +119,8 @@ function BaseUserForm({
             <Label htmlFor="password" className="text-right">
               Password
             </Label>
-            <div className="col-span-3 relative">
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
+            <div className="col-span-3">
+              <PasswordInputWithToggle />
             </div>
           </div>
         )}
@@ -163,16 +147,7 @@ function BaseUserForm({
         </div>
       </div>
 
-      {state?.message && (
-        <Alert
-          variant={state.success ? "default" : "destructive"}
-          className="mb-4"
-        >
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{state.message}</AlertDescription>
-        </Alert>
-      )}
-
+      <ServerActionAlertMessage state={state} />
       <DialogFooter>
         <SubmitButton type="submit">{submitText}</SubmitButton>
       </DialogFooter>
