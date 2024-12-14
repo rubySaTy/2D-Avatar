@@ -14,6 +14,7 @@ export default function PasswordInputWithToggle() {
         id="password"
         name="password"
         type={showPassword ? "text" : "password"}
+        minLength={6}
         required
       />
       <Button

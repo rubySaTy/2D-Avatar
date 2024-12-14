@@ -38,9 +38,6 @@ export default function TherapistPanelHeader({
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <SessionLink clientUrl={clientUrl} />
-        <Button variant="destructive" size="sm">
-          End Session
-        </Button>
       </div>
     </header>
   );

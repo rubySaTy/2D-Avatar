@@ -27,8 +27,9 @@ import { eq } from "drizzle-orm";
 import elevenlabs from "@/lib/elevenlabs";
 import {
   sanitizeString,
-  sanitizeFilename,
+  sanitizeFileName,
   isValidFileUpload,
+  sanitizeFileObjects,
 } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 import {
@@ -185,15 +186,15 @@ export async function createAvatar(prevState: any, formData: FormData) {
 
   const { avatarName, voiceFiles, imageFile, userIds } = parsedData.data;
 
-  TODO: "Sanitize voice files";
+  const sanitiziedVoiceFiles = sanitizeFileObjects(voiceFiles);
   const sanitizedAvatarName = sanitizeString(avatarName);
-  const sanitizedFileName = sanitizeFilename(imageFile.name);
+  const sanitizedFileName = sanitizeFileName(imageFile.name);
 
   try {
     // Step 1: Create Voice - if voice files exist
     const elevenlabsRes =
-      voiceFiles.length > 0
-        ? await elevenlabs.voices.add({ name: avatarName, files: voiceFiles })
+      sanitiziedVoiceFiles.length > 0
+        ? await elevenlabs.voices.add({ name: avatarName, files: sanitiziedVoiceFiles })
         : null;
 
     // Step 2: Upload Image to S3
@@ -305,7 +306,7 @@ export async function editAvatar(prevState: any, formData: FormData) {
     if (imageFile && imageFile.size > 0) {
       // Image is being updated
       const sanitizedAvatarName = sanitizeString(avatarName);
-      const sanitizedFileName = sanitizeFilename(imageFile.name);
+      const sanitizedFileName = sanitizeFileName(imageFile.name);
       const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
 
       // Upload new image

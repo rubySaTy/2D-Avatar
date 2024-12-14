@@ -10,11 +10,48 @@ export function sanitizeString(input: string): string {
   return input.replace(/\s+/g, "-").toLowerCase();
 }
 
-export function sanitizeFilename(filename: string): string {
-  return filename
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9.\-_]/g, "")
-    .toLowerCase();
+export function sanitizeFileName(fileName: string): string {
+  /**
+   * This function sanitizes a file name by removing or replacing characters
+   * that are not allowed in file names on most file systems.
+   *
+   * Rules for sanitization:
+   * 1. Replace invalid characters (like \ / : * ? " < > |) with underscores (_).
+   * 2. Trim whitespace from the beginning and end of the filename.
+   * 3. If the filename is empty after sanitization, return a default name like 'default_filename'.
+   * 4. Limit the length of the file name to 255 characters (common file system limit).
+   */
+
+  // Define the characters that are not allowed in file names
+  const invalidCharactersRegex = /[\\/:*?"<>|]/g;
+
+  // Replace invalid characters with an underscore (_)
+  let sanitizedFileName = fileName.replace(invalidCharactersRegex, "_");
+
+  // Trim whitespace from the start and end of the filename
+  sanitizedFileName = sanitizedFileName.trim();
+
+  // If the filename is empty after sanitization, set a default filename
+  if (sanitizedFileName === "") {
+    sanitizedFileName = "default_filename";
+  }
+
+  // Limit the filename to 255 characters (file system limit for most operating systems)
+  if (sanitizedFileName.length > 255) {
+    sanitizedFileName = sanitizedFileName.substring(0, 255);
+  }
+
+  return sanitizedFileName;
+}
+
+export function sanitizeFileObjects(files: Array<File>): Array<File> {
+  /**
+   * This function sanitizes the "name" property of each file object in an array.
+   *
+   * @param files - An array of file objects where each object contains a "name" property.
+   * @returns A new array of file objects with sanitized "name" properties.
+   */
+  return files.map((file) => ({ ...file, name: sanitizeFileName(file.name) }));
 }
 
 // Helper function to convert File[] to FileList
