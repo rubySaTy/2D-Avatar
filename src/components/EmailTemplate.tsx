@@ -2,9 +2,7 @@ interface ResetPasswordEmailProps {
   resetLink: string;
 }
 
-export const EmailTemplate: React.FC<Readonly<ResetPasswordEmailProps>> = ({
-  resetLink,
-}) => (
+export const EmailTemplate = ({ resetLink }: ResetPasswordEmailProps) => (
   <div
     style={{
       fontFamily: "Arial, sans-serif",
@@ -42,9 +40,7 @@ export const EmailTemplate: React.FC<Readonly<ResetPasswordEmailProps>> = ({
     <p>This link will expire in 1 hour.</p>
 
     <div style={{ fontSize: "12px", color: "#777", marginTop: "20px" }}>
-      <p>
-        © {new Date().getFullYear()} SmartTherapy. All rights reserved.
-      </p>
+      <p>© {new Date().getFullYear()} SmartTherapy. All rights reserved.</p>
       <p>
         If you're having trouble, copy and paste this link into your browser:{" "}
         {resetLink}
