@@ -146,3 +146,8 @@ export interface RetryConfig {
 export interface PollConfig<T> extends RetryConfig {
   shouldRetry: (data: T) => boolean;
 }
+
+export interface OpenAIChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}

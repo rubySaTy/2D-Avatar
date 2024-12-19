@@ -1,23 +1,29 @@
 import { notFound } from "next/navigation";
 import Stream from "@/components/Stream";
-import { getAvatarByMeetingLink } from "@/services";
+import VoiceCapture from "@/components/VoiceCapture";
+import { getMeetingSessionWithAvatar } from "@/services";
+import { Card } from "@/components/ui/card";
 
-export default async function ClientSessionPage(
-  props: {
-    params: Promise<{ session: string }>;
-  }
-) {
+export default async function ClientSessionPage(props: {
+  params: Promise<{ session: string }>;
+}) {
   const params = await props.params;
   const meetingLink = params.session;
-  const avatar = await getAvatarByMeetingLink(meetingLink);
+  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
 
-  if (!avatar || !avatar.idleVideoUrl) {
-    notFound();
-  }
+  if (!meetingSessionData) notFound();
+  const { avatar } = meetingSessionData;
+  if (!avatar.idleVideoUrl) notFound();
 
   return (
-    <div className="flex items-center justify-center min-h-[700px]">
-      <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
+    <div className="flex flex-col h-screen">
+      <div className="flex-1 flex items-center justify-center">
+        <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
+      </div>
+
+      <Card className="flex-1 flex items-center justify-center w-full max-w-4xl mx-auto overflow-hidden">
+        <VoiceCapture meetingLink={meetingLink} />
+      </Card>
     </div>
   );
 }

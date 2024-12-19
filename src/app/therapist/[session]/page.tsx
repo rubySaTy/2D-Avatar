@@ -1,9 +1,9 @@
 import path from "path";
 import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
-import TherapistInteractionPanel from "@/components/TherapistPanel/TherapistInteractionPanel";
-import { getAvatarByMeetingLink } from "@/services";
-import TherapistPanelHeader from "@/components/TherapistPanel/TherapistPanelHeader";
+import { getMeetingSessionWithAvatar } from "@/services";
+import { validateRequest } from "@/lib/auth";
+import TherapistDashboard from "@/components/TherapistPanel/TherapistDashboard";
 import type { MicrosoftVoice } from "@/lib/types";
 
 export default async function TherapistSessionPage(props: {
@@ -11,11 +11,14 @@ export default async function TherapistSessionPage(props: {
 }) {
   const params = await props.params;
   const meetingLink = params.session;
-  const avatar = await getAvatarByMeetingLink(meetingLink);
-  if (!avatar) {
-    notFound();
-  }
+  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
+  if (!meetingSessionData) notFound();
 
+  const { user } = await validateRequest();
+  // Make sure the user is the owner of the session
+  if (meetingSessionData.userId !== user?.id) notFound(); // Forbidden
+
+  const { avatar } = meetingSessionData;
   const appUrl = process.env.APP_URL;
   const clientUrl = new URL(`${appUrl}/client/${meetingLink}`);
 
@@ -47,13 +50,12 @@ export default async function TherapistSessionPage(props: {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <TherapistPanelHeader
+      <TherapistDashboard
         avatarImageUrl={avatar.imageUrl}
         avatarName={avatar.avatarName}
         clientUrl={clientUrl.toString()}
-      />
-      <TherapistInteractionPanel
         meetingLink={meetingLink}
+        meetingCipherKey={meetingSessionData.cipherKey.toString("base64")}
         VoiceSelectorProps={{
           voices: microsoftVoices,
           genders: availableGenders,

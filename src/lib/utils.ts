@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { randomBytes } from "crypto";
+import crypto from "crypto";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -129,5 +129,5 @@ export function isValidFileUpload(file: File | null | undefined): boolean {
 
 // TODO: is redundant with the shortUUID function?
 export function generateResetToken() {
-  return randomBytes(32).toString("hex");
+  return crypto.randomBytes(32).toString("hex");
 }

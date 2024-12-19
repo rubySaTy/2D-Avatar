@@ -1,5 +1,10 @@
 import { db } from "@/lib/db/db";
-import { type Avatar, meetingSessions, users } from "@/lib/db/schema";
+import {
+  type Avatar,
+  type MeetingSession,
+  meetingSessions,
+  users,
+} from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getUserAvatars(userId: string) {
@@ -16,9 +21,14 @@ export async function getUserAvatars(userId: string) {
   return result?.usersToAvatars.map((ua) => ua.avatar) ?? [];
 }
 
-export async function getAvatarByMeetingLink(
+type MeetingSessionWithAvatar = MeetingSession & {
+  avatar: Avatar;
+};
+
+// TODO: should be moved to meetingSession service?
+export async function getMeetingSessionWithAvatar(
   meetingLink: string
-): Promise<Avatar | null> {
+): Promise<MeetingSessionWithAvatar | null> {
   try {
     const result = await db.query.meetingSessions.findFirst({
       where: eq(meetingSessions.meetingLink, meetingLink),
@@ -28,7 +38,7 @@ export async function getAvatarByMeetingLink(
     });
 
     if (!result) return null;
-    return result.avatar;
+    return result;
   } catch (error) {
     console.error("Error getting avatar by meeting link from DB:", error);
     return null;

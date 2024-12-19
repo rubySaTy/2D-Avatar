@@ -57,6 +57,13 @@
       "when": 1733856951885,
       "tag": "0007_bright_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1734525660768,
+      "tag": "0008_modern_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

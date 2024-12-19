@@ -9,7 +9,10 @@ import VoiceSelector from "./VoiceSelector";
 import { getMessageTimestamp } from "@/lib/utils";
 import { submitMessageToDID } from "@/app/actions/d-id";
 import PremadeMessages from "./PremadeMessages";
-import type { MicrosoftVoice } from "@/lib/types";
+import { useChannel } from "ably/react";
+import { getLLMResponse } from "@/app/actions";
+import { Check, RefreshCw } from "lucide-react";
+import type { MicrosoftVoice, OpenAIChatMessage } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
   meetingLink: string;
@@ -28,6 +31,10 @@ const submitMessage = (meetingLink: string) => {
   };
 };
 
+const englishTextRegex = /^[A-Za-z0-9\s.,!?()'";\-:@#$%&*]+$/;
+const EXAMPLE_SYSTEM_PROMPT =
+  "a wife named Sarah in a marriage counseling session. You are thoughtful, empathetic, but also assertive about your feelings and needs.";
+
 export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
@@ -35,7 +42,49 @@ export default function TherapistInteractionPanel({
   const [history, setHistory] = useState([""]);
   const [state, formAction] = useActionState(submitMessage(meetingLink), null);
 
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<OpenAIChatMessage>
+  >([]);
+  const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
+
   const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  useChannel(`meeting:${meetingLink}`, async (message) => {
+    const transcribedText = message.data.transcribedText;
+    if (
+      !transcribedText ||
+      transcribedText.trim() === "" ||
+      !englishTextRegex.test(transcribedText)
+    ) {
+      return;
+    }
+
+    const newMessage: OpenAIChatMessage = {
+      role: "user",
+      content: transcribedText,
+    };
+    const updatedHistory = [...conversationHistory, newMessage];
+
+    setConversationHistory(updatedHistory);
+
+    const llmResponse = await getLLMResponse(
+      transcribedText,
+      conversationHistory,
+      systemPrompt
+    );
+
+    const assistantMessage: OpenAIChatMessage = {
+      role: "assistant",
+      content: llmResponse,
+    };
+    setConversationHistory((prev) => [...prev, assistantMessage]);
+
+    if (messageRef.current) {
+      messageRef.current.value = llmResponse;
+      setHasIncomingLLMResponse(true);
+    }
+  });
 
   useEffect(() => {
     if (state?.success) {
@@ -51,8 +100,23 @@ export default function TherapistInteractionPanel({
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-3/4 space-y-6">
-          <form action={formAction} className="space-y-6">
+        <div className="w-full lg:w-3/4 space-y-8">
+          <div className="space-y-2 mb-6">
+            <h2 className="text-lg font-semibold">System Prompt</h2>
+            <Textarea
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              placeholder={`Example: ${EXAMPLE_SYSTEM_PROMPT}`}
+              className="min-h-[100px] text-base resize-none"
+            />
+          </div>
+          <form
+            action={(formData) => {
+              formAction(formData);
+              setHasIncomingLLMResponse(false);
+            }}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               <Textarea
                 ref={messageRef}
@@ -61,15 +125,29 @@ export default function TherapistInteractionPanel({
                 name="message"
                 className="min-h-[150px] text-lg"
               />
-
               <div className="flex justify-between">
-                <SubmitButton>Send Message</SubmitButton>
+                {!hasIncomingLLMResponse && (
+                  <SubmitButton>Send Message</SubmitButton>
+                )}
+                {hasIncomingLLMResponse && (
+                  <div className="space-x-2">
+                    <SubmitButton className="bg-green-500 hover:bg-green-600 text-white">
+                      <Check className="w-4 h-4 mr-2" />
+                      Accept & Speak Message
+                    </SubmitButton>
+                    <Button type="button" variant="destructive">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Regenerate Text
+                    </Button>
+                  </div>
+                )}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
                     if (messageRef.current) {
                       messageRef.current.value = "";
+                      setHasIncomingLLMResponse(false);
                     }
                   }}
                 >
@@ -93,7 +171,6 @@ export default function TherapistInteractionPanel({
             </div>
           </form>
         </div>
-
         <MessageHistory history={history} />
       </div>
     </div>
@@ -102,19 +179,21 @@ export default function TherapistInteractionPanel({
 
 function MessageHistory({ history }: { history: string[] }) {
   return (
-    <Card className="w-full lg:w-1/4">
-      <CardHeader>
-        <CardTitle>Message History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {history.map((msg, index) => (
-            <div key={index} className="p-3 rounded-lg bg-muted">
-              <p className="text-sm">{msg}</p>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <Card className="w-full lg:w-1/4">
+        <CardHeader>
+          <CardTitle>Message History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {history.map((msg, index) => (
+              <div key={index} className="p-3 rounded-lg bg-muted">
+                <p className="text-sm">{msg}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }

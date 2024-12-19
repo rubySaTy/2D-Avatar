@@ -9,7 +9,10 @@ import {
   primaryKey,
   integer,
   real,
+  customType,
 } from "drizzle-orm/pg-core";
+import { decrypt, encrypt } from "../cryptoHelpers";
+import { type CipherKey } from "ably";
 
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -89,6 +92,22 @@ export const sessions = pgTable("session", {
   }).notNull(),
 });
 
+export const encryptedKey = customType<{ data: CipherKey }>({
+  dataType() {
+    return "text";
+  },
+  fromDriver(value: unknown) {
+    if (typeof value !== "string")
+      throw new Error("Expected a string from the database");
+    const decryptedValue = decrypt(value); // returns the base64 string
+    return Buffer.from(decryptedValue, "base64");
+  },
+  toDriver(value: CipherKey) {
+    const base64Value = value.toString("base64");
+    return encrypt(base64Value);
+  },
+});
+
 export const meetingSessions = pgTable("meeting_session", {
   id: serial("id").primaryKey(),
   userId: text("user_id")
@@ -102,6 +121,7 @@ export const meetingSessions = pgTable("meeting_session", {
   didSessionId: text("did_session_id"),
   offer: jsonb("offer"), // (RTCSessionDescriptionInit stored as JSONB)
   iceServers: jsonb("ice_servers"),
+  cipherKey: encryptedKey("cipher_key").notNull(),
   ...timestamps,
 });
 

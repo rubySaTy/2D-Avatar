@@ -1,6 +1,5 @@
 import Image from "next/image";
 import SessionLink from "./SessionLink";
-import { Button } from "../ui/button";
 
 interface TherapistPanelHeaderProps {
   avatarImageUrl: string;

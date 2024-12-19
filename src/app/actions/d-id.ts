@@ -7,7 +7,7 @@ import type { VoiceProviderConfig } from "@/lib/types";
 import {
   createTalkStream,
   createWebRTCStream,
-  getAvatarByMeetingLink,
+  getMeetingSessionWithAvatar,
   getMeetingSessionWithAvatarAndUser,
   removeCredits,
 } from "@/services";
@@ -160,9 +160,10 @@ export async function submitMessageToDID(
 export async function createDIDStream(meetingLink: string) {
   if (!meetingLink) return null;
 
-  const avatar = await getAvatarByMeetingLink(meetingLink);
-  if (!avatar) return null;
+  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
+  if (!meetingSessionData) return null;
 
+  const { avatar } = meetingSessionData;
   const didWebRTCStreamData = await createWebRTCStream(avatar.imageUrl);
   if (!didWebRTCStreamData) return null;
 
