@@ -21,7 +21,7 @@ export default async function ClientSessionPage(props: {
         <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
       </div>
 
-      <Card className="flex-1 flex items-center justify-center w-full max-w-4xl mx-auto overflow-hidden">
+      <Card className="flex-1 flex items-center justify-center w-full max-w-6xl mx-auto overflow-hidden">
         <VoiceCapture meetingLink={meetingLink} />
       </Card>
     </div>

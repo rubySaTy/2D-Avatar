@@ -19,7 +19,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   });
 
   return (
-    <Card className="w-full max-w-4xl mx-auto overflow-hidden">
+    <Card className="w-full max-w-6xl mx-auto overflow-hidden">
       <CardContent className="p-4">
         <div className="relative aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg overflow-hidden">
           <AnimatePresence mode="wait">
