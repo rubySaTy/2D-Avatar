@@ -159,44 +159,18 @@ const VoiceSelect: React.FC<{
   );
 };
 
-const StyleSelect: React.FC<{
-  styles: string[];
-  selectedStyle: string;
-  onChange: (value: string) => void;
-  disabled: boolean;
-}> = ({ styles, selectedStyle, onChange, disabled }) => (
-  <div className="space-y-2">
-    <Label htmlFor="style-select">Style</Label>
-    <Select
-      name="voiceStyle"
-      value={selectedStyle}
-      onValueChange={onChange}
-      disabled={disabled}
-    >
-      <SelectTrigger id="style-select">
-        <SelectValue placeholder="Choose a Style" />
-      </SelectTrigger>
-      <SelectContent>
-        {styles.map((style) => (
-          <SelectItem key={style} value={style}>
-            {style}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
-
 interface VoiceSelectorProps {
   voices: MicrosoftVoice[];
   genders: string[];
   languages: string[];
+  selectedStyle: string;
 }
 
 export default function VoiceSelector({
   voices,
   genders,
   languages,
+  selectedStyle,
 }: VoiceSelectorProps) {
   const [selection, setSelection] = useState<{
     gender: string;
@@ -207,10 +181,10 @@ export default function VoiceSelector({
     gender: "all",
     language: "",
     voice: "",
-    style: "",
+    style: selectedStyle,
   });
 
-  const { gender, language, voice, style } = selection;
+  const { gender, language, voice } = selection;
 
   // Memoize filtered voices based on gender and language
   const filteredVoices = useMemo(() => {
@@ -227,8 +201,6 @@ export default function VoiceSelector({
   // Determine disabled states
   const isLanguageDisabled = false; // Always enabled since Gender is "all" by default
   const isVoiceDisabled = language === "" || filteredVoices.length === 0;
-  const isStyleDisabled =
-    voice === "" || !filteredVoices.find((v) => v.id === voice)?.styles.length;
 
   // Handle selection changes
   const handleChange = (field: keyof typeof selection, value: string) => {
@@ -239,12 +211,8 @@ export default function VoiceSelector({
       if (field === "gender") {
         updated.language = "";
         updated.voice = "";
-        updated.style = "";
       } else if (field === "language") {
         updated.voice = "";
-        updated.style = "";
-      } else if (field === "voice") {
-        updated.style = "";
       }
 
       return updated;
@@ -292,17 +260,6 @@ export default function VoiceSelector({
         onChange={(value) => handleChange("voice", value)}
         disabled={isVoiceDisabled}
         onPreview={handlePreview}
-      />
-
-      <StyleSelect
-        styles={
-          voice !== ""
-            ? filteredVoices.find((v) => v.id === voice)?.styles || []
-            : []
-        }
-        selectedStyle={style}
-        onChange={(value) => handleChange("style", value)}
-        disabled={isStyleDisabled}
       />
     </>
   );

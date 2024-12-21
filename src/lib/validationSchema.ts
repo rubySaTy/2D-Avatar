@@ -171,3 +171,12 @@ export const updateCreditsSchema = z.object({
   amount: z.number(),
   reason: z.string().min(1, "Reason is required."),
 });
+
+export const transcribedTextSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[A-Za-z0-9\s.,!?()'";\-:@#$%&*]+$/, {
+    message:
+      "Text can only contain English letters, numbers, spaces and basic punctuation",
+  });

@@ -70,12 +70,9 @@ export async function closeStream(streamId: string, sessionId: string) {
   }
 }
 
-export async function submitMessageToDID(
-  meetingLink: string,
-  formData: FormData
-) {
+export async function submitMessageToDID(prevState: any, formData: FormData) {
   const parsedData = createTalkStreamSchema.safeParse({
-    meetingLink,
+    meetingLink: formData.get("meetingLink"),
     message: formData.get("message"),
     premadeMessage: formData.get("premadeMessage"),
     providerType: formData.get("providerType"),
@@ -89,6 +86,7 @@ export async function submitMessageToDID(
   }
 
   const {
+    meetingLink,
     message: userMessage,
     premadeMessage,
     providerType,
@@ -96,7 +94,7 @@ export async function submitMessageToDID(
     voiceStyle,
   } = parsedData.data;
   const message = premadeMessage ?? userMessage;
-
+  
   const meetingData = await getMeetingSessionWithAvatarAndUser(meetingLink);
   if (!meetingData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
