@@ -120,3 +120,14 @@ export async function getLLMResponse(
     return "An error occurred while getting a response from the LLM.";
   }
 }
+
+export async function Transcribe(audioFile: File) {
+  if (!audioFile) return;
+
+  const transcribe = await openAI.audio.transcriptions.create({
+    file: audioFile,
+    model: "whisper-1",
+  });
+
+  return transcribe.text;
+}

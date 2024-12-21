@@ -4,6 +4,7 @@ import {
   Home,
   Settings,
   User2,
+  Play,
   MessageCircle,
   CreditCard,
   LogOut,
@@ -68,11 +69,18 @@ export async function AppSidebar({ currentUser }: AppSidebarProps) {
   const items = [...baseItems];
 
   if (currentUser.role === "admin") {
-    items.push({
-      title: "Admin Dashboard",
-      url: "/admin",
-      icon: Settings,
-    });
+    items.push(
+      {
+        title: "Admin Dashboard",
+        url: "/admin",
+        icon: Settings,
+      },
+      {
+        title: "OpenAI Playground",
+        url: "/admin/playground",
+        icon: Play,
+      }
+    );
   }
 
   return (
