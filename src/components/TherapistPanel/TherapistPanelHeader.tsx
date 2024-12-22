@@ -1,5 +1,7 @@
 import Image from "next/image";
 import SessionLink from "./SessionLink";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface TherapistPanelHeaderProps {
   avatarImageUrl: string;
@@ -37,6 +39,9 @@ export default function TherapistPanelHeader({
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <SessionLink clientUrl={clientUrl} />
+        <Button variant={"destructive"} asChild>
+          <Link href={"/therapist"}>End Session</Link>
+        </Button>
       </div>
     </header>
   );
