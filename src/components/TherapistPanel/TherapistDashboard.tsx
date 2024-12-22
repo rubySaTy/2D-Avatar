@@ -14,6 +14,7 @@ interface TherapistDashboardProps {
     voices: MicrosoftVoice[];
     genders: string[];
     languages: string[];
+    ageGroups: string[];
   };
 }
 

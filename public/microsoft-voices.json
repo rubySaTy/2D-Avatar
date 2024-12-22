@@ -1,67 +1,115 @@
 [
   {
-    "id": "he-IL-HilaNeural",
-    "name": "Hila",
-    "description": "",
+    "id": "en-US-AnaNeural",
+    "name": "Ana",
+    "description": "A child voice that's great at conveying curiosity and engaging users with a fun and playful tone that's sure to delight.",
     "gender": "female",
+    "ageGroup": "child",
     "languages": [
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/he-IL-Hila-General-Audio.wav"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "he-IL-AvriNeural",
-    "name": "Avri",
-    "description": "",
-    "gender": "male",
-    "languages": [
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/he-IL-Avri-General-Audio.wav"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-GB-AdaMultilingualNeural",
-    "name": "Ada Multilingual",
-    "description": "A cheerful and friendly voice, bringing a positive and engaging energy to every conversation.",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-GB",
-        "language": "English (United Kingdom)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-GB-AdaMultilingual-General-Audio.wav"
-      },
       {
         "locale": "en-US",
         "language": "English (United States)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-GB-AdaMultilingual-enUS-Audio.wav"
-      },
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-GB-AdaMultilingual-heIL-Audio.wav"
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-Ana-General-Audio.wav"
       }
     ],
     "access": "public",
     "provider": "microsoft",
     "styles": []
+  },
+  {
+    "id": "en-US-JaneNeural",
+    "name": "Jane",
+    "description": "An early-20s female voice like the girl next door that's warm and friendly, great for building a connection with users.",
+    "gender": "female",
+    "ageGroup": "young-adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/En-US-Jane-General-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-JennyNeural",
+    "name": "Jenny",
+    "description": "A youthful voice with a wide range of expressions, perfect for customer service and keeping users satisfied.",
+    "gender": "female",
+    "ageGroup": "young-adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-Jenny-General-audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "assistant",
+      "chat",
+      "customerservice",
+      "newscast",
+      "angry",
+      "cheerful",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
+  },
+  {
+    "id": "en-US-SaraNeural",
+    "name": "Sara",
+    "description": "A female teenager voice with a wide range of expressive capabilities that can convey any emotion with ease and keep users engaged.",
+    "gender": "female",
+    "ageGroup": "young-adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-Sara-General-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
   },
   {
     "id": "zh-CN-XiaoxiaoMultilingualNeural",
     "name": "Xiaoxiao Multilingual",
     "description": "",
     "gender": "female",
+    "ageGroup": "young-adult",
     "languages": [
       {
         "locale": "en-GB",
@@ -92,106 +140,179 @@
     ]
   },
   {
-    "id": "zh-CN-XiaochenMultilingualNeural",
-    "name": "Xiaochen Multilingual",
-    "description": "A friendly, casual, and upbeat voice, perfect for energizing conversations and lighthearted exchanges.",
-    "gender": "female",
-    "languages": [
-      {
-        "locale": "en-GB",
-        "language": "English (United Kingdom)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaochenMultilingual-engb-Audio.wav"
-      },
-      {
-        "locale": "en-US",
-        "language": "English (United States)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaochenMultilingual-enus-Audio.wav"
-      },
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaochenMultilingual-heIL-Audio.wav"
-      }
-    ],
-    "access": "public",
-    "provider": "microsoft",
-    "styles": []
-  },
-  {
-    "id": "en-US-AndrewMultilingualNeural",
-    "name": "Andrew Multilingual",
-    "description": "A warm, engaging voice that sounds like someone you want to know, perfect for building a connection with listeners.",
+    "id": "en-US-JasonNeural",
+    "name": "Jason",
+    "description": "An early-20s male voice that's polite and unassuming, perhaps a little shy, with a respectful and professional tone that leaves a good impression.",
     "gender": "male",
+    "ageGroup": "young-adult",
     "languages": [
-      {
-        "locale": "en-GB",
-        "language": "English (United Kingdom)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-US-AndrewMultilingual-enGB-Audio.wav"
-      },
       {
         "locale": "en-US",
         "language": "English (United States)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-US-AndrewMultilingual-General-Audio.wav"
-      },
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/en-US-AndrewMultilingual-heIL-Audio.wav"
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/En-US-Jason-General-Audio.wav"
       }
     ],
     "access": "public",
     "provider": "microsoft",
-    "styles": ["empathetic", "relieved"]
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
   },
   {
-    "id": "zh-CN-XiaoyuMultilingualNeural",
-    "name": "Xiaoyu Multilingual",
+    "id": "en-US-AriaNeural",
+    "name": "Aria",
+    "description": " A clear-sounding voice with great versatility that can adapt to any use case and speak in a way that's easy to understand.",
     "gender": "female",
+    "ageGroup": "adult",
     "languages": [
-      {
-        "locale": "en-GB",
-        "language": "English (United Kingdom)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-enGB-Audio.wav"
-      },
       {
         "locale": "en-US",
         "language": "English (United States)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-enUS-Audio.wav"
-      },
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-XiaoyuMultilingual-heIL-Audio.wav"
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-Aria-General-audio.wav"
       }
     ],
     "access": "public",
     "provider": "microsoft",
-    "styles": []
+    "styles": [
+      "chat",
+      "customerservice",
+      "narration-professional",
+      "newscast-casual",
+      "newscast-formal",
+      "cheerful",
+      "empathetic",
+      "angry",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
   },
   {
-    "id": "zh-CN-YunyiMultilingualNeural",
-    "name": "Yunyi Multilingual",
-    "description": "A gentle, casual, and friendly voice, creating a calm and approachable tone in any context.",
-    "gender": "male",
+    "id": "en-US-NancyNeural",
+    "name": "Nancy",
+    "description": "A confident-sounding voice that's perfect for delivering important information with a professional and authoritative tone that inspires trust.",
+    "gender": "female",
+    "ageGroup": "adult",
     "languages": [
-      {
-        "locale": "en-GB",
-        "language": "English (United Kingdom)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-engb-Audio.wav"
-      },
       {
         "locale": "en-US",
         "language": "English (United States)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-enus-Audio.wav"
-      },
-      {
-        "locale": "he-IL",
-        "language": "Hebrew (Israel)",
-        "preview": "https://speechstudioprodpublicsa.blob.core.windows.net/ttsvoice/Masterpieces/zh-CN-YunyiMultilingual-heIL-Audio.wav"
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/En-US-Nancy-General-Audio.wav"
       }
     ],
     "access": "public",
     "provider": "microsoft",
-    "styles": []
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-GuyNeural",
+    "name": "Guy",
+    "description": "A friendly voice with slightly whimsical undertones and a wide expressive range that can convey any emotion with ease.",
+    "gender": "male",
+    "ageGroup": "adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-Guy-General-audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "newscast",
+      "angry",
+      "cheerful",
+      "sad",
+      "excited",
+      "friendly",
+      "terrified",
+      "shouting",
+      "unfriendly",
+      "whispering",
+      "hopeful"
+    ]
+  },
+  {
+    "id": "en-US-TonyNeural",
+    "name": "Tony",
+    "description": "A versatile voice that can sound both casual and professional, adaptable to any use case and situation.",
+    "gender": "male",
+    "ageGroup": "adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/En-US-Tony-General-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
+  },
+  {
+    "id": "en-US-DavisNeural",
+    "name": "Davis",
+    "description": "A generally calm and relaxed voice that can switch between tones seamlessly and be highly expressive when needed.",
+    "gender": "male",
+    "ageGroup": "adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/En-US-Davis-General-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": [
+      "chat",
+      "angry",
+      "cheerful",
+      "excited",
+      "friendly",
+      "hopeful",
+      "sad",
+      "shouting",
+      "terrified",
+      "unfriendly",
+      "whispering"
+    ]
   }
 ]

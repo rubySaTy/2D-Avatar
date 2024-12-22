@@ -61,6 +61,32 @@ const LanguageSelect: React.FC<{
   </div>
 );
 
+const AgeGroupSelect: React.FC<{
+  ageGroups: string[];
+  selectedAgeGroup: string;
+  onChange: (value: string) => void;
+}> = ({ ageGroups, selectedAgeGroup, onChange }) => {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="age-group-select">Age Group</Label>
+      <Select value={selectedAgeGroup} onValueChange={onChange}>
+        <SelectTrigger id="age-group-select">
+          <SelectValue placeholder="Select age group" />
+        </SelectTrigger>
+        <SelectContent>
+          {/* You can define your “All” or “Any” option */}
+          <SelectItem value="all">All Age Groups</SelectItem>
+          {ageGroups.map((ageGroup) => (
+            <SelectItem key={ageGroup} value={ageGroup}>
+              {ageGroup.charAt(0).toUpperCase() + ageGroup.slice(1)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
 const VoiceSelect: React.FC<{
   voices: MicrosoftVoice[];
   selectedVoice: string;
@@ -126,6 +152,7 @@ const VoiceSelect: React.FC<{
             ))}
           </SelectContent>
         </Select>
+
         {selectedVoice && (
           <Button
             type="button"
@@ -164,6 +191,7 @@ interface VoiceSelectorProps {
   genders: string[];
   languages: string[];
   selectedStyle: string;
+  ageGroups: string[];
 }
 
 export default function VoiceSelector({
@@ -171,22 +199,25 @@ export default function VoiceSelector({
   genders,
   languages,
   selectedStyle,
+  ageGroups,
 }: VoiceSelectorProps) {
   const [selection, setSelection] = useState<{
     gender: string;
     language: string;
     voice: string;
     style: string;
+    ageGroup: string;
   }>({
     gender: "all",
     language: "",
     voice: "",
     style: selectedStyle,
+    ageGroup: "all",
   });
 
-  const { gender, language, voice } = selection;
+  const { gender, language, voice, ageGroup } = selection;
 
-  // Memoize filtered voices based on gender and language
+  // Memoize filtered voices based on gender, language, and ageGroup
   const filteredVoices = useMemo(() => {
     return voices.filter((v) => {
       const matchesGender = gender !== "all" ? v.gender === gender : true;
@@ -194,12 +225,15 @@ export default function VoiceSelector({
         language !== ""
           ? v.languages.some((lang) => lang.language === language)
           : true;
-      return matchesGender && matchesLanguage;
+      const matchesAgeGroup =
+        ageGroup !== "all" ? v.ageGroup === ageGroup : true;
+
+      return matchesGender && matchesLanguage && matchesAgeGroup;
     });
-  }, [voices, gender, language]);
+  }, [voices, gender, language, ageGroup]);
 
   // Determine disabled states
-  const isLanguageDisabled = false; // Always enabled since Gender is "all" by default
+  const isLanguageDisabled = false;
   const isVoiceDisabled = language === "" || filteredVoices.length === 0;
 
   // Handle selection changes
@@ -212,6 +246,9 @@ export default function VoiceSelector({
         updated.language = "";
         updated.voice = "";
       } else if (field === "language") {
+        updated.voice = "";
+      } else if (field === "ageGroup") {
+        // If the user changes ageGroup, you may or may not want to reset these
         updated.voice = "";
       }
 
@@ -244,6 +281,12 @@ export default function VoiceSelector({
         genders={genders}
         selectedGender={gender}
         onChange={(value) => handleChange("gender", value)}
+      />
+
+      <AgeGroupSelect
+        ageGroups={ageGroups}
+        selectedAgeGroup={ageGroup}
+        onChange={(value) => handleChange("ageGroup", value)}
       />
 
       <LanguageSelect

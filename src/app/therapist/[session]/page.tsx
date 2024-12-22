@@ -48,6 +48,11 @@ export default async function TherapistSessionPage(props: {
     )
   ).sort();
 
+  // collecting unique age groups from voices data
+  const ageGroups = Array.from(
+    new Set(microsoftVoices.map((voice) => voice.ageGroup))
+  );
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <TherapistDashboard
@@ -60,6 +65,7 @@ export default async function TherapistSessionPage(props: {
           voices: microsoftVoices,
           genders: availableGenders,
           languages: availableLanguages,
+          ageGroups,
         }}
       />
     </div>

@@ -23,6 +23,7 @@ interface TherapistInteractionPanelProps {
     voices: MicrosoftVoice[];
     genders: string[];
     languages: string[];
+    ageGroups: string[];
   };
 }
 

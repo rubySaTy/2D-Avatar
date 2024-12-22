@@ -9,6 +9,7 @@ export interface MicrosoftVoice {
   name: string;
   description: string;
   gender: string;
+  ageGroup: string;
   languages: Language[];
   access: string;
   provider: string;

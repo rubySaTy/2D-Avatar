@@ -1,9 +1,12 @@
 // Dictionary for tones with base and extreme descriptors
-export const toneInstructions: Record<string, { base: string; extreme: string }> = {
-  calm: {
-    base: "Your tone should be calm, measured, and understanding.",
-    extreme: "completely serene, tranquil, and soothing",
-  },
+export const toneInstructions: Record<
+  string,
+  { base: string; extreme: string }
+> = {
+  // calm: {
+  //   base: "Your tone should be calm, measured, and understanding.",
+  //   extreme: "completely serene, tranquil, and soothing",
+  // },
   angry: {
     base: "Your tone should be angry. Show irritation, frustration, and displeasure.",
     extreme: "absolutely furious, boiling over with rage and hostility",
@@ -13,11 +16,11 @@ export const toneInstructions: Record<string, { base: string; extreme: string }>
     extreme:
       "unrestrained yelling, with every word sounding like it’s being shouted at maximum volume",
   },
-  serious: {
-    base: "Your tone should be serious, grave, and earnest. Speak as if the matter is of great importance.",
-    extreme:
-      "deeply solemn and intense, leaving no room for lightness or levity",
-  },
+  // serious: {
+  //   base: "Your tone should be serious, grave, and earnest. Speak as if the matter is of great importance.",
+  //   extreme:
+  //     "deeply solemn and intense, leaving no room for lightness or levity",
+  // },
   cheerful: {
     base: "Your tone should be cheerful, upbeat, and positive. Sound like you’re in a good mood.",
     extreme:
@@ -28,54 +31,59 @@ export const toneInstructions: Record<string, { base: string; extreme: string }>
     extreme:
       "overflowing with eager enthusiasm, as if you can barely contain your excitement",
   },
-  fearful: {
-    base: "Your tone should be fearful, sounding worried and anxious.",
-    extreme:
-      "trembling with terror, sounding as if you’re truly afraid for your safety",
-  },
+  // fearful: {
+  //   base: "Your tone should be fearful, sounding worried and anxious.",
+  //   extreme:
+  //     "trembling with terror, sounding as if you’re truly afraid for your safety",
+  // },
   terrified: {
     base: "Your tone should be terrified, as if gripped by intense fear.",
     extreme:
       "utterly petrified and panicked, as though you’re in immediate and extreme danger",
   },
-  depressed: {
-    base: "Your tone should be depressed, sounding sad, hopeless, and withdrawn.",
-    extreme:
-      "profoundly desolate, overwhelmingly sad, and devoid of any hope or energy",
-  },
+  // depressed: {
+  //   base: "Your tone should be depressed, sounding sad, hopeless, and withdrawn.",
+  //   extreme:
+  //     "profoundly desolate, overwhelmingly sad, and devoid of any hope or energy",
+  // },
   sad: {
     base: "Your tone should be sad, reflecting sorrow and disappointment.",
     extreme:
       "deeply grief-stricken, sounding as if heartbroken and in great despair",
   },
-  happy: {
-    base: "Your tone should be happy, bright, and content.",
-    extreme: "ecstatically joyful, overflowing with delight and positivity",
-  },
-  disgust: {
-    base: "Your tone should convey disgust, sounding repulsed and displeased.",
+  // happy: {
+  //   base: "Your tone should be happy, bright, and content.",
+  //   extreme: "ecstatically joyful, overflowing with delight and positivity",
+  // },
+  // disgust: {
+  //   base: "Your tone should convey disgust, sounding repulsed and displeased.",
+  //   extreme:
+  //     "intensely revolted and appalled, as if you can barely stand what you’re addressing",
+  // },
+  // surprise: {
+  //   base: "Your tone should be surprised, sounding taken aback and astonished.",
+  //   extreme:
+  //     "utterly shocked and astonished, as though you can hardly believe what you’re seeing or hearing",
+  // },
+  // shameful: {
+  //   base: "Your tone should be shameful, filled with regret and embarrassment.",
+  //   extreme:
+  //     "deeply remorseful and humiliated, as though weighed down by overwhelming guilt",
+  // },
+  // love: {
+  //   base: "Your tone should be loving, warm, and affectionate.",
+  //   extreme:
+  //     "overflowing with adoration and devotion, as if every word is an expression of profound love",
+  // },
+  // proud: {
+  // base: "Your tone should be proud, confident, and self-assured.",
+  // extreme:
+  //   "unabashedly triumphant and self-satisfied, as if basking in undeniable achievement",
+  // },
+  friendly: {
+    base: "Your tone should be friendly, warm, and approachable.",
     extreme:
-      "intensely revolted and appalled, as if you can barely stand what you’re addressing",
-  },
-  surprise: {
-    base: "Your tone should be surprised, sounding taken aback and astonished.",
-    extreme:
-      "utterly shocked and astonished, as though you can hardly believe what you’re seeing or hearing",
-  },
-  shameful: {
-    base: "Your tone should be shameful, filled with regret and embarrassment.",
-    extreme:
-      "deeply remorseful and humiliated, as though weighed down by overwhelming guilt",
-  },
-  love: {
-    base: "Your tone should be loving, warm, and affectionate.",
-    extreme:
-      "overflowing with adoration and devotion, as if every word is an expression of profound love",
-  },
-  proud: {
-    base: "Your tone should be proud, confident, and self-assured.",
-    extreme:
-      "unabashedly triumphant and self-satisfied, as if basking in undeniable achievement",
+      "overflowing with warmth and kindness, as though you're greeting a dear friend after a long time",
   },
 };
 
