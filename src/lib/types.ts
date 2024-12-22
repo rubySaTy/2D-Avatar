@@ -151,3 +151,9 @@ export interface OpenAIChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
+
+export interface MessageHistory {
+  type: "incoming" | "outgoing";
+  content: string;
+  timestamp: string;
+}

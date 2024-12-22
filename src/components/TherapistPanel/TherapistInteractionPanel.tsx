@@ -7,15 +7,15 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SubmitButton } from "@/components/SubmitButton";
 import VoiceSelector from "./VoiceSelector";
-import { getMessageTimestamp } from "@/lib/utils";
 import { submitMessageToDID } from "@/app/actions/d-id";
 import PremadeMessages from "./PremadeMessages";
 import { useChannel } from "ably/react";
-import { getLLMResponse } from "@/app/actions";
 import { transcribedTextSchema } from "@/lib/validationSchema";
 import { StyleSelector } from "./StyleSelector";
 import { Loader2 } from "lucide-react";
-import type { MicrosoftVoice, OpenAIChatMessage } from "@/lib/types";
+import { useMessageHistory } from "@/hooks/useMessageHistory";
+import { useLLMResponse } from "@/hooks/useLLMResponse";
+import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
   meetingLink: string;
@@ -26,12 +26,6 @@ interface TherapistInteractionPanelProps {
   };
 }
 
-interface MessageHistory {
-  type: "incoming" | "outgoing";
-  content: string;
-  timestamp: string;
-}
-
 const EXAMPLE_SYSTEM_PROMPT =
   "A 30-year-old wife named Sarah in marriage counseling, who feels hurt due to her husband’s emotional distance. She’s empathetic but needs to express her feelings more assertively so that he understands how neglected she feels. She genuinely loves him but is frustrated by his lack of engagement.";
 
@@ -39,21 +33,27 @@ export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
-  const [history, setHistory] = useState<Array<MessageHistory>>([]);
   const [state, formAction] = useActionState(submitMessageToDID, null);
-
   const [therapistPersona, setTherapistPersona] = useState("");
-  const [LLMConversationHistory, setLLMConversationHistory] = useState<
-    Array<OpenAIChatMessage>
-  >([]);
+
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
-  const [isRegeneratingAnswer, setIsRegeneratingAnswer] = useState(false);
 
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
+
+  const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
+    useMessageHistory();
+
+  const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse(
+    {
+      therapistPersona,
+      style: selectedStyle,
+      intensity: styleIntensity,
+    }
+  );
 
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
@@ -62,103 +62,41 @@ export default function TherapistInteractionPanel({
 
   useChannel(`meeting:${meetingLink}`, async (message) => {
     const res = transcribedTextSchema.safeParse(message.data.transcribedText);
-
     if (!res.success) {
       console.warn("Invalid transcribed text:", message.data.transcribedText);
       return;
     }
     const transcribedText = res.data;
 
-    const timestamp = getMessageTimestamp();
-    setHistory((history) => [
-      ...history,
-      {
-        type: "incoming",
-        content: transcribedText,
-        timestamp,
-      },
-    ]);
+    addHistoryMessage(transcribedText, "incoming");
+    addLLMHistoryMessage(transcribedText, "user");
 
-    const newMessage: OpenAIChatMessage = {
-      role: "user",
-      content: transcribedText,
-    };
-    const updatedHistory = [...LLMConversationHistory, newMessage];
+    const llmResponse = await generateResponse(transcribedText, llmHistory);
 
-    setLLMConversationHistory(updatedHistory);
-
-    const llmResponse = await getLLMResponse(
-      transcribedText,
-      LLMConversationHistory,
-      therapistPersona,
-      `${selectedStyle}:${styleIntensity}`
-    );
-
-    const assistantMessage: OpenAIChatMessage = {
-      role: "assistant",
-      content: llmResponse,
-    };
+    addLLMHistoryMessage(llmResponse, "assistant");
+    setHasIncomingLLMResponse(true);
 
     if (messageRef.current && formRef.current) {
-      setLLMConversationHistory((prev) => [...prev, assistantMessage]);
       messageRef.current.value = llmResponse;
-      setHasIncomingLLMResponse(true);
-
       formRef.current.requestSubmit();
     }
   });
 
   async function handleRegenerate() {
-    // 1) Clone the conversation history so we don’t modify the original
-    const tempLLMHistory = [...LLMConversationHistory];
+    const response = await regenerateResponse(llmHistory);
 
-    // 2) Add a one-time system message to request a different response
-    tempLLMHistory.push({
-      role: "system",
-      content:
-        "Please ignore your previous assistant response. Provide a new answer to the last user message, keeping the same context and persona but taking a different approach.",
-    });
+    addLLMHistoryMessage(response, "assistant");
+    setHasIncomingLLMResponse(true);
 
-    // 3) Call getLLMResponse with the temporary history
-    const newAssistantReply = await getLLMResponse(
-      // Pass in empty or the same user message, depending on your implementation
-      "",
-      tempLLMHistory,
-      therapistPersona, // or undefined if persona is already in conversation
-      `${selectedStyle}:${styleIntensity}` // or undefined if tone is already in conversation
-    );
-
-    // 4) Add the new assistant message to the *official* conversation
-    const assistantMessage: OpenAIChatMessage = {
-      role: "assistant",
-      content: newAssistantReply,
-    };
-
-    LLMConversationHistory.push({
-      role: "assistant",
-      content: newAssistantReply,
-    });
-
-    // Now you can display or handle `newAssistantReply` in your UI
     if (messageRef.current && formRef.current) {
-      setLLMConversationHistory((prev) => [...prev, assistantMessage]);
-      messageRef.current.value = newAssistantReply;
-      setHasIncomingLLMResponse(true);
-
+      messageRef.current.value = response;
       formRef.current.requestSubmit();
     }
   }
 
   useEffect(() => {
-    if (state?.success) {
-      const timestamp = getMessageTimestamp();
-
-      const newMessage: MessageHistory = {
-        type: "outgoing",
-        content: `${state.message}`,
-        timestamp,
-      };
-      setHistory((history) => [...history, newMessage]);
+    if (state?.success && state.message) {
+      addHistoryMessage(state.message, "outgoing");
 
       if (formRef.current) formRef.current.reset();
     }
@@ -199,20 +137,16 @@ export default function TherapistInteractionPanel({
                     <Button
                       type="button"
                       variant="destructive"
-                      disabled={isRegeneratingAnswer}
-                      onClick={async () => {
-                        setIsRegeneratingAnswer(true);
-                        await handleRegenerate();
-                        setIsRegeneratingAnswer(false);
-                      }}
+                      disabled={isGenerating}
+                      onClick={handleRegenerate}
                     >
-                      {isRegeneratingAnswer ? (
+                      {isGenerating ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Regenerating LLM Response...
+                          Regenerating Response...
                         </>
                       ) : (
-                        "Regenerate LLM Response"
+                        "Regenerate Response"
                       )}
                     </Button>
                   )}
