@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, StopCircle } from "lucide-react";
 import { useWebRTCStream } from "@/hooks/useWebRTC";
 
 interface StreamProps {
@@ -14,9 +14,11 @@ interface StreamProps {
 
 export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   const [hasStarted, setHasStarted] = useState(false);
-  const { isConnected, videoIsPlaying, streamVideoRef } = useWebRTCStream({
-    meetingLink,
-  });
+  const { isConnected, videoIsPlaying, streamVideoRef, restartStream } =
+    useWebRTCStream({
+      meetingLink,
+      hasStarted,
+    });
 
   return (
     <Card className="w-full max-w-6xl mx-auto overflow-hidden">
@@ -116,6 +118,18 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
           </AnimatePresence>
         </div>
       </CardContent>
+      <CardFooter>
+        <Button
+          disabled={!videoIsPlaying}
+          onClick={restartStream}
+          variant="destructive"
+          size="lg"
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+        >
+          <StopCircle className="size-5" />
+          Stop Video & Restart Stream
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

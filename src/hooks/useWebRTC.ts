@@ -9,17 +9,18 @@ import {
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
+  hasStarted: boolean;
   maxReconnectionAttempts?: number;
 }
 
 export function useWebRTCStream({
   meetingLink,
+  hasStarted,
   maxReconnectionAttempts = 5,
 }: UseWebRTCStreamOptions) {
   const [isReady, setIsReady] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [videoIsPlaying, setVideoIsPlaying] = useState(false);
-  const [isInitialRequest, setIsInitialRequest] = useState(true);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
@@ -30,17 +31,21 @@ export function useWebRTCStream({
   const streamVideoRef = useRef<HTMLVideoElement | null>(null);
   const isConnected = isReady && isStreamReady;
 
+  const isMountedRef = useRef<boolean>(false);
+
   useEffect(() => {
-    initiateConnection();
+    isMountedRef.current = true;
+    if (hasStarted) initiateConnection();
 
     return () => {
+      isMountedRef.current = false;
       cleanupConnection();
     };
-  }, []);
+  }, [hasStarted]);
 
   async function initiateConnection() {
     const sessionResponse = await createDIDStream(meetingLink);
-    if (!sessionResponse) return;
+    if (!sessionResponse || !isMountedRef.current) return;
 
     const { id: streamId, session_id, offer, ice_servers } = sessionResponse;
     streamIdRef.current = streamId;
@@ -53,6 +58,8 @@ export function useWebRTCStream({
     configuration: RTCConfiguration,
     offer: RTCSessionDescriptionInit
   ) {
+    if (!isMountedRef.current) return;
+
     const pc = new RTCPeerConnection(configuration);
     pcRef.current = pc;
 
@@ -66,10 +73,16 @@ export function useWebRTCStream({
       .then(() => pc.createAnswer())
       .then((answer) => {
         pc.setLocalDescription(answer);
-        sendSDPAnswer(streamIdRef.current!, sessionIdRef.current!, {
-          type: answer.type,
-          sdp: answer.sdp,
-        });
+        if (
+          streamIdRef.current &&
+          sessionIdRef.current &&
+          isMountedRef.current
+        ) {
+          sendSDPAnswer(streamIdRef.current, sessionIdRef.current, {
+            type: answer.type,
+            sdp: answer.sdp,
+          });
+        }
       });
   }
 
@@ -80,6 +93,8 @@ export function useWebRTCStream({
   }
 
   function onDataChannelMessage(event: MessageEvent) {
+    if (!isMountedRef.current) return;
+
     const message = event.data;
     const [eventType] = message.split(":");
 
@@ -88,14 +103,9 @@ export function useWebRTCStream({
         setIsStreamReady(true);
         break;
       case "stream/started":
-        if (isInitialRequest) {
-          setTimeout(() => {
-            setVideoIsPlaying(true);
-            setIsInitialRequest(false);
-          }, 1000);
-        } else {
+        setTimeout(() => {
           setVideoIsPlaying(true);
-        }
+        }, 1000);
         break;
       case "stream/done":
         setVideoIsPlaying(false);
@@ -109,7 +119,8 @@ export function useWebRTCStream({
   }
 
   function onIceCandidate(event: RTCPeerConnectionIceEvent) {
-    if (!streamIdRef.current || !sessionIdRef.current) return;
+    if (!streamIdRef.current || !sessionIdRef.current || !isMountedRef.current)
+      return;
 
     if (event.candidate) {
       sendICECandidate(
@@ -123,6 +134,8 @@ export function useWebRTCStream({
   }
 
   function onIceConnectionStateChange() {
+    if (!isMountedRef.current) return;
+
     const pc = pcRef.current;
     if (!pc) return;
 
@@ -141,27 +154,36 @@ export function useWebRTCStream({
   }
 
   function onTrack(event: RTCTrackEvent) {
+    if (!isMountedRef.current) return;
+
     const videoElement = streamVideoRef.current;
-    const remoteStream = event.streams[0];
-    if (videoElement && videoElement.srcObject !== remoteStream) {
-      if (videoElement.srcObject instanceof MediaStream) {
-        videoElement.srcObject.getTracks().forEach((track) => track.stop());
-      }
-      videoElement.srcObject = remoteStream;
+    if (!videoElement) return;
+
+    // Initialize a single MediaStream if not already present
+    if (!videoElement.srcObject) {
+      videoElement.srcObject = new MediaStream();
     }
+
+    const remoteStream = videoElement.srcObject as MediaStream;
+
+    // Add the new track to the existing MediaStream
+    remoteStream.addTrack(event.track);
+
+    // handle track removal
+    event.track.onended = () => {
+      remoteStream.removeTrack(event.track);
+    };
   }
 
   function attemptReconnection() {
+    if (!isMountedRef.current) return;
+
     const attempts = reconnectionAttemptsRef.current;
     if (attempts >= maxReconnectionAttempts) {
       console.error("Maximum reconnection attempts reached.");
       return;
     }
     reconnectionAttemptsRef.current += 1;
-
-    setIsReady(false);
-    setIsStreamReady(false);
-    setVideoIsPlaying(false);
 
     cleanupConnection();
 
@@ -170,9 +192,17 @@ export function useWebRTCStream({
   }
 
   function cleanupConnection() {
-    closeStream(streamIdRef.current!, sessionIdRef.current!);
+    if (streamIdRef.current && sessionIdRef.current) {
+      closeStream(streamIdRef.current, sessionIdRef.current);
+    }
 
     if (pcRef.current) {
+      pcRef.current.removeEventListener("icecandidate", onIceCandidate);
+      pcRef.current.removeEventListener(
+        "iceconnectionstatechange",
+        onIceConnectionStateChange
+      );
+      pcRef.current.removeEventListener("track", onTrack);
       pcRef.current.close();
       pcRef.current = null;
     }
@@ -192,13 +222,35 @@ export function useWebRTCStream({
       streamVideoRef.current.srcObject = null;
     }
 
+    setIsReady(false);
+    setIsStreamReady(false);
+    setVideoIsPlaying(false);
+
     streamIdRef.current = null;
     sessionIdRef.current = null;
+  }
+
+  function restartStream() {
+    if (!isMountedRef.current) return;
+
+    // Stop the current video stream
+    if (streamVideoRef.current?.srcObject instanceof MediaStream) {
+      const oldStream = streamVideoRef.current.srcObject as MediaStream;
+      oldStream.getTracks().forEach((track) => track.stop());
+      streamVideoRef.current.srcObject = null;
+    }
+
+    // Clean up existing PeerConnection
+    cleanupConnection();
+
+    // Reinitialize the connection
+    initiateConnection();
   }
 
   return {
     isConnected,
     videoIsPlaying,
     streamVideoRef,
+    restartStream,
   };
 }
