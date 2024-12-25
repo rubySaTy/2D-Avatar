@@ -120,9 +120,9 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
   };
 
   // Override with avatar's ElevenLabs voice ID if available and no voice ID is provided
-  if (avatar.elevenlabsVoiceId && !voiceId) {
+  if (avatar.elevenlabsClonedVoiceId && !voiceId) {
     voiceProvider.type = "elevenlabs";
-    voiceProvider.voice_id = avatar.elevenlabsVoiceId;
+    voiceProvider.voice_id = avatar.elevenlabsClonedVoiceId;
   }
 
   try {
