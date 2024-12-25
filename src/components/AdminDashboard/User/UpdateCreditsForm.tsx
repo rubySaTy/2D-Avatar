@@ -63,7 +63,7 @@ export default function UpdateCreditsForm({
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <form action={handleSubmit} className="space-y-4">
-          <input type="hidden" name="userId" value={userId} />
+          <input type="hidden" name="user-id" value={userId} />
           <div className="space-y-2">
             <Label htmlFor="amount">Adjust Credits</Label>
             <div className="flex items-center space-x-2">

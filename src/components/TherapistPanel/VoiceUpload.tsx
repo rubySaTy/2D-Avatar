@@ -85,11 +85,11 @@ export default function VoiceUpload() {
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="voiceFiles">Voice Samples (Optional)</Label>
+      <Label htmlFor="voice-files">Voice Samples</Label>
       <input
         type="file"
-        id="voiceFiles"
-        name="voiceFiles"
+        id="voice-files"
+        name="voice-files"
         ref={fileInputRef}
         multiple
         className="hidden"

@@ -24,7 +24,7 @@ export async function findUserByUsernameOrEmail(
 }
 
 export async function getUsersDto(): Promise<UserDto[]> {
-  const usersArray = await db
+  return db
     .select({
       id: users.id,
       username: users.username,
@@ -35,16 +35,14 @@ export async function getUsersDto(): Promise<UserDto[]> {
       updatedAt: users.updatedAt,
     })
     .from(users);
-
-  return usersArray;
 }
 
 export async function findUserByEmail(email: string) {
-  return await db.query.users.findFirst({ where: eq(users.email, email) });
+  return db.query.users.findFirst({ where: eq(users.email, email) });
 }
 
 export async function findUserByResetToken(token: string) {
-  return await db.query.users.findFirst({
+  return db.query.users.findFirst({
     where: and(
       eq(users.resetToken, token),
       gt(users.resetTokenExpires, new Date())

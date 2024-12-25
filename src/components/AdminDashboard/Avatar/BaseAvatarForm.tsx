@@ -10,12 +10,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import ImageUpload from "@/components/ImageUpload";
-import VoiceUpload from "@/components/TherapistPanel/VoiceUpload";
 import MultiUserSelector from "./MultiUserSelector";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
+import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import type { UserDto, Avatar } from "@/lib/db/schema";
 
 interface BaseAvatarFormProps {
@@ -30,7 +28,6 @@ interface BaseAvatarFormProps {
   title: string;
   description: string;
   submitText: "Create Avatar" | "Update Avatar";
-  isEditing?: boolean;
 }
 
 export default function BaseAvatarForm({
@@ -42,7 +39,6 @@ export default function BaseAvatarForm({
   title,
   description,
   submitText,
-  isEditing = false,
 }: BaseAvatarFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
 
@@ -58,26 +54,20 @@ export default function BaseAvatarForm({
       </DialogHeader>
       <div className="space-y-4">
         {initialData && (
-          <input type="hidden" name="avatarId" value={initialData.id} />
+          <input type="hidden" name="avatar-id" value={initialData.id} />
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="avatarName">Avatar Name</Label>
+          <Label htmlFor="avatar-name">Avatar Name</Label>
           <Input
-            id="avatarName"
-            name="avatarName"
+            id="avatar-name"
+            name="avatar-name"
             required
             defaultValue={initialData?.avatarName || ""}
           />
         </div>
         <Separator />
         <ImageUpload existingImageUrl={initialData?.imageUrl} />
-        {!isEditing && ( // TODO: implement voice editing
-          <>
-            <Separator />
-            <VoiceUpload />
-          </>
-        )}
         <Separator />
         <div className="space-y-2">
           <Label>Associated Users</Label>
@@ -88,15 +78,8 @@ export default function BaseAvatarForm({
           />
         </div>
       </div>
-      {state?.message && (
-        <Alert
-          variant={state.success ? "default" : "destructive"}
-          className="my-4"
-        >
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{state.message}</AlertDescription>
-        </Alert>
-      )}
+
+      <ServerActionAlertMessage state={state} />
       <DialogFooter>
         <SubmitButton>{submitText}</SubmitButton>
       </DialogFooter>

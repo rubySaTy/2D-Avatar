@@ -5,3 +5,4 @@ export * from "./avatarService";
 export * from "./meetingSessionService";
 export * from "./talkService";
 export * from "./creditsService";
+export * from "./elevenlabsService";

@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useActionState } from "react";
-import { Button } from "@/components/ui/button";
+import { useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -19,7 +17,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/SubmitButton";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import type { UserDto } from "@/lib/db/schema";
 import { createUser, editUser } from "@/app/actions/admin";
 import PasswordInputWithToggle from "@/components/PasswordInputWithToggle";
@@ -70,7 +67,6 @@ function BaseUserForm({
   isEditing = false,
 }: BaseUserFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   // TODO: "Add zod validation on client side too";
   return (
@@ -82,7 +78,7 @@ function BaseUserForm({
 
       <div className="space-y-4">
         {isEditing && (
-          <input type="hidden" name="userId" value={initialData.id} />
+          <input type="hidden" name="user-id" value={initialData.id} />
         )}
 
         <div className="grid grid-cols-4 items-center gap-4">

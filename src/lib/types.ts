@@ -33,65 +33,6 @@ export interface DIDCreateTalkResponse {
 }
 
 export interface DIDGetTalkResponse {
-  user: {
-    features: (string | null)[];
-    stripe_customer_id: string;
-    stripe_plan_group: string;
-    authorizer: string;
-    owner_id: string;
-    id: string;
-    plan: string;
-    email: string;
-    stripe_price_id: string;
-  };
-  script: {
-    length: number;
-    ssml: boolean;
-    subtitles: boolean;
-    type: string;
-    provider: {
-      type: string;
-      voice_id: string;
-    };
-  };
-  metadata: {
-    driver_url: string;
-    mouth_open: boolean;
-    num_faces: number;
-    num_frames: number;
-    processing_fps: number;
-    resolution: [number, number];
-    size_kib: number;
-  };
-  audio_url: string;
-  created_at: string;
-  face: {
-    mask_confidence: number;
-    detection: [number, number, number, number];
-    overlap: string;
-    size: number;
-    top_left: [number, number];
-    face_id: number;
-    detect_confidence: number;
-  };
-  config: {
-    stitch: boolean;
-    align_driver: boolean;
-    sharpen: boolean;
-    normalization_factor: number;
-    result_format: string;
-    fluent: boolean;
-    pad_audio: number;
-    reduce_noise: boolean;
-    auto_match: boolean;
-    show_watermark: boolean;
-    logo: {
-      url: string;
-      position: [number, number];
-    };
-    motion_factor: number;
-    align_expand_factor: number;
-  };
   source_url: string;
   created_by: string;
   status: string;
@@ -103,6 +44,7 @@ export interface DIDGetTalkResponse {
   duration: number;
   started_at: string;
   result_url: string;
+  webhook?: string;
 }
 
 export interface DIDCreateWebRTCStreamResponse {

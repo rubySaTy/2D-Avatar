@@ -111,7 +111,7 @@ export default function MultiUserSelector({
       </div>
 
       {selectedUsers.map((user) => (
-        <input key={user.id} type="hidden" name="userIds" value={user.id} />
+        <input key={user.id} type="hidden" name="associated-users-ids" value={user.id} />
       ))}
     </div>
   );

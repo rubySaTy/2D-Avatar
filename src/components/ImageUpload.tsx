@@ -68,11 +68,11 @@ export default function ImageUploader({
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="imageFile">Avatar Image</Label>
+      <Label htmlFor="image-file">Avatar Image</Label>
       <input
         type="file"
-        id="imageFile"
-        name="imageFile"
+        id="image-file"
+        name="image-file"
         ref={fileInputRef}
         className="sr-only" // "Required" message will appear even if it's hidden
         required={existingImageUrl ? false : true}

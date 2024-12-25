@@ -12,13 +12,11 @@ export async function getMeetingSessionCipherKey(meetingLink: string) {
 }
 
 export async function getMeetingSessionWithAvatarAndUser(meetingLink: string) {
-  const result = await db.query.meetingSessions.findFirst({
+  return db.query.meetingSessions.findFirst({
     where: eq(meetingSessions.meetingLink, meetingLink),
     with: {
       avatar: true,
       user: { columns: { role: true } },
     },
   });
-
-  return result;
 }

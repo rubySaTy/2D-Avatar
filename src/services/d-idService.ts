@@ -4,7 +4,6 @@ import type {
   DIDCreditsResponse,
   DIDCreateTalkResponse,
   DIDCreateWebRTCStreamResponse,
-  DIDGetTalkResponse,
   PollConfig,
   VoiceProviderConfig,
   DIDCreateTalkStreamResponse,
@@ -57,42 +56,11 @@ export async function createIdleVideo(imageUrl: string) {
         },
       },
       config: { fluent: true },
+      webhook: `${process.env.WEBHOOK_URL}`,
     });
     return res.data;
   } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
-
-export async function getIdleVideo(
-  id: string
-): Promise<DIDGetTalkResponse | null> {
-  try {
-    const url = `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}/${id}`;
-    const config: AxiosRequestConfig = {
-      method: "GET",
-      headers: {
-        Authorization: `Basic ${process.env.DID_API_KEY}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    };
-    const pollConfig: PollConfig<DIDGetTalkResponse> = {
-      maxRetries: 10,
-      initialRetryDelay: 1000,
-      maxRetryDelay: 10000,
-      shouldRetry: (data) => data.status !== "done",
-    };
-
-    const res = await fetchWithRetries<DIDGetTalkResponse>(
-      url,
-      config,
-      pollConfig
-    );
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching idle video:", error);
+    console.error("Error creating Idle Video:", error);
     return null;
   }
 }
@@ -128,6 +96,7 @@ export async function getDIDCredits() {
   return res.data.remaining;
 }
 
+// TODO: add retry mechanism to axios requests?
 async function fetchWithRetries<T>(
   url: string,
   config: AxiosRequestConfig = {},

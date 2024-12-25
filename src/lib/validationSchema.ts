@@ -151,19 +151,25 @@ const avatarNameField = z
 
 const baseAvatarSchema = z.object({
   avatarName: avatarNameField,
-  userIds: z
+  associatedUsersIds: z
     .array(userIdSchema)
     .min(1, { message: "At least one user must be selected" }),
 });
 
 export const createAvatarSchema = baseAvatarSchema.extend({
   imageFile: imageFileSchema,
-  voiceFiles: voiceFilesSchema,
 });
 
 export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
   imageFile: imageFileSchema.optional(),
+});
+
+export const createClonedVoiceSchema = z.object({
+  voiceName: z.string().min(1, { message: "Voice name is required." }),
+  voiceFiles: voiceFilesSchema,
+  removeBackgroundNoises: z.boolean().default(false),
+  description: z.string().optional(),
 });
 
 export const updateCreditsSchema = z.object({

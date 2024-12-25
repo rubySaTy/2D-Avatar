@@ -1,4 +1,4 @@
-import { Image } from "lucide-react";
+import { Image, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -7,6 +7,7 @@ import AvatarCard from "./AvatarCard";
 import { getUser } from "@/lib/auth";
 import { usersToAvatars, type Avatar, type UserDto } from "@/lib/db/schema";
 import { db } from "@/lib/db/db";
+import CreateClonedVoiceForm from "./CreateClonedVoiceForm";
 
 interface AvatarManagementProps {
   avatars: Array<Avatar>;
@@ -29,7 +30,7 @@ export default async function AvatarManagement({
   });
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 space-x-4">
         <Dialog>
           <DialogTrigger asChild>
             <Button>
@@ -42,6 +43,19 @@ export default async function AvatarManagement({
             </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        {/* <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Mic className="mr-2 h-4 w-4" /> Create Cloned Voice
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[90vh] p-0">
+            <ScrollArea className="max-h-[90vh] p-6">
+              <CreateClonedVoiceForm />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog> */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {sortedAvatars.map((avatar) => (

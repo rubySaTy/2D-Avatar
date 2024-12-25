@@ -17,7 +17,6 @@ import { type CipherKey } from "ably";
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
-  // deleted_at: timestamp(),
 };
 
 TODO: "Add user versioning for optimistic concurrency control?";
@@ -46,7 +45,7 @@ export const avatars = pgTable("avatar", {
   imageKey: text("image_key").notNull(),
   idleVideoUrl: text("idle_video_url"),
   idleVideoKey: text("idle_video_key"),
-  elevenlabsVoiceId: text("elevenlabs_voice_id"),
+  elevenlabsClonedVoiceId: text("elevenlabs_cloned_voice_id"),
   ...timestamps,
 });
 

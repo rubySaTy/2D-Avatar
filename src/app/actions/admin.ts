@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { randomUUID } from "crypto";
 import { generateIdFromEntropySize } from "lucia";
-import axios from "axios";
 import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
 import {
@@ -17,6 +15,7 @@ import {
 import {
   avatarIdSchema,
   createAvatarSchema,
+  createClonedVoiceSchema,
   createUserSchema,
   editAvatarSchema,
   editUserSchema,
@@ -24,22 +23,18 @@ import {
   userIdSchema,
 } from "@/lib/validationSchema";
 import { eq } from "drizzle-orm";
-import elevenlabs from "@/lib/elevenlabs";
-import {
-  sanitizeString,
-  sanitizeFileName,
-  isValidFileUpload,
-  sanitizeFileObjects,
-} from "@/lib/utils";
+import { isValidFileUpload, sanitizeFileObjects } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 import {
-  uploadToS3,
-  createIdleVideo,
-  getIdleVideo,
   deleteS3Objects,
   findUserByUsernameOrEmail,
   updateUserCredits,
+  addAvatar,
+  getAvatarById,
+  processAvatarAndVideo,
+  addVoice,
 } from "@/services";
+import { redis } from "@/lib/redis";
 
 export async function createUser(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({
@@ -97,7 +92,7 @@ export async function createUser(prevState: any, formData: FormData) {
 
 export async function editUser(prevState: any, formData: FormData) {
   const parseResult = editUserSchema.safeParse({
-    userId: formData.get("userId"),
+    userId: formData.get("user-id"),
     username: formData.get("username"),
     email: formData.get("email"),
     role: formData.get("role"),
@@ -171,12 +166,37 @@ export async function deleteUser(formData: FormData) {
   }
 }
 
+export async function addClonedVoice(prevState: any, formData: FormData) {
+  const parseResult = createClonedVoiceSchema.safeParse({
+    voiceName: formData.get("voice-name"),
+    voiceFiles: formData.getAll("voice-files"),
+    removeBackgroundNoises: formData.get("remove-background-noises"),
+    description: formData.get("description"),
+  });
+
+  if (!parseResult.success) {
+    const errorMessages = parseResult.error.errors.map((err) => err.message);
+    return { success: false, message: errorMessages.join(", ") };
+  }
+
+  const { voiceName, voiceFiles, removeBackgroundNoises, description } =
+    parseResult.data;
+
+  console.log(voiceName, voiceFiles, removeBackgroundNoises, description);
+  return { success: true, message: "Test message." };
+  // const elevenlabsRes = addVoice(
+  //   voiceName,
+  //   voiceFiles,
+  //   description,
+  //   removeBackgroundNoises
+  // );
+}
+
 export async function createAvatar(prevState: any, formData: FormData) {
   const parsedData = createAvatarSchema.safeParse({
-    avatarName: formData.get("avatarName"),
-    imageFile: formData.get("imageFile"),
-    voiceFiles: formData.getAll("voiceFiles"),
-    userIds: formData.getAll("userIds"),
+    avatarName: formData.get("avatar-name"),
+    imageFile: formData.get("image-file"),
+    associatedUsersIds: formData.getAll("associated-users-ids"),
   });
 
   if (!parsedData.success) {
@@ -184,78 +204,23 @@ export async function createAvatar(prevState: any, formData: FormData) {
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarName, voiceFiles, imageFile, userIds } = parsedData.data;
-
-  const sanitiziedVoiceFiles = sanitizeFileObjects(voiceFiles);
-  const sanitizedAvatarName = sanitizeString(avatarName);
-  const sanitizedFileName = sanitizeFileName(imageFile.name);
+  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
 
   try {
-    // Step 1: Create Voice - if voice files exist
-    const elevenlabsRes =
-      sanitiziedVoiceFiles.length > 0
-        ? await elevenlabs.voices.add({ name: avatarName, files: sanitiziedVoiceFiles })
-        : null;
+    const { imageUrl, imageKey, createdIdleVideoRes } =
+      await processAvatarAndVideo(avatarName, imageFile);
 
-    // Step 2: Upload Image to S3
-    const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
-    const { url: imageUrl, key: imageKey } = await uploadToS3(
-      imageFile.stream(),
-      "avatars/",
-      `${fileName}`,
-      imageFile.type
-    );
-
-    // Step 3: Create idle video
-    const createdIdleVideoRes = await createIdleVideo(imageUrl);
-    if (!createdIdleVideoRes) {
+    if (!createdIdleVideoRes)
       return { success: false, message: "Error creating idle video" };
-    }
 
-    // Step 4: Poll for idle video completion
-    // Polling to get the silent idle video
-    const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
-    if (!idleVideo) {
-      return { success: false, message: "Error fetching idle video" };
-    }
+    const newAvatar: NewAvatar = {
+      avatarName,
+      imageKey,
+      imageUrl,
+    };
 
-    // Step 5: Download and upload final video
-    // download video as a Buffer using Axios
-    const res = await axios.get(idleVideo.result_url, {
-      responseType: "arraybuffer",
-    });
-    const videoBuffer = Buffer.from(res.data, "binary");
-
-    const uniqueId = randomUUID();
-    const videoFileName = `${uniqueId}.mp4`;
-    const { url: idleVideoUrl, key: idleVideoKey } = await uploadToS3(
-      videoBuffer,
-      "videos/",
-      videoFileName,
-      "video/mp4"
-    );
-
-    // Step 6: Begin Database Transaction for Insert Operations
-    await db.transaction(async (tx) => {
-      const createdAvatar = await tx
-        .insert(avatars)
-        .values({
-          avatarName,
-          imageUrl,
-          imageKey,
-          idleVideoUrl,
-          idleVideoKey,
-          elevenlabsVoiceId: elevenlabsRes?.voice_id || null,
-        })
-        .returning();
-
-      const associations = userIds.map((userId) => ({
-        userId,
-        avatarId: createdAvatar[0].id,
-      }));
-
-      await tx.insert(usersToAvatars).values(associations);
-    });
+    const createdAvatarId = await addAvatar(newAvatar, associatedUsersIds);
+    redis.set(createdIdleVideoRes.id, createdAvatarId, { ex: 300 });
 
     revalidatePath("/admin");
     return { success: true, message: "Avatar created" };
@@ -266,105 +231,52 @@ export async function createAvatar(prevState: any, formData: FormData) {
 }
 
 export async function editAvatar(prevState: any, formData: FormData) {
-  const image = formData.get("imageFile") as File;
+  const image = formData.get("image-file") as File;
   const parsedData = editAvatarSchema.safeParse({
-    avatarId: formData.get("avatarId"),
-    avatarName: formData.get("avatarName"),
+    avatarId: formData.get("avatar-id"),
+    avatarName: formData.get("avatar-name"),
     imageFile: isValidFileUpload(image) ? image : undefined,
-    userIds: formData.getAll("userIds"),
+    associatedUsersIds: formData.getAll("associated-users-ids"),
   });
+
   if (!parsedData.success) {
     const errors = parsedData.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarId, avatarName, imageFile, userIds } = parsedData.data;
+  const { avatarId, avatarName, imageFile, associatedUsersIds } =
+    parsedData.data;
 
   try {
-    const existingAvatar = await db.query.avatars.findFirst({
-      where: eq(avatars.id, avatarId),
-    });
-
+    const existingAvatar = await getAvatarById(avatarId);
     if (!existingAvatar) {
       return { success: false, message: "Avatar not found" };
     }
+    // Prepare files to delete
+    const filesToDelete: string[] = [];
 
-    // Prepare update object
     const updateData: Partial<NewAvatar> = {
       avatarName,
     };
 
-    // Prepare files to delete (if any)
-    const filesToDelete: string[] = [];
-
-    // Check if image is being updated
-    let imageUrl = existingAvatar.imageUrl;
-    let imageKey = existingAvatar.imageKey;
-    let idleVideoUrl = existingAvatar.idleVideoUrl;
-    let idleVideoKey = existingAvatar.idleVideoKey;
-
     if (imageFile && imageFile.size > 0) {
-      // Image is being updated
-      const sanitizedAvatarName = sanitizeString(avatarName);
-      const sanitizedFileName = sanitizeFileName(imageFile.name);
-      const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
+      const { imageKey, imageUrl, createdIdleVideoRes } =
+        await processAvatarAndVideo(avatarName, imageFile);
 
-      // Upload new image
-      const newImageUpload = await uploadToS3(
-        imageFile.stream(),
-        "avatars/",
-        `${fileName}`,
-        imageFile.type
-      );
-
-      // Update image details
-      imageUrl = newImageUpload.url;
-      imageKey = newImageUpload.key;
-
-      // Create new idle video
-      const createdIdleVideoRes = await createIdleVideo(imageUrl);
-      if (!createdIdleVideoRes) {
+      if (!createdIdleVideoRes)
         return { success: false, message: "Error creating idle video" };
-      }
 
-      // Poll for idle video completion
-      const idleVideo = await getIdleVideo(createdIdleVideoRes.id);
-      if (!idleVideo) {
-        return { success: false, message: "Error fetching idle video" };
-      }
-
-      // Download and upload final video
-      const res = await axios.get(idleVideo.result_url, {
-        responseType: "arraybuffer",
-      });
-      const videoBuffer = Buffer.from(res.data, "binary");
-
-      const uniqueId = randomUUID();
-      const videoFileName = `${uniqueId}.mp4`;
-      const newVideoUpload = await uploadToS3(
-        videoBuffer,
-        "videos/",
-        videoFileName,
-        "video/mp4"
-      );
-
-      // Update video details
-      idleVideoUrl = newVideoUpload.url;
-      idleVideoKey = newVideoUpload.key;
+      updateData.imageKey = imageKey;
+      updateData.imageUrl = imageUrl;
 
       // Mark old files for deletion
       if (existingAvatar.imageKey) filesToDelete.push(existingAvatar.imageKey);
       if (existingAvatar.idleVideoKey)
         filesToDelete.push(existingAvatar.idleVideoKey);
+
+      redis.set(createdIdleVideoRes.id, existingAvatar.id, { ex: 300 });
     }
 
-    // Prepare update data with new or existing values
-    updateData.imageUrl = imageUrl;
-    updateData.imageKey = imageKey;
-    updateData.idleVideoUrl = idleVideoUrl;
-    updateData.idleVideoKey = idleVideoKey;
-
-    // Database Transaction
     await db.transaction(async (tx) => {
       await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
 
@@ -376,8 +288,8 @@ export async function editAvatar(prevState: any, formData: FormData) {
       const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
 
       if (
-        existingUserIds.length !== userIds.length ||
-        !userIds.every((userId) => existingUserIds.includes(userId))
+        existingUserIds.length !== associatedUsersIds.length ||
+        !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
       ) {
         // Delete existing user associations
         await tx
@@ -385,14 +297,13 @@ export async function editAvatar(prevState: any, formData: FormData) {
           .where(eq(usersToAvatars.avatarId, avatarId));
 
         // Insert new user associations (if any)
-        const associations = userIds.map((userId) => ({
+        const associations = associatedUsersIds.map((userId) => ({
           userId,
           avatarId,
         }));
 
-        if (associations.length > 0) {
+        if (associations.length > 0)
           await tx.insert(usersToAvatars).values(associations);
-        }
       }
     });
 
@@ -440,7 +351,7 @@ export async function deleteAvatar(formData: FormData) {
 
 export async function handleUpdateCredits(prevState: any, formData: FormData) {
   const parseResult = updateCreditsSchema.safeParse({
-    userId: formData.get("userId"),
+    userId: formData.get("user-id"),
     amount: Number(formData.get("amount")),
     reason: formData.get("reason"),
   });
@@ -455,7 +366,7 @@ export async function handleUpdateCredits(prevState: any, formData: FormData) {
   try {
     await updateUserCredits(userId, amount, reason);
 
-    TODO: "Use revalidateTag when upgrading to NextJS 15,";
+    // TODO: "Use revalidateTag when upgrading to NextJS 15,";
     revalidatePath("/admin");
 
     return { success: true, message: "Credits updated successfully." };
