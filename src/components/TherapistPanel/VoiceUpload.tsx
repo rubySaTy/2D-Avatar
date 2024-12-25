@@ -3,8 +3,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { type FileRejection, useDropzone } from "react-dropzone";
 import { Label } from "@/components/ui/label";
-import { Mic, X } from "lucide-react";
+import { Mic, X, Info } from "lucide-react";
 import { fileArrayToFileList } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface VoiceFile {
   file: File;
@@ -48,9 +54,8 @@ export default function VoiceUpload() {
     onDrop,
     onDropRejected,
     accept: {
-      "audio/mp3": [".mp3"],
-      "audio/wav": [".wav"],
-      "audio/mpeg": [".mpeg"],
+      "audio/*": [],
+      "video/*": [],
     },
     maxFiles: 25,
     multiple: true,
@@ -85,14 +90,31 @@ export default function VoiceUpload() {
 
   return (
     <div className="space-y-4">
-      <Label htmlFor="voice-files">Voice Samples</Label>
+      <div className="flex items-center space-x-2">
+        <Label htmlFor="voice-files">Voice Samples</Label>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p>
+                Sample quality is more important than quantity. Noisy samples
+                may give bad results. Providing more than 5 minutes of audio in
+                total brings little improvement.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <input
         type="file"
         id="voice-files"
         name="voice-files"
         ref={fileInputRef}
         multiple
-        className="hidden"
+        className="sr-only"
+        required
       />
 
       <div
@@ -137,10 +159,10 @@ export default function VoiceUpload() {
             <div className="space-y-2 py-4">
               <Mic className="mx-auto h-8 w-8" />
               <p className="text-base">
-                Drag & drop voice files here, or click to select
+                Drag & drop files here, or click to select
               </p>
               <p className="text-sm text-gray-500">
-                Supports: MP3, WAV (1-25 files, max 10MB each)
+                Audio or Video files (1-25 files, up to 10MB each)
               </p>
             </div>
           )}

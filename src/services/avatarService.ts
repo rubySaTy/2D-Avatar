@@ -9,7 +9,7 @@ import {
   type MeetingSession,
 } from "@/lib/db/schema";
 import { sanitizeString, sanitizeFileName } from "@/lib/utils";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { createIdleVideo } from "./d-idService";
 import { uploadToS3 } from "./s3Service";
 
@@ -44,6 +44,16 @@ export async function updateAvatar(
   updatedAvatar: Partial<NewAvatar>
 ) {
   return db.update(avatars).set(updatedAvatar).where(eq(avatars.id, avatarId));
+}
+
+export async function updateManyAvatars(
+  avatarIds: number[],
+  updatedAvatar: Partial<NewAvatar>
+) {
+  return db
+    .update(avatars)
+    .set(updatedAvatar)
+    .where(inArray(avatars.id, avatarIds));
 }
 
 export async function getUserAvatars(userId: string) {

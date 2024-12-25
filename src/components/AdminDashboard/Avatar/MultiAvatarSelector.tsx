@@ -18,34 +18,29 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import type { UserDto } from "@/lib/db/schema";
+import type { Avatar } from "@/lib/db/schema";
 
-interface MultiUserSelectorProps {
-  users: Array<UserDto>;
-  associatedUsers: Array<UserDto>;
-  currentUserId: string;
+interface MultiAvatarSelectorProps {
+  avatars: Array<Avatar>;
 }
 
-export default function MultiUserSelector({
-  users,
-  currentUserId,
-  associatedUsers,
-}: MultiUserSelectorProps) {
+export default function MultiAvatarSelector({
+  avatars,
+}: MultiAvatarSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] =
-    useState<Array<UserDto>>(associatedUsers);
+  const [selectedAvatars, setSelectedAvatars] = useState<Array<Avatar>>([]);
 
-  const toggleUser = (user: UserDto) => {
-    setSelectedUsers((current) =>
-      current.some((selectedUser) => selectedUser.id === user.id)
-        ? current.filter((selectedUser) => selectedUser.id !== user.id)
-        : [...current, user]
+  const toggleAvatar = (avatar: Avatar) => {
+    setSelectedAvatars((current) =>
+      current.some((selectedAvatar) => selectedAvatar.id === avatar.id)
+        ? current.filter((selectedAvatar) => selectedAvatar.id !== avatar.id)
+        : [...current, avatar]
     );
   };
 
-  const removeUser = (userId: string) => {
-    setSelectedUsers((current) =>
-      current.filter((selectedUser) => selectedUser.id !== userId)
+  const removeAvatar = (avatarId: number) => {
+    setSelectedAvatars((current) =>
+      current.filter((selectedAvatar) => selectedAvatar.id !== avatarId)
     );
   };
 
@@ -59,33 +54,32 @@ export default function MultiUserSelector({
             aria-expanded={open}
             className="w-full justify-between"
           >
-            Select users
+            Select avatars
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command>
-            <CommandInput placeholder="Search users..." />
+            <CommandInput placeholder="Search avatars..." />
             <CommandList>
-              <CommandEmpty>No user found.</CommandEmpty>
+              <CommandEmpty>No avatar found.</CommandEmpty>
               <CommandGroup>
-                {users.map((user) => (
-                  <CommandItem key={user.id} onSelect={() => toggleUser(user)}>
+                {avatars.map((avatar) => (
+                  <CommandItem
+                    key={avatar.id}
+                    onSelect={() => toggleAvatar(avatar)}
+                  >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selectedUsers.some(
-                          (selectedUser) => selectedUser.id === user.id
+                        selectedAvatars.some(
+                          (selectedAvatar) => selectedAvatar.id === avatar.id
                         )
                           ? "opacity-100"
                           : "opacity-0"
                       )}
                     />
-                    {currentUserId === user.id ? (
-                      <b>{user.username} (You)</b>
-                    ) : (
-                      user.username
-                    )}
+                    {avatar.avatarName}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -95,14 +89,14 @@ export default function MultiUserSelector({
       </Popover>
 
       <div className="flex flex-wrap gap-2">
-        {selectedUsers.map((user) => (
-          <Badge key={user.id} variant="secondary">
-            {user.username}
+        {selectedAvatars.map((avatar) => (
+          <Badge key={avatar.id} variant="secondary">
+            {avatar.avatarName}
             <Button
               variant="ghost"
               size="sm"
               className="ml-2 h-4 w-4 p-0"
-              onClick={() => removeUser(user.id)}
+              onClick={() => removeAvatar(avatar.id)}
             >
               <X className="h-3 w-3" />
             </Button>
@@ -110,12 +104,12 @@ export default function MultiUserSelector({
         ))}
       </div>
 
-      {selectedUsers.map((user) => (
+      {selectedAvatars.map((avatar) => (
         <input
-          key={user.id}
+          key={avatar.id}
           type="hidden"
-          name="associated-users-ids"
-          value={user.id}
+          name="associated-avatars-ids"
+          value={avatar.id}
         />
       ))}
     </div>

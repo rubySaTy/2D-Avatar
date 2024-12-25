@@ -23,7 +23,7 @@ import {
   userIdSchema,
 } from "@/lib/validationSchema";
 import { eq } from "drizzle-orm";
-import { isValidFileUpload, sanitizeFileObjects } from "@/lib/utils";
+import { isValidFileUpload } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 import {
   deleteS3Objects,
@@ -32,9 +32,10 @@ import {
   addAvatar,
   getAvatarById,
   processAvatarAndVideo,
-  addVoice,
+  updateManyAvatars,
 } from "@/services";
 import { redis } from "@/lib/redis";
+import elevenlabs from "@/lib/elevenlabs";
 
 export async function createUser(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({
@@ -170,8 +171,9 @@ export async function addClonedVoice(prevState: any, formData: FormData) {
   const parseResult = createClonedVoiceSchema.safeParse({
     voiceName: formData.get("voice-name"),
     voiceFiles: formData.getAll("voice-files"),
-    removeBackgroundNoises: formData.get("remove-background-noises"),
+    removeBackgroundNoise: formData.get("remove-background-noise") === "on",
     description: formData.get("description"),
+    associatedAvatarsIds: formData.getAll("associated-avatars-ids"),
   });
 
   if (!parseResult.success) {
@@ -179,17 +181,31 @@ export async function addClonedVoice(prevState: any, formData: FormData) {
     return { success: false, message: errorMessages.join(", ") };
   }
 
-  const { voiceName, voiceFiles, removeBackgroundNoises, description } =
-    parseResult.data;
+  const {
+    voiceName,
+    voiceFiles,
+    removeBackgroundNoise,
+    description,
+    associatedAvatarsIds,
+  } = parseResult.data;
 
-  console.log(voiceName, voiceFiles, removeBackgroundNoises, description);
-  return { success: true, message: "Test message." };
-  // const elevenlabsRes = addVoice(
-  //   voiceName,
-  //   voiceFiles,
-  //   description,
-  //   removeBackgroundNoises
-  // );
+  try {
+    const elevenlabsRes = await elevenlabs.voices.add({
+      name: voiceName,
+      files: voiceFiles,
+      description,
+      remove_background_noise: removeBackgroundNoise,
+    });
+
+    await updateManyAvatars(associatedAvatarsIds, {
+      elevenlabsClonedVoiceId: elevenlabsRes.voice_id,
+    });
+
+    return { success: true, message: "Voice created successfully" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "An unexpected error occurred" };
+  }
 }
 
 export async function createAvatar(prevState: any, formData: FormData) {

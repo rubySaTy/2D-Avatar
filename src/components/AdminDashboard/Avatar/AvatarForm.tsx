@@ -14,7 +14,56 @@ import MultiUserSelector from "./MultiUserSelector";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
+import { createAvatar, editAvatar } from "@/app/actions/admin";
 import type { UserDto, Avatar } from "@/lib/db/schema";
+
+interface CreateAvatarFormProps {
+  users: Array<UserDto>;
+  currentUserId: string;
+}
+
+export function CreateAvatarForm({
+  users,
+  currentUserId,
+}: CreateAvatarFormProps) {
+  return (
+    <BaseAvatarForm
+      serverAction={createAvatar}
+      currentUserId={currentUserId}
+      users={users}
+      title="Create New Avatar"
+      description="Add a new avatar to the system."
+      submitText="Create Avatar"
+    />
+  );
+}
+
+interface EditAvatarFormProps {
+  avatar: Avatar;
+  users: Array<UserDto>;
+  associatedUsers: Array<UserDto>;
+  currentUserId: string;
+}
+
+export function EditAvatarForm({
+  avatar,
+  users,
+  associatedUsers,
+  currentUserId,
+}: EditAvatarFormProps) {
+  return (
+    <BaseAvatarForm
+      serverAction={editAvatar}
+      currentUserId={currentUserId}
+      users={users}
+      associatedUsers={associatedUsers}
+      initialData={avatar}
+      title="Edit Avatar"
+      description="Update avatar details."
+      submitText="Update Avatar"
+    />
+  );
+}
 
 interface BaseAvatarFormProps {
   serverAction: (
@@ -30,7 +79,7 @@ interface BaseAvatarFormProps {
   submitText: "Create Avatar" | "Update Avatar";
 }
 
-export default function BaseAvatarForm({
+function BaseAvatarForm({
   serverAction,
   initialData,
   users,

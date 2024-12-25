@@ -44,16 +44,6 @@ export function sanitizeFileName(fileName: string): string {
   return sanitizedFileName;
 }
 
-export function sanitizeFileObjects(files: Array<File>): Array<File> {
-  /**
-   * This function sanitizes the "name" property of each file object in an array.
-   *
-   * @param files - An array of file objects where each object contains a "name" property.
-   * @returns A new array of file objects with sanitized "name" properties.
-   */
-  return files.map((file) => ({ ...file, name: sanitizeFileName(file.name) }));
-}
-
 // Helper function to convert File[] to FileList
 export const fileArrayToFileList = (files: File[]): FileList => {
   const dataTransfer = new DataTransfer();

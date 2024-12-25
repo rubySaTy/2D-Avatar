@@ -111,24 +111,26 @@ const imageFileSchema = z
 
 const voiceFilesSchema = z
   .array(z.instanceof(File))
+  .min(1, { message: "At least one voice file is required" })
   .transform((files) =>
     files.filter((file) => file.size > 0 && file.name !== "undefined")
   )
   .pipe(
     z
       .array(z.instanceof(File))
+      .min(1, { message: "At least one valid voice file is required" })
       .max(25, { message: "You can upload up to 25 voice files" })
       .refine((files) => files.every((file) => file.size <= 10 * 1024 * 1024), {
         message: "Each file must be less than or equal to 10MB",
       })
       .refine(
-        (files) =>
-          files.every((file) =>
-            ["audio/mp3", "audio/wav", "audio/mpeg", "audio/ogg"].includes(
-              file.type
-            )
-          ),
-        { message: "Only MP3, WAV, OGG and MPEG files are allowed" }
+        (files) => {
+          return files.every(
+            (file) =>
+              file.type.startsWith("audio/") || file.type.startsWith("video/")
+          );
+        },
+        { message: "Invalid file type. Only audio or video files are allowed." }
       )
   );
 
@@ -168,8 +170,11 @@ export const editAvatarSchema = baseAvatarSchema.extend({
 export const createClonedVoiceSchema = z.object({
   voiceName: z.string().min(1, { message: "Voice name is required." }),
   voiceFiles: voiceFilesSchema,
-  removeBackgroundNoises: z.boolean().default(false),
+  removeBackgroundNoise: z.coerce.boolean(),
   description: z.string().optional(),
+  associatedAvatarsIds: z
+    .array(avatarIdSchema)
+    .min(1, { message: "At least one avatar must be selected" }),
 });
 
 export const updateCreditsSchema = z.object({

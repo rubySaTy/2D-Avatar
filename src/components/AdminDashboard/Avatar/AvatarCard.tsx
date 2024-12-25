@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { deleteAvatar } from "@/app/actions/admin";
-import EditAvatarForm from "./EditAvatarForm";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { EditAvatarForm } from "./AvatarForm";
+import { getUser } from "@/lib/auth";
 
 type AvatarCardProps = {
   avatar: Avatar;
@@ -15,11 +16,14 @@ type AvatarCardProps = {
   usersToAvatars: Array<{ userId: string; avatarId: number }>;
 };
 
-export default function AvatarCard({
+export default async function AvatarCard({
   avatar,
   users,
   usersToAvatars,
 }: AvatarCardProps) {
+  const currentUser = await getUser();
+  if (!currentUser) return null;
+
   const associatedUsers = users.filter((user) =>
     usersToAvatars.some(
       (relation) =>
@@ -85,6 +89,7 @@ export default function AvatarCard({
                 avatar={avatar}
                 users={users}
                 associatedUsers={associatedUsers}
+                currentUserId={currentUser.id}
               />
             </DialogContent>
           </Dialog>

@@ -16,8 +16,8 @@ import {
 import { getAvatars, getUsersDto, getTalksWithUser } from "@/services";
 
 export default async function AdminPage() {
-  const user = await getUser();
-  if (!user || user.role !== "admin") redirect("/login");
+  const currentUser = await getUser();
+  if (!currentUser || currentUser.role !== "admin") redirect("/login");
 
   const [usersDto, avatars, talks] = await Promise.all([
     getUsersDto(),

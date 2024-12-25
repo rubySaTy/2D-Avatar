@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { addClonedVoice } from "@/app/actions/admin";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -14,40 +14,33 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import MultiAvatarSelector from "./MultiAvatarSelector";
+import type { Avatar } from "@/lib/db/schema";
 
-export default function CreateClonedVoiceForm() {
+interface CreateClonedVoiceFormProps {
+  avatars: Array<Avatar>;
+}
+
+export default function CreateClonedVoiceForm({
+  avatars,
+}: CreateClonedVoiceFormProps) {
   const [state, formAction] = useActionState(addClonedVoice, null);
-  const [removeBackgroundNoises, setRemoveBackgroundNoises] = useState(false);
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="space-y-6">
+      <DialogHeader>
+        <DialogTitle className="text-2xl font-semibold tracking-tight">
+          Create new Cloned Voice
+        </DialogTitle>
+        <DialogDescription className="text-base text-muted-foreground">
+          Attach a Cloned voice to avatars using ElevenLabs
+        </DialogDescription>
+      </DialogHeader>
       <div className="space-y-4">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold tracking-tight">
-            Create new Cloned Voice
-          </DialogTitle>
-          <DialogDescription className="text-base text-muted-foreground">
-            Add a new Cloned voice to the system using ElevenLabs
-          </DialogDescription>
-        </DialogHeader>
-
         <div className="space-y-2">
           <Label htmlFor="voice-name">Voice Name</Label>
-          <Input
-            id="voice-name"
-            name="voice-name"
-            placeholder="The name that identifies this voice"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description (Optional)</Label>
-          <Input
-            id="description"
-            name="description"
-            placeholder="How would you describe the voice?"
-          />
+          <Input id="voice-name" name="voice-name" required />
         </div>
 
         <div className="space-y-2">
@@ -56,12 +49,12 @@ export default function CreateClonedVoiceForm() {
 
         <div className="flex space-x-2">
           <Checkbox
-            id="remove-background-noises"
-            name="remove-background-noises"
+            id="remove-background-noise"
+            name="remove-background-noise"
           />
           <div className="grid gap-1.5 leading-none">
             <Label
-              htmlFor="remove-background-noises"
+              htmlFor="remove-background-noise"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Remove background noises
@@ -73,14 +66,19 @@ export default function CreateClonedVoiceForm() {
           </div>
         </div>
 
-        {/* <div className="space-y-2">
-          <Label>Associated Users</Label>
-          <MultiUserSelector
-            users={users}
-            currentUserId={currentUserId}
-            associatedUsers={associatedUsers}
+        <div className="space-y-2">
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Textarea
+            id="description"
+            name="description"
+            placeholder='How would you describe the voice? e.g. "An old American male voice with a slight hoarseness in his throat. Perfect for news."'
           />
-        </div> */}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Associated Avatars</Label>
+          <MultiAvatarSelector avatars={avatars} />
+        </div>
       </div>
 
       <ServerActionAlertMessage state={state} />
