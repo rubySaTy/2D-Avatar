@@ -167,12 +167,12 @@ export async function deleteUser(formData: FormData) {
   }
 }
 
-export async function addClonedVoice(prevState: any, formData: FormData) {
+export async function uploadClonedVoice(prevState: any, formData: FormData) {
   const parseResult = createClonedVoiceSchema.safeParse({
     voiceName: formData.get("voice-name"),
     voiceFiles: formData.getAll("voice-files"),
     removeBackgroundNoise: formData.get("remove-background-noise") === "on",
-    description: formData.get("description"),
+    // description: formData.get("description"),
     associatedAvatarsIds: formData.getAll("associated-avatars-ids"),
   });
 
@@ -185,7 +185,7 @@ export async function addClonedVoice(prevState: any, formData: FormData) {
     voiceName,
     voiceFiles,
     removeBackgroundNoise,
-    description,
+    // description,
     associatedAvatarsIds,
   } = parseResult.data;
 
@@ -193,8 +193,8 @@ export async function addClonedVoice(prevState: any, formData: FormData) {
     const elevenlabsRes = await elevenlabs.voices.add({
       name: voiceName,
       files: voiceFiles,
-      description,
       remove_background_noise: removeBackgroundNoise,
+      // description, // TODO: causes bug?
     });
 
     await updateManyAvatars(associatedAvatarsIds, {

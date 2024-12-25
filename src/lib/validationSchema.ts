@@ -171,7 +171,7 @@ export const createClonedVoiceSchema = z.object({
   voiceName: z.string().min(1, { message: "Voice name is required." }),
   voiceFiles: voiceFilesSchema,
   removeBackgroundNoise: z.coerce.boolean(),
-  description: z.string().optional(),
+  // description: z.string().optional(),
   associatedAvatarsIds: z
     .array(avatarIdSchema)
     .min(1, { message: "At least one avatar must be selected" }),

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addClonedVoice } from "@/app/actions/admin";
+import { uploadClonedVoice } from "@/app/actions/admin";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { SubmitButton } from "@/components/SubmitButton";
 import VoiceUpload from "@/components/TherapistPanel/VoiceUpload";
@@ -25,7 +25,7 @@ interface CreateClonedVoiceFormProps {
 export default function CreateClonedVoiceForm({
   avatars,
 }: CreateClonedVoiceFormProps) {
-  const [state, formAction] = useActionState(addClonedVoice, null);
+  const [state, formAction] = useActionState(uploadClonedVoice, null);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -66,14 +66,14 @@ export default function CreateClonedVoiceForm({
           </div>
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="description">Description (Optional)</Label>
           <Textarea
             id="description"
             name="description"
             placeholder='How would you describe the voice? e.g. "An old American male voice with a slight hoarseness in his throat. Perfect for news."'
           />
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label>Associated Avatars</Label>
