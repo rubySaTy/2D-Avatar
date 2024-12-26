@@ -121,3 +121,14 @@ export async function processAvatarAndVideo(
     createdIdleVideoRes,
   };
 }
+
+export async function getAvatarsByVoiceId(voiceId: string) {
+  return db.query.avatars.findMany({
+    where: eq(avatars.elevenlabsClonedVoiceId, voiceId),
+    columns: {
+      id: true,
+      avatarName: true,
+      imageUrl: true,
+    },
+  });
+}

@@ -127,7 +127,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
           className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
         >
           <StopCircle className="size-5" />
-          Stop Video & Restart Stream
+          Stop & Restart
         </Button>
       </CardFooter>
     </Card>

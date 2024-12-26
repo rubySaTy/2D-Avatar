@@ -12,8 +12,15 @@ import {
   UserManagement,
   AvatarManagement,
   TalksDisplay,
+  // VoicesList,
 } from "@/components/AdminDashboard";
-import { getAvatars, getUsersDto, getTalksWithUser } from "@/services";
+import {
+  getAvatars,
+  getUsersDto,
+  getTalksWithUser,
+  // getAvatarsByVoiceId,
+} from "@/services";
+// import elevenlabs from "@/lib/elevenlabs";
 
 export default async function AdminPage() {
   const currentUser = await getUser();
@@ -24,6 +31,10 @@ export default async function AdminPage() {
     getAvatars(),
     getTalksWithUser(),
   ]);
+
+  // const data = await elevenlabs.voices.getAll();
+  // const clonedVoices = data.voices.filter((v) => v.category === "cloned");
+  // const associatedAvatars = await getAvatarsByVoiceId(clonedVoices[0].voice_id);
 
   return (
     <div className="container mx-auto py-10">
@@ -40,6 +51,7 @@ export default async function AdminPage() {
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="avatars">Avatars</TabsTrigger>
               <TabsTrigger value="talks">Talks</TabsTrigger>
+              {/* <TabsTrigger value="cloned-voices">Cloned Voices</TabsTrigger> */}
             </TabsList>
             <TabsContent value="users">
               <UserManagement users={usersDto} />
@@ -50,6 +62,9 @@ export default async function AdminPage() {
             <TabsContent value="talks">
               <TalksDisplay talks={talks} />
             </TabsContent>
+            {/* <TabsContent value="cloned-voices">
+              <VoicesList />
+            </TabsContent> */}
           </Tabs>
         </CardContent>
       </Card>

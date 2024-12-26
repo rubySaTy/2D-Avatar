@@ -10,6 +10,7 @@ import {
   integer,
   real,
   customType,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { decrypt, encrypt } from "../cryptoHelpers";
 import { type CipherKey } from "ably";
@@ -40,7 +41,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const avatars = pgTable("avatar", {
   id: serial("id").primaryKey(),
+  uploaderId: text("uploader_id")
+    .references(() => users.id)
+    .notNull(),
   avatarName: varchar("avatar_name", { length: 50 }).notNull(),
+  isPublic: boolean("is_public").notNull().default(false),
   imageUrl: text("image_url").notNull(),
   imageKey: text("image_key").notNull(),
   idleVideoUrl: text("idle_video_url"),
