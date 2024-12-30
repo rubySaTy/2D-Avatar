@@ -1,6 +1,7 @@
 import { db } from "@/lib/db/db";
-import { users, type UserDto, type User } from "@/lib/db/schema";
+import { users, type UserDto, type User, usersToAvatars } from "@/lib/db/schema";
 import { eq, or, and, gt } from "drizzle-orm";
+import { cache } from "react";
 
 export async function findUserByUsernameOrEmail(
   username?: string,
@@ -23,7 +24,7 @@ export async function findUserByUsernameOrEmail(
   throw new Error("No valid identifier provided");
 }
 
-export async function getUsersDto(): Promise<UserDto[]> {
+export const getUsersDto = cache(async (): Promise<UserDto[]> => {
   return db
     .select({
       id: users.id,
@@ -35,7 +36,7 @@ export async function getUsersDto(): Promise<UserDto[]> {
       updatedAt: users.updatedAt,
     })
     .from(users);
-}
+});
 
 export async function findUserByEmail(email: string) {
   return db.query.users.findFirst({ where: eq(users.email, email) });
@@ -43,18 +44,11 @@ export async function findUserByEmail(email: string) {
 
 export async function findUserByResetToken(token: string) {
   return db.query.users.findFirst({
-    where: and(
-      eq(users.resetToken, token),
-      gt(users.resetTokenExpires, new Date())
-    ),
+    where: and(eq(users.resetToken, token), gt(users.resetTokenExpires, new Date())),
   });
 }
 
-export async function setResetToken(
-  email: string,
-  token: string,
-  expires: Date
-) {
+export async function setResetToken(email: string, token: string, expires: Date) {
   await db
     .update(users)
     .set({ resetToken: token, resetTokenExpires: expires })
@@ -68,12 +62,19 @@ export async function clearResetToken(userId: string) {
     .where(eq(users.id, userId));
 }
 
-export async function updateUserPassword(
-  userId: string,
-  hashedPassword: string
-) {
+export async function updateUserPassword(userId: string, hashedPassword: string) {
   await db
     .update(users)
     .set({ passwordHash: hashedPassword })
     .where(eq(users.id, userId));
+}
+
+export async function getUserAvatars(userId: string) {
+  const res = await db.query.usersToAvatars.findMany({
+    where: eq(usersToAvatars.userId, userId),
+    with: {
+      avatar: true,
+    },
+  });
+  return res.map((ua) => ua.avatar);
 }

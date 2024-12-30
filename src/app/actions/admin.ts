@@ -4,38 +4,22 @@ import { revalidatePath } from "next/cache";
 import { generateIdFromEntropySize } from "lucia";
 import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
+import { users, type NewUser, sessions } from "@/lib/db/schema";
 import {
-  users,
-  type NewUser,
-  avatars,
-  usersToAvatars,
-  sessions,
-  type NewAvatar,
-} from "@/lib/db/schema";
-import {
-  avatarIdSchema,
-  createAvatarSchema,
   createClonedVoiceSchema,
   createUserSchema,
-  editAvatarSchema,
   editUserSchema,
   updateCreditsSchema,
   userIdSchema,
 } from "@/lib/validationSchema";
 import { eq } from "drizzle-orm";
-import { isValidFileUpload } from "@/lib/utils";
 import { isDbError } from "@/lib/typeGuards";
 import {
-  deleteS3Objects,
   findUserByUsernameOrEmail,
   updateUserCredits,
-  addAvatar,
-  getAvatarById,
-  processAvatarAndVideo,
   updateManyAvatars,
 } from "@/services";
-import { redis } from "@/lib/redis";
-import elevenlabs from "@/lib/elevenlabs";
+import elevenlabs from "@/lib/integrations/elevenlabs";
 
 export async function createUser(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({
@@ -107,10 +91,7 @@ export async function editUser(prevState: any, formData: FormData) {
   const { userId, username, email, role } = parseResult.data;
 
   try {
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId));
+    const existingUser = await db.select().from(users).where(eq(users.id, userId));
 
     if (existingUser.length === 0) {
       return { success: false, message: "User not found." };
@@ -205,163 +186,6 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
   } catch (error) {
     console.error(error);
     return { success: false, message: "An unexpected error occurred" };
-  }
-}
-
-export async function createAvatar(prevState: any, formData: FormData) {
-  const parsedData = createAvatarSchema.safeParse({
-    avatarName: formData.get("avatar-name"),
-    imageFile: formData.get("image-file"),
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
-
-  if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
-  }
-
-  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
-
-  try {
-    const { imageUrl, imageKey, createdIdleVideoRes } =
-      await processAvatarAndVideo(avatarName, imageFile);
-
-    if (!createdIdleVideoRes)
-      return { success: false, message: "Error creating idle video" };
-
-    const newAvatar: NewAvatar = {
-      avatarName,
-      imageKey,
-      imageUrl,
-    };
-
-    const createdAvatarId = await addAvatar(newAvatar, associatedUsersIds);
-    redis.set(createdIdleVideoRes.id, createdAvatarId, { ex: 300 });
-
-    revalidatePath("/admin");
-    return { success: true, message: "Avatar created" };
-  } catch (error) {
-    console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error" };
-  }
-}
-
-export async function editAvatar(prevState: any, formData: FormData) {
-  const image = formData.get("image-file") as File;
-  const parsedData = editAvatarSchema.safeParse({
-    avatarId: formData.get("avatar-id"),
-    avatarName: formData.get("avatar-name"),
-    imageFile: isValidFileUpload(image) ? image : undefined,
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
-
-  if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
-  }
-
-  const { avatarId, avatarName, imageFile, associatedUsersIds } =
-    parsedData.data;
-
-  try {
-    const existingAvatar = await getAvatarById(avatarId);
-    if (!existingAvatar) {
-      return { success: false, message: "Avatar not found" };
-    }
-    // Prepare files to delete
-    const filesToDelete: string[] = [];
-
-    const updateData: Partial<NewAvatar> = {
-      avatarName,
-    };
-
-    if (imageFile && imageFile.size > 0) {
-      const { imageKey, imageUrl, createdIdleVideoRes } =
-        await processAvatarAndVideo(avatarName, imageFile);
-
-      if (!createdIdleVideoRes)
-        return { success: false, message: "Error creating idle video" };
-
-      updateData.imageKey = imageKey;
-      updateData.imageUrl = imageUrl;
-
-      // Mark old files for deletion
-      if (existingAvatar.imageKey) filesToDelete.push(existingAvatar.imageKey);
-      if (existingAvatar.idleVideoKey)
-        filesToDelete.push(existingAvatar.idleVideoKey);
-
-      redis.set(createdIdleVideoRes.id, existingAvatar.id, { ex: 300 });
-    }
-
-    await db.transaction(async (tx) => {
-      await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
-
-      const existingAssociations = await tx
-        .select({ userId: usersToAvatars.userId })
-        .from(usersToAvatars)
-        .where(eq(usersToAvatars.avatarId, avatarId));
-
-      const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
-
-      if (
-        existingUserIds.length !== associatedUsersIds.length ||
-        !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
-      ) {
-        // Delete existing user associations
-        await tx
-          .delete(usersToAvatars)
-          .where(eq(usersToAvatars.avatarId, avatarId));
-
-        // Insert new user associations (if any)
-        const associations = associatedUsersIds.map((userId) => ({
-          userId,
-          avatarId,
-        }));
-
-        if (associations.length > 0)
-          await tx.insert(usersToAvatars).values(associations);
-      }
-    });
-
-    // Delete old S3 files after successful upload and database transaction
-    if (filesToDelete.length > 0) {
-      await deleteS3Objects(filesToDelete);
-    }
-
-    revalidatePath("/admin");
-    return { success: true, message: "Avatar updated" };
-  } catch (error) {
-    console.error("Error updating avatar:", error);
-    return { success: false, message: "Internal server error" };
-  }
-}
-
-export async function deleteAvatar(formData: FormData) {
-  const id = formData.get("id");
-  const parseResult = avatarIdSchema.safeParse(id);
-
-  if (!parseResult.success) {
-    console.error(parseResult.error.errors);
-    return;
-  }
-
-  const avatarId = parseResult.data;
-  try {
-    const deletedAvatar = await db
-      .delete(avatars)
-      .where(eq(avatars.id, avatarId))
-      .returning();
-
-    const { imageKey, idleVideoKey } = deletedAvatar[0];
-
-    const keysToDelete: string[] = [];
-    keysToDelete.push(imageKey);
-    if (idleVideoKey) keysToDelete.push(idleVideoKey);
-    await deleteS3Objects(keysToDelete);
-
-    revalidatePath("/admin");
-  } catch (error) {
-    console.error("Error deleting avatar:", error);
   }
 }
 

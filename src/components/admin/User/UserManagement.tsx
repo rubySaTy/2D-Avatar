@@ -3,13 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import UserTable from "./UserTable";
 import { CreateUserForm } from "./UserForm";
-import type { UserDto } from "@/lib/db/schema";
+import { getUsersDto } from "@/services";
 
-type UserManagementProps = {
-  users: Array<UserDto>;
-};
+export default async function UserManagement() {
+  const users = await getUsersDto();
 
-export default function UserManagement({ users }: UserManagementProps) {
   return (
     <div>
       <div className="mb-4">

@@ -3,8 +3,16 @@ import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { DIDGetTalkResponse } from "@/lib/types";
-import { updateAvatar, uploadToS3 } from "@/services";
-import { redis } from "@/lib/redis";
+import { deleteS3Objects, updateAvatar, uploadToS3 } from "@/services";
+import { redis } from "@/lib/integrations/redis";
+
+async function safeDeleteS3Objects(keys: string[]) {
+  try {
+    await deleteS3Objects(keys);
+  } catch (error) {
+    console.error("Error during S3 cleanup:", error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
@@ -12,11 +20,10 @@ export async function POST(request: NextRequest) {
 
   if (!correlationId) {
     console.error("No correlation ID found in request headers");
-    return NextResponse.json(
-      { error: "Correlation ID missing" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Correlation ID missing" }, { status: 400 });
   }
+
+  let s3VideoKey: string | null = null;
 
   try {
     const data = (await request.json()) as DIDGetTalkResponse;
@@ -24,7 +31,7 @@ export async function POST(request: NextRequest) {
       console.error("No data or result_url received from DID webhook");
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
-    
+
     const res = await axios.get(data.result_url, {
       responseType: "arraybuffer",
     });
@@ -39,9 +46,12 @@ export async function POST(request: NextRequest) {
       "video/mp4"
     );
 
+    s3VideoKey = idleVideoKey;
+
     const avatarId = (await redis.get(correlationId)) as number;
     if (!avatarId) {
       console.error("No avatar ID found for correlation ID");
+      await safeDeleteS3Objects([s3VideoKey]);
       return NextResponse.json({ error: "Avatar not found" }, { status: 404 });
     }
 
@@ -54,9 +64,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Webhook processed successfully" });
   } catch (error) {
     console.error("Error processing DID webhook:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    if (s3VideoKey) await safeDeleteS3Objects([s3VideoKey]);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

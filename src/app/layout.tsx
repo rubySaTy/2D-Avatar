@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { ThemeProvider } from "@/components/Layout/theme-provider";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import { getUser } from "@/lib/auth";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

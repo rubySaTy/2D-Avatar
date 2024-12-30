@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { uploadClonedVoice } from "@/app/actions/admin";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { SubmitButton } from "@/components/SubmitButton";
-import VoiceUpload from "@/components/TherapistPanel/VoiceUpload";
+import VoiceUpload from "@/components/therapist/therapist-session-panel/VoiceUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DialogDescription,

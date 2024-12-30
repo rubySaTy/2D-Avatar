@@ -1,5 +1,11 @@
-import { EmailTemplate } from "@/components/EmailTemplate";
-import resend from "./resend";
+import { Resend } from "resend";
+import { EmailTemplate } from "@/components/auth/EmailTemplate";
+
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("Missing Resend configuration in environment variables.");
+}
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   const resetLink = `${

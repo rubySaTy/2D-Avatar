@@ -10,29 +10,18 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import ImageUpload from "@/components/ImageUpload";
-import MultiUserSelector from "./MultiUserSelector";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { createAvatar, editAvatar } from "@/app/actions/admin";
-import type { UserDto, Avatar } from "@/lib/db/schema";
+import { createAvatarTherapist, editAvatarTherapist } from "@/app/actions/avatar";
+import type { Avatar } from "@/lib/db/schema";
 
-interface CreateAvatarFormProps {
-  users: Array<UserDto>;
-  currentUserId: string;
-}
-
-export function CreateAvatarForm({
-  users,
-  currentUserId,
-}: CreateAvatarFormProps) {
+export function CreateAvatarForm() {
   return (
     <BaseAvatarForm
-      serverAction={createAvatar}
-      currentUserId={currentUserId}
-      users={users}
+      serverAction={createAvatarTherapist}
       title="Create New Avatar"
-      description="Add a new avatar to the system."
+      description="Upload a photo to create a new avatar"
       submitText="Create Avatar"
     />
   );
@@ -40,23 +29,12 @@ export function CreateAvatarForm({
 
 interface EditAvatarFormProps {
   avatar: Avatar;
-  users: Array<UserDto>;
-  associatedUsers: Array<UserDto>;
-  currentUserId: string;
 }
 
-export function EditAvatarForm({
-  avatar,
-  users,
-  associatedUsers,
-  currentUserId,
-}: EditAvatarFormProps) {
+export function EditAvatarForm({ avatar }: EditAvatarFormProps) {
   return (
     <BaseAvatarForm
-      serverAction={editAvatar}
-      currentUserId={currentUserId}
-      users={users}
-      associatedUsers={associatedUsers}
+      serverAction={editAvatarTherapist}
       initialData={avatar}
       title="Edit Avatar"
       description="Update avatar details."
@@ -71,9 +49,6 @@ interface BaseAvatarFormProps {
     formData: FormData
   ) => Promise<{ success: boolean; message: string }>;
   initialData?: Avatar;
-  users: Array<UserDto>;
-  associatedUsers?: Array<UserDto>;
-  currentUserId: string;
   title: string;
   description: string;
   submitText: "Create Avatar" | "Update Avatar";
@@ -82,9 +57,6 @@ interface BaseAvatarFormProps {
 function BaseAvatarForm({
   serverAction,
   initialData,
-  users,
-  associatedUsers = [],
-  currentUserId,
   title,
   description,
   submitText,
@@ -94,16 +66,15 @@ function BaseAvatarForm({
   return (
     <form action={formAction} className="space-y-6">
       <DialogHeader>
-        <DialogTitle className="text-2xl font-semibold tracking-tight">
-          {title}
-        </DialogTitle>
-        <DialogDescription className="text-base text-muted-foreground">
-          {description}
-        </DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <div className="space-y-4">
         {initialData && (
-          <input type="hidden" name="avatar-id" value={initialData.id} />
+          <>
+            <input type="hidden" name="avatar-id" value={initialData.id} />
+            <input type="hidden" name="uploader-id" value={initialData.uploaderId} />
+          </>
         )}
 
         <div className="space-y-2">
@@ -117,15 +88,6 @@ function BaseAvatarForm({
         </div>
         <Separator />
         <ImageUpload existingImageUrl={initialData?.imageUrl} />
-        <Separator />
-        <div className="space-y-2">
-          <Label>Associated Users</Label>
-          <MultiUserSelector
-            users={users}
-            currentUserId={currentUserId}
-            associatedUsers={associatedUsers}
-          />
-        </div>
       </div>
 
       <ServerActionAlertMessage state={state} />

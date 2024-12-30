@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import TherapistPanelHeader from "./TherapistPanelHeader";
 import type { MicrosoftVoice } from "@/lib/types";
 
-interface TherapistDashboardProps {
+interface TherapistMeetingDashboardProps {
   avatarImageUrl: string;
   avatarName: string;
   clientUrl: string;
@@ -19,18 +19,18 @@ interface TherapistDashboardProps {
 }
 
 const AblyConnection = dynamic(
-  () => import("@/components/TherapistPanel/AblyConnection"),
+  () => import("@/components/therapist/therapist-session-panel/AblyConnection"),
   { ssr: false }
 );
 
-export default function TherapistDashboard({
+export default function TherapistMeetingDashboard({
   avatarName,
   avatarImageUrl,
   clientUrl,
   meetingLink,
   meetingCipherKey,
   VoiceSelectorProps,
-}: TherapistDashboardProps) {
+}: TherapistMeetingDashboardProps) {
   return (
     <>
       <TherapistPanelHeader

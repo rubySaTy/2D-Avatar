@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-export const userIdSchema = z
-  .string()
-  .min(1, { message: "User ID cannot be empty." });
+export const userIdSchema = z.string().min(1, { message: "User ID cannot be empty." });
 
 const usernameField = z
   .string()
@@ -84,9 +82,7 @@ export const createTalkStreamSchema = z
     (data) => {
       // If 'premadeMessage' is null or undefined, 'message' must be provided
       if (data.premadeMessage == null) {
-        return (
-          typeof data.message === "string" && data.message.trim().length > 0
-        );
+        return typeof data.message === "string" && data.message.trim().length > 0;
       }
       // If 'premadeMessage' is provided, 'message' is optional
       return true;
@@ -126,8 +122,7 @@ const voiceFilesSchema = z
       .refine(
         (files) => {
           return files.every(
-            (file) =>
-              file.type.startsWith("audio/") || file.type.startsWith("video/")
+            (file) => file.type.startsWith("audio/") || file.type.startsWith("video/")
           );
         },
         { message: "Invalid file type. Only audio or video files are allowed." }
@@ -153,18 +148,20 @@ const avatarNameField = z
 
 const baseAvatarSchema = z.object({
   avatarName: avatarNameField,
+});
+
+export const createAvatarSchema = baseAvatarSchema.extend({
+  imageFile: imageFileSchema,
+  uploaderId: userIdSchema,
   associatedUsersIds: z
     .array(userIdSchema)
     .min(1, { message: "At least one user must be selected" }),
 });
 
-export const createAvatarSchema = baseAvatarSchema.extend({
-  imageFile: imageFileSchema,
-});
-
 export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
   imageFile: imageFileSchema.optional(),
+  associatedUsersIds: z.array(userIdSchema).optional(),
 });
 
 export const createClonedVoiceSchema = z.object({

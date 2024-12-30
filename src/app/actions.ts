@@ -1,53 +1,34 @@
 "use server";
 
-import { db } from "@/lib/db/db";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { meetingSessions } from "@/lib/db/schema";
-import { generateShortUUID } from "@/lib/utils";
-import { openAI } from "@/lib/openai";
-import { ablyRest } from "@/lib/ably";
-import { Rest } from "ably";
-import { getMeetingSessionCipherKey } from "@/services";
+import { openAI } from "@/lib/integrations/openai";
+import { ablyRest } from "@/lib/integrations/ably";
+import { createNewMeetingSession, getMeetingSessionCipherKey } from "@/services";
 import { getToneInstruction } from "@/lib/LLMTones";
-import type { Avatar, NewMeetingSession } from "@/lib/db/schema";
+import { avatarIdSchema } from "@/lib/validationSchema";
 import type { OpenAIChatMessage } from "@/lib/types";
 
 export async function createSession(prevState: any, formData: FormData) {
-  const avatarJson = formData.get("avatar")?.toString();
-  if (!avatarJson) {
-    return { message: "Invalid avatar" };
-  }
+  const res = avatarIdSchema.safeParse(formData.get("avatar-id"));
+  if (!res.success) return { success: false, message: res.error.message };
+  const avatarId = res.data;
 
-  const avatar: Avatar = JSON.parse(avatarJson);
-  const user = await getUser();
-  if (!user) {
-    return { message: "Invalid credentials" };
-  }
+  const currentUser = await getUser();
+  if (!currentUser) return { success: false, message: "unauthorized" };
 
-  const meetingLink = generateShortUUID();
+  let meetingLink: string | null = null;
   try {
-    const cipherKey = await Rest.Crypto.generateRandomKey();
-    const newMeetingSession: NewMeetingSession = {
-      userId: user.id,
-      avatarId: avatar.id,
-      meetingLink,
-      cipherKey,
-    };
-
-    await db.insert(meetingSessions).values(newMeetingSession);
+    meetingLink = await createNewMeetingSession(currentUser.id, avatarId);
   } catch (error) {
     console.error(error);
-    return { message: "Error creating session" };
+    return { success: false, message: "Error creating session" };
   }
 
   redirect(`/therapist/${meetingLink}`);
 }
 
-export async function transcribeAndBroadcast(
-  audioFile: File,
-  meetingLink: string
-) {
+export async function transcribeAndBroadcast(audioFile: File, meetingLink: string) {
   if (!meetingLink || !audioFile) return;
 
   const transcribe = await openAI.audio.transcriptions.create({
@@ -90,15 +71,12 @@ export async function getLLMResponse(
 
   // Check if persona instructions are already present
   const hasPersona = conversationHistory.some(
-    (msg) =>
-      msg.role === "system" && msg.content.includes("You are role-playing")
+    (msg) => msg.role === "system" && msg.content.includes("You are role-playing")
   );
 
   // Check if style instructions are already present
   const hasStyle = conversationHistory.some(
-    (msg) =>
-      msg.role === "system" &&
-      msg.content.includes("Your response will be spoken")
+    (msg) => msg.role === "system" && msg.content.includes("Your response will be spoken")
   );
 
   // Prepend system messages if missing

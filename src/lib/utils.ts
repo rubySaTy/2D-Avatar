@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from "clsx";
-import crypto from "crypto";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -68,31 +67,6 @@ export function getMessageTimestamp(): string {
   return timestamp;
 }
 
-export function generateShortUUID(): string {
-  const uuid: string = crypto.randomUUID();
-
-  // Remove dashes and convert to a Uint8Array
-  const byteArray: Uint8Array = new Uint8Array(16);
-  const hexWithoutDashes: string = uuid.replace(/[-]/g, "");
-
-  const matches = hexWithoutDashes.match(/.{1,2}/g);
-  if (matches) {
-    matches.forEach((byte, i) => {
-      byteArray[i] = parseInt(byte, 16);
-    });
-  }
-
-  // Convert Uint8Array to a regular array and then to base64
-  const base64: string = btoa(
-    String.fromCharCode.apply(null, Array.from(byteArray))
-  );
-  return base64
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .substring(0, 10);
-}
-
 export function formatDate(date: Date): string {
   const pad = (num: number): string => num.toString().padStart(2, "0");
 
@@ -115,9 +89,4 @@ export function isValidFileUpload(file: File | null | undefined): boolean {
     file.name === "undefined";
 
   return !isEmptyDefaultFile;
-}
-
-// TODO: is redundant with the shortUUID function?
-export function generateResetToken() {
-  return crypto.randomBytes(32).toString("hex");
 }

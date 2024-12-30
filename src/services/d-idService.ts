@@ -41,39 +41,30 @@ export async function createTalkStream(
 }
 
 export async function createIdleVideo(imageUrl: string) {
-  try {
-    const res = await didApi.post<DIDCreateTalkResponse>("", {
-      source_url: imageUrl,
-      driver_url: "bank://lively/driver-06",
-      script: {
-        type: "text",
-        ssml: true,
-        input:
-          '<break time="5000ms"/><break time="5000ms"/><break time="5000ms"/>',
-        provider: {
-          type: "microsoft",
-          voice_id: "en-US-JennyNeural",
-        },
+  const res = await didApi.post<DIDCreateTalkResponse>("", {
+    source_url: imageUrl,
+    driver_url: "bank://lively/driver-06",
+    script: {
+      type: "text",
+      ssml: true,
+      input: '<break time="5000ms"/><break time="5000ms"/><break time="4000ms"/>',
+      provider: {
+        type: "microsoft",
+        voice_id: "en-US-JennyNeural",
       },
-      config: { fluent: true },
-      webhook: `${process.env.WEBHOOK_URL}`,
-    });
-    return res.data;
-  } catch (error) {
-    console.error("Error creating Idle Video:", error);
-    return null;
-  }
+    },
+    config: { fluent: true },
+    webhook: `${process.env.WEBHOOK_URL}`,
+  });
+  return res.data;
 }
 
 export async function createWebRTCStream(imageUrl: string) {
   try {
-    const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>(
-      "/streams",
-      {
-        source_url: imageUrl,
-        stream_warmup: true,
-      }
-    );
+    const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>("/streams", {
+      source_url: imageUrl,
+      stream_warmup: true,
+    });
 
     return sessionResponse.data;
   } catch (error) {
@@ -83,16 +74,13 @@ export async function createWebRTCStream(imageUrl: string) {
 }
 
 export async function getDIDCredits() {
-  const res = await axios.get<DIDCreditsResponse>(
-    "https://api.d-id.com/credits",
-    {
-      headers: {
-        Authorization: `Basic ${process.env.DID_API_KEY}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
+    headers: {
+      Authorization: `Basic ${process.env.DID_API_KEY}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
   return res.data.remaining;
 }
 
@@ -102,8 +90,7 @@ async function fetchWithRetries<T>(
   config: AxiosRequestConfig = {},
   pollConfig: PollConfig<T>
 ): Promise<AxiosResponse<T>> {
-  const { maxRetries, initialRetryDelay, maxRetryDelay, shouldRetry } =
-    pollConfig;
+  const { maxRetries, initialRetryDelay, maxRetryDelay, shouldRetry } = pollConfig;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -113,15 +100,10 @@ async function fetchWithRetries<T>(
         return response;
       }
 
-      const delay = Math.min(
-        initialRetryDelay * Math.pow(2, attempt),
-        maxRetryDelay
-      );
+      const delay = Math.min(initialRetryDelay * Math.pow(2, attempt), maxRetryDelay);
 
       console.warn(
-        `Status not yet 'done', retrying in ${delay}ms... (${
-          attempt + 1
-        }/${maxRetries})`
+        `Status not yet 'done', retrying in ${delay}ms... (${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     } catch (error) {
@@ -129,15 +111,10 @@ async function fetchWithRetries<T>(
         throw error;
       }
 
-      const delay = Math.min(
-        initialRetryDelay * Math.pow(2, attempt),
-        maxRetryDelay
-      );
+      const delay = Math.min(initialRetryDelay * Math.pow(2, attempt), maxRetryDelay);
 
       console.warn(
-        `Request failed, retrying in ${delay}ms... (${
-          attempt + 1
-        }/${maxRetries})`
+        `Request failed, retrying in ${delay}ms... (${attempt + 1}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

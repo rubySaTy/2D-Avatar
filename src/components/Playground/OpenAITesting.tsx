@@ -9,7 +9,7 @@ import { getMessageTimestamp } from "@/lib/utils";
 import { getLLMResponse, Transcribe } from "@/app/actions";
 import { transcribedTextSchema } from "@/lib/validationSchema";
 import { Loader2 } from "lucide-react";
-import { StyleSelector } from "../TherapistPanel/StyleSelector";
+import { StyleSelector } from "../therapist/therapist-session-panel/StyleSelector";
 import type { OpenAIChatMessage } from "@/lib/types";
 
 interface MessageHistory {

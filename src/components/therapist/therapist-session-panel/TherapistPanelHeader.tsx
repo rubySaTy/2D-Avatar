@@ -1,6 +1,6 @@
 import Image from "next/image";
 import SessionLink from "./SessionLink";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import Link from "next/link";
 
 interface TherapistPanelHeaderProps {

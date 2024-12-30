@@ -1,4 +1,4 @@
-import OpenAITesting from "@/components/Playground/OpenAITesting";
+import OpenAITesting from "@/components/playground/OpenAITesting";
 
 export default function Page() {
   return (

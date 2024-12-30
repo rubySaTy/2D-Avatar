@@ -3,33 +3,26 @@ import { Pencil, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { deleteAvatar } from "@/app/actions/admin";
-import type { Avatar, UserDto } from "@/lib/db/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { EditAvatarForm } from "./AvatarForm";
+import { AdminEditAvatarForm } from "./AdminAvatarForm";
 import { getUser } from "@/lib/auth";
+import { deleteAvatar } from "@/app/actions/avatar";
+import type { Avatar, UserDto } from "@/lib/db/schema";
 
 type AvatarCardProps = {
   avatar: Avatar;
   users: Array<UserDto>;
-  usersToAvatars: Array<{ userId: string; avatarId: number }>;
+  associatedUsers: Array<UserDto>;
 };
 
 export default async function AvatarCard({
   avatar,
   users,
-  usersToAvatars,
+  associatedUsers,
 }: AvatarCardProps) {
   const currentUser = await getUser();
   if (!currentUser) return null;
-
-  const associatedUsers = users.filter((user) =>
-    usersToAvatars.some(
-      (relation) =>
-        relation.avatarId === avatar.id && relation.userId === user.id
-    )
-  );
 
   return (
     <Card className="relative overflow-hidden transition-all hover:shadow-lg dark:bg-gray-900/50 dark:hover:bg-gray-900/80">
@@ -44,9 +37,7 @@ export default async function AvatarCard({
             priority
           />
         </div>
-        <CardTitle className="text-center text-xl">
-          {avatar.avatarName}
-        </CardTitle>
+        <CardTitle className="text-center text-xl">{avatar.avatarName}</CardTitle>
         <div className="flex justify-center mt-2">
           <Badge variant="secondary" className="mt-1">
             <Users className="mr-1 h-3 w-3" />
@@ -85,7 +76,7 @@ export default async function AvatarCard({
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <EditAvatarForm
+              <AdminEditAvatarForm
                 avatar={avatar}
                 users={users}
                 associatedUsers={associatedUsers}
@@ -93,6 +84,7 @@ export default async function AvatarCard({
               />
             </DialogContent>
           </Dialog>
+
           <form action={deleteAvatar}>
             <input type="hidden" name="id" value={avatar.id} />
             <Button variant="destructive" size="sm" type="submit">

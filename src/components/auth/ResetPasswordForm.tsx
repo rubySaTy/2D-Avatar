@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { resetPassword } from "@/app/actions/auth";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +15,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import Link from "next/link";
 
 export default function ResetPasswordForm({ token }: { token: string }) {
   const [state, formAction] = useActionState(resetPassword, null);
@@ -54,7 +54,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
                 name="confirmPassword"
                 type="password"
                 placeholder="Confirm your new password"
-            required
+                required
               />
             </div>
             <SubmitButton className="w-full">Reset Password</SubmitButton>

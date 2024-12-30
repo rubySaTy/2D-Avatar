@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { lucia } from "@/auth";
 import * as argon2 from "argon2"; // downgraded version because of an error with vercel - https://github.com/vercel/next.js/discussions/65978
+import crypto from "crypto";
+
 import {
   forgotPasswordSchema,
   loginUserSchema,
@@ -18,8 +20,7 @@ import {
   setResetToken,
   updateUserPassword,
 } from "@/services";
-import { generateResetToken } from "@/lib/utils";
-import { sendPasswordResetEmail } from "@/lib/mailer";
+import { sendPasswordResetEmail } from "@/lib/integrations/resend";
 
 export async function loginUser(prevState: any, formData: FormData) {
   const parsedResult = loginUserSchema.safeParse({
@@ -28,9 +29,7 @@ export async function loginUser(prevState: any, formData: FormData) {
   });
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors
-      .map((err) => err.message)
-      .join(", ");
+    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: errorMessages };
   }
 
@@ -87,9 +86,7 @@ export async function sendResetLink(prevState: any, formData: FormData) {
   });
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors
-      .map((err) => err.message)
-      .join(", ");
+    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: errorMessages };
   }
 
@@ -105,7 +102,7 @@ export async function sendResetLink(prevState: any, formData: FormData) {
       };
     }
 
-    const token = generateResetToken();
+    const token = crypto.randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour expiry
     await setResetToken(email, token, expires);
 
@@ -130,9 +127,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
   });
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors
-      .map((err) => err.message)
-      .join(", ");
+    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
     return { success: false, message: errorMessages };
   }
 

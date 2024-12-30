@@ -101,8 +101,7 @@ export const encryptedKey = customType<{ data: CipherKey }>({
     return "text";
   },
   fromDriver(value: unknown) {
-    if (typeof value !== "string")
-      throw new Error("Expected a string from the database");
+    if (typeof value !== "string") throw new Error("Expected a string from the database");
     const decryptedValue = decrypt(value); // returns the base64 string
     return Buffer.from(decryptedValue, "base64");
   },
@@ -129,20 +128,17 @@ export const meetingSessions = pgTable("meeting_session", {
   ...timestamps,
 });
 
-export const meetingSessionsRelations = relations(
-  meetingSessions,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [meetingSessions.userId],
-      references: [users.id],
-    }),
-    avatar: one(avatars, {
-      fields: [meetingSessions.avatarId],
-      references: [avatars.id],
-    }),
-    talks: many(talks),
-  })
-);
+export const meetingSessionsRelations = relations(meetingSessions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [meetingSessions.userId],
+    references: [users.id],
+  }),
+  avatar: one(avatars, {
+    fields: [meetingSessions.avatarId],
+    references: [avatars.id],
+  }),
+  talks: many(talks),
+}));
 
 export const talks = pgTable("talk", {
   id: varchar("id", { length: 50 }).primaryKey(),
@@ -169,25 +165,24 @@ export const creditTransactions = pgTable("credit_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const creditTransactionsRelations = relations(
-  creditTransactions,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [creditTransactions.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const creditTransactionsRelations = relations(creditTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [creditTransactions.userId],
+    references: [users.id],
+  }),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-export type UserDto = Omit<
-  User,
-  "passwordHash" | "resetToken" | "resetTokenExpires"
->;
+export type UserDto = Omit<User, "passwordHash" | "resetToken" | "resetTokenExpires">;
 
 export type Avatar = typeof avatars.$inferSelect;
 export type NewAvatar = typeof avatars.$inferInsert;
+
+export type UserToAvatar = typeof usersToAvatars.$inferSelect;
+export type AvatarWithUsersDto = Avatar & {
+  associatedUsers: UserDto[];
+};
 
 export type MeetingSession = typeof meetingSessions.$inferSelect;
 export type NewMeetingSession = typeof meetingSessions.$inferInsert;

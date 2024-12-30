@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/auth";
+import { validateRequest } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -10,27 +10,21 @@ import {
 } from "@/components/ui/card";
 import {
   UserManagement,
-  AvatarManagement,
   TalksDisplay,
   // VoicesList,
-} from "@/components/AdminDashboard";
+} from "@/components/admin";
 import {
-  getAvatars,
-  getUsersDto,
   getTalksWithUser,
   // getAvatarsByVoiceId,
 } from "@/services";
+import AvatarManagement from "@/components/avatar/AvatarManagement";
 // import elevenlabs from "@/lib/elevenlabs";
 
 export default async function AdminPage() {
-  const currentUser = await getUser();
-  if (!currentUser || currentUser.role !== "admin") redirect("/login");
+  const { user } = await validateRequest();
+  if (!user || user.role !== "admin") redirect("/login");
 
-  const [usersDto, avatars, talks] = await Promise.all([
-    getUsersDto(),
-    getAvatars(),
-    getTalksWithUser(),
-  ]);
+  const talks = await getTalksWithUser();
 
   // const data = await elevenlabs.voices.getAll();
   // const clonedVoices = data.voices.filter((v) => v.category === "cloned");
@@ -41,9 +35,7 @@ export default async function AdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Admin Dashboard</CardTitle>
-          <CardDescription>
-            Manage users, avatars, and view talk logs
-          </CardDescription>
+          <CardDescription>Manage users, avatars, and view talk logs</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="users">
@@ -54,10 +46,10 @@ export default async function AdminPage() {
               {/* <TabsTrigger value="cloned-voices">Cloned Voices</TabsTrigger> */}
             </TabsList>
             <TabsContent value="users">
-              <UserManagement users={usersDto} />
+              <UserManagement />
             </TabsContent>
             <TabsContent value="avatars">
-              <AvatarManagement avatars={avatars} users={usersDto} />
+              <AvatarManagement />
             </TabsContent>
             <TabsContent value="talks">
               <TalksDisplay talks={talks} />

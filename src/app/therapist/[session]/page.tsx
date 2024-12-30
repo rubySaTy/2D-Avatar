@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import { getMeetingSessionWithAvatar } from "@/services";
 import { validateRequest } from "@/lib/auth";
-import TherapistDashboard from "@/components/TherapistPanel/TherapistDashboard";
+import TherapistMeetingDashboard from "@/components/therapist/therapist-session-panel/TherapistMeetingDashboard";
 import type { MicrosoftVoice } from "@/lib/types";
 
 export default async function TherapistSessionPage(props: {
@@ -31,9 +31,7 @@ export default async function TherapistSessionPage(props: {
   const data: MicrosoftVoice[] = JSON.parse(fileContents);
 
   // Filter for Microsoft provider
-  const microsoftVoices = data.filter(
-    (voice) => voice.provider === "microsoft"
-  );
+  const microsoftVoices = data.filter((voice) => voice.provider === "microsoft");
 
   // Extract available genders and languages
   const availableGenders = Array.from(
@@ -42,20 +40,16 @@ export default async function TherapistSessionPage(props: {
 
   const availableLanguages = Array.from(
     new Set(
-      microsoftVoices.flatMap((voice) =>
-        voice.languages.map((lang) => lang.language)
-      )
+      microsoftVoices.flatMap((voice) => voice.languages.map((lang) => lang.language))
     )
   ).sort();
 
   // collecting unique age groups from voices data
-  const ageGroups = Array.from(
-    new Set(microsoftVoices.map((voice) => voice.ageGroup))
-  );
+  const ageGroups = Array.from(new Set(microsoftVoices.map((voice) => voice.ageGroup)));
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <TherapistDashboard
+      <TherapistMeetingDashboard
         avatarImageUrl={avatar.imageUrl}
         avatarName={avatar.avatarName}
         clientUrl={clientUrl.toString()}

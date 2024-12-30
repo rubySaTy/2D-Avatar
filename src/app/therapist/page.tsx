@@ -1,12 +1,16 @@
 import { redirect } from "next/navigation";
-import CreateSession from "@/components/TherapistPanel/CreateSession";
-import { getUser } from "@/lib/auth";
-import { getUserAvatars } from "@/services";
+import { validateRequest } from "@/lib/auth";
+import { getPublicAvatars, getUserAvatars } from "@/services";
+import { AvatarDashboard } from "@/components/therapist/TherapistDashboard";
 
 export default async function TherapistPage() {
-  const user = await getUser();
+  const { user } = await validateRequest();
   if (!user) return redirect("/login");
-  const avatars = await getUserAvatars(user.id);
+
+  const [avatars, publicAvatars] = await Promise.all([
+    getUserAvatars(user.id),
+    getPublicAvatars(),
+  ]);
 
   const sortedAvatars = avatars.sort((a, b) => {
     const dateA = new Date(a.createdAt);
@@ -15,8 +19,8 @@ export default async function TherapistPage() {
   });
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <CreateSession avatars={sortedAvatars} />
+    <div className="container mx-auto p-6">
+      <AvatarDashboard avatars={sortedAvatars} publicAvatars={publicAvatars} />
     </div>
   );
 }

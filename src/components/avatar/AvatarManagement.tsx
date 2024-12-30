@@ -4,32 +4,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AvatarCard from "./AvatarCard";
 import { getUser } from "@/lib/auth";
-import { usersToAvatars, type Avatar, type UserDto } from "@/lib/db/schema";
-import { db } from "@/lib/db/db";
 import CreateClonedVoiceForm from "./CreateClonedVoiceForm";
-import { CreateAvatarForm } from "./AvatarForm";
+import { AdminCreateAvatarForm } from "./AdminAvatarForm";
+import { getAvatarsWithAssociatedUsers, getUsersDto } from "@/services";
 
-interface AvatarManagementProps {
-  avatars: Array<Avatar>;
-  users: Array<UserDto>;
-}
-
-export default async function AvatarManagement({
-  avatars,
-  users,
-}: AvatarManagementProps) {
+export default async function AvatarManagement() {
   const currentUser = await getUser();
   if (!currentUser) return null;
 
-  const usersToAvatarsArray = await db.select().from(usersToAvatars);
+  const [users, avatarsWithUsers] = await Promise.all([
+    getUsersDto(),
+    getAvatarsWithAssociatedUsers(),
+  ]);
 
-  const sortedAvatars = avatars.sort((a, b) => {
+  const sortedAvatarsWithUsers = avatarsWithUsers.sort((a, b) => {
     const dateA = new Date(a.createdAt);
     const dateB = new Date(b.createdAt);
     return dateA.getTime() - dateB.getTime();
   });
 
-  const avatarsWithoutClonedVoice = avatars.filter(
+  const avatarsWithoutClonedVoice = sortedAvatarsWithUsers.filter(
     (avatar) => !avatar.elevenlabsClonedVoiceId
   );
   return (
@@ -43,7 +37,7 @@ export default async function AvatarManagement({
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] p-0">
             <ScrollArea className="max-h-[90vh] p-6">
-              <CreateAvatarForm users={users} currentUserId={currentUser.id} />
+              <AdminCreateAvatarForm users={users} currentUserId={currentUser.id} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
@@ -61,16 +55,24 @@ export default async function AvatarManagement({
           </DialogContent>
         </Dialog>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sortedAvatars.map((avatar) => (
-          <AvatarCard
-            key={avatar.id}
-            avatar={avatar}
-            users={users}
-            usersToAvatars={usersToAvatarsArray}
-          />
-        ))}
-      </div>
+      {avatarsWithUsers.length === 0 && (
+        <div className="container mx-auto p-4">
+          <h1 className="text-2xl font-bold mb-4">Avatars Display</h1>
+          <p>No avatars available to display.</p>
+        </div>
+      )}
+      {avatarsWithUsers.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {sortedAvatarsWithUsers.map((avatar) => (
+            <AvatarCard
+              key={avatar.id}
+              avatar={avatar}
+              users={users}
+              associatedUsers={avatar.associatedUsers}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

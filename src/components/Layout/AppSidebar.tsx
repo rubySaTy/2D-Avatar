@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Calendar,
   ChevronUp,
@@ -30,12 +32,11 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { User } from "lucia";
-import Logout from "./auth/Logout";
-import { ModeToggle } from "./Layout/dark-mode-toggle";
+import Logout from "../auth/Logout";
 import { getDIDCredits, getUserCredits } from "@/services";
-import Link from "next/link";
+import { ModeToggle } from "./dark-mode-toggle";
 
 // Menu items.
 const baseItems = [
