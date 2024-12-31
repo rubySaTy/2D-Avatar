@@ -10,6 +10,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "2d-avatar-bucket.s3.il-central-1.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "oaidalleapiprodscus.blob.core.windows.net",
+      },
     ],
   },
   experimental: {

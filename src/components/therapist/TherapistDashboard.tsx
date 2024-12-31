@@ -13,14 +13,15 @@ import {
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Upload, Brain, Wand2, Edit, X } from "lucide-react";
+import { Edit, X } from "lucide-react";
 import { SelectFromGallery } from "./SelectFromGalleryDialog";
 import { createSession } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { CreateAvatarForm, EditAvatarForm } from "@/components/avatar/AvatarForm";
+import { EditAvatarForm } from "@/components/avatar/AvatarForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Avatar } from "@/lib/db/schema";
+import { AvatarCreationDropdown } from "./AvatarCreationDropdown";
 
 interface AvatarDashboardProps {
   avatars: Avatar[];
@@ -41,29 +42,14 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
     <div>
       <h1 className="text-3xl font-bold mb-6">Avatar Dashboard</h1>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="mr-2 h-4 w-4" /> Upload Photo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] p-0">
-            <ScrollArea className="max-h-[90vh] p-6">
-              <CreateAvatarForm />
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-
-        <Button>
-          <Wand2 className="mr-2 h-4 w-4" /> Photo + LLM
-        </Button>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Available Avatars</h2>
+        <AvatarCreationDropdown />
       </div>
 
       <div className="flex gap-6">
         <Card className="flex-grow">
           <CardHeader>
-            <CardTitle>Available Avatars</CardTitle>
             <CardDescription>Select an avatar to create a session</CardDescription>
           </CardHeader>
           <CardContent>

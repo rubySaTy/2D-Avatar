@@ -7,6 +7,9 @@ import {
   createAvatarSchema,
   editAvatarSchema,
   avatarIdSchema,
+  generateLLMAvatarSchema,
+  CreateLLMGeneratedAvatarSchema,
+  generateLLMAvatarWithImageSchema,
 } from "@/lib/validationSchema";
 import {
   createAvatarData,
@@ -14,6 +17,8 @@ import {
   getAvatarById,
   removeAvatar,
 } from "@/services";
+import { openAI } from "@/lib/integrations/openai";
+import axios from "axios";
 
 export async function createAvatarTherapist(prevState: any, formData: FormData) {
   const currentUser = await getUser();
@@ -22,7 +27,6 @@ export async function createAvatarTherapist(prevState: any, formData: FormData) 
   const parsedData = createAvatarSchema.safeParse({
     avatarName: formData.get("avatar-name"),
     imageFile: formData.get("image-file"),
-    uploaderId: currentUser.id,
     associatedUsersIds: [currentUser.id],
   });
 
@@ -31,11 +35,12 @@ export async function createAvatarTherapist(prevState: any, formData: FormData) 
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarName, imageFile, associatedUsersIds, uploaderId } = parsedData.data;
+  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
 
   try {
-    await createAvatarData(avatarName, imageFile, associatedUsersIds, uploaderId);
+    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
     revalidatePath("/admin");
+    revalidatePath("/therapist");
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
@@ -89,7 +94,6 @@ export async function createAvatarAdmin(prevState: any, formData: FormData) {
   const parsedData = createAvatarSchema.safeParse({
     avatarName: formData.get("avatar-name"),
     imageFile: formData.get("image-file"),
-    uploaderId: currentUser.id,
     associatedUsersIds: formData.getAll("associated-users-ids"),
   });
 
@@ -98,11 +102,12 @@ export async function createAvatarAdmin(prevState: any, formData: FormData) {
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const { avatarName, imageFile, associatedUsersIds, uploaderId } = parsedData.data;
+  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
 
   try {
-    await createAvatarData(avatarName, imageFile, associatedUsersIds, uploaderId);
+    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
     revalidatePath("/admin");
+    revalidatePath("/therapist");
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
@@ -181,5 +186,112 @@ export async function deleteAvatar(formData: FormData) {
     revalidatePath("/admin");
   } catch (error) {
     console.error("Error deleting avatar:", error);
+  }
+}
+
+export async function generateLLMAvatar(prevState: any, formData: FormData) {
+  const res = generateLLMAvatarSchema.safeParse({
+    prompt: formData.get("prompt"),
+  });
+
+  if (!res.success) {
+    const errors = res.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { prompt } = res.data;
+  try {
+    const systemDirective =
+      "Generate a centered, front-facing headshot. The subject's face should be fully visible, directly facing the camera, with even lighting and a neutral background.";
+
+    const response = await openAI.images.generate({
+      model: "dall-e-3",
+      prompt: `${systemDirective} ${prompt}`,
+      quality: "hd",
+      n: 1,
+      size: "1024x1024",
+    });
+
+    return {
+      success: true,
+      message: "Image Generated",
+      payload: formData,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Error generating avatar" };
+  }
+}
+
+export async function generateLLMAvatarWithImage(prevState: any, formData: FormData) {
+  const res = generateLLMAvatarWithImageSchema.safeParse({
+    prompt: formData.get("prompt"),
+    imageFile: formData.get("image-file"),
+  });
+
+  if (!res.success) {
+    const errors = res.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { prompt, imageFile } = res.data;
+  try {
+    const response = await openAI.images.edit({
+      image: imageFile,
+      prompt: `${prompt}`,
+      n: 4,
+      size: "1024x1024",
+    });
+
+    return {
+      success: true,
+      message: "Image Generated",
+      payload: formData,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Error generating avatar" };
+  }
+}
+
+export async function createLLMAvatar(prevState: any, formData: FormData) {
+  const currentUser = await getUser();
+  if (!currentUser) return { success: false, message: "Unauthorized" };
+
+  const res = CreateLLMGeneratedAvatarSchema.safeParse({
+    avatarName: formData.get("avatar-name"),
+    imageUrl: formData.get("image-url"),
+  });
+
+  if (!res.success) {
+    const errors = res.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { avatarName, imageUrl } = res.data;
+
+  try {
+    const response = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const imageBuffer = Buffer.from(response.data, "binary");
+    const isPublicAvatar = true;
+
+    await createAvatarData(
+      avatarName,
+      imageBuffer,
+      [currentUser.id],
+      currentUser.id,
+      isPublicAvatar
+    );
+    revalidatePath("/admin");
+    revalidatePath("/therapist");
+    return { success: true, message: "Avatar created" };
+  } catch (error) {
+    console.error("Error creating avatar:", error);
+    return { success: false, message: "Internal server error" };
   }
 }

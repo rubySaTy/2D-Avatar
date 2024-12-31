@@ -14,7 +14,7 @@ import { redis } from "@/lib/integrations/redis";
 
 export async function createAvatarData(
   avatarName: string,
-  imageFile: File,
+  imageInput: File | Buffer,
   associatedUsersIds: string[],
   uploaderId: string,
   isPublic: boolean = false
@@ -25,7 +25,7 @@ export async function createAvatarData(
     // 1) process image/video
     const { imageUrl, imageKey, createdIdleVideoRes } = await processAvatarAndVideo(
       avatarName,
-      imageFile
+      imageInput
     );
 
     // store key for potential s3 cleanup if something goes wrong later
@@ -195,16 +195,25 @@ export async function getAvatarsWithAssociatedUsers(): Promise<AvatarWithUsersDt
   }));
 }
 
-async function processAvatarAndVideo(avatarName: string, imageFile: File) {
+async function processAvatarAndVideo(avatarName: string, imageInput: File | Buffer) {
   const sanitizedAvatarName = sanitizeString(avatarName);
-  const sanitizedFileName = sanitizeFileName(imageFile.name);
 
-  const fileName = `${sanitizedAvatarName}-${sanitizedFileName}`;
+  // Handle filename differently based on input type
+  const fileName = `${sanitizedAvatarName}-${
+    imageInput instanceof File ? sanitizeFileName(imageInput.name) : `${Date.now()}.png` // Default name for Buffer
+  }`;
+
+  // Handle content type differently based on input type
+  const contentType = imageInput instanceof File ? imageInput.type : "image/png"; // Default type for Buffer
+
+  // Handle the data stream differently based on input type
+  const data = imageInput instanceof File ? imageInput.stream() : imageInput;
+
   const { url: imageUrl, key: imageKey } = await uploadToS3(
-    imageFile.stream(),
+    data,
     "images/",
     fileName,
-    imageFile.type
+    contentType
   );
 
   const createdIdleVideoRes = await createIdleVideo(imageUrl);

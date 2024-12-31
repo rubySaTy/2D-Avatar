@@ -152,7 +152,6 @@ const baseAvatarSchema = z.object({
 
 export const createAvatarSchema = baseAvatarSchema.extend({
   imageFile: imageFileSchema,
-  uploaderId: userIdSchema,
   associatedUsersIds: z
     .array(userIdSchema)
     .min(1, { message: "At least one user must be selected" }),
@@ -162,6 +161,14 @@ export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
   imageFile: imageFileSchema.optional(),
   associatedUsersIds: z.array(userIdSchema).optional(),
+});
+
+export const generateLLMAvatarSchema = z.object({
+  prompt: z.string().min(1, { message: "Prompt is required." }),
+});
+
+export const generateLLMAvatarWithImageSchema = generateLLMAvatarSchema.extend({
+  imageFile: imageFileSchema,
 });
 
 export const createClonedVoiceSchema = z.object({
@@ -188,3 +195,8 @@ export const transcribedTextSchema = z
     message:
       "Text can only contain English letters, numbers, spaces and basic punctuation",
   });
+
+export const CreateLLMGeneratedAvatarSchema = z.object({
+  avatarName: z.string().min(1, { message: "Avatar name is required." }),
+  imageUrl: z.string().min(1, { message: "Image URL is required." }),
+});

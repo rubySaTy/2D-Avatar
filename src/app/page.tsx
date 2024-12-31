@@ -13,8 +13,8 @@ export default async function Home() {
             Welcome to SmartTherapy
           </h1>
           <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-            Experience the future of mental health support with AI-powered
-            therapy sessions tailored just for you.
+            Experience mental health support with AI-powered therapy sessions tailored
+            just for you.
           </p>
         </div>
       </div>
