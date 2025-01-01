@@ -135,6 +135,28 @@
     ]
   },
   {
+    "id": "en-US-AndrewMultilingualNeural",
+    "name": "Andrew Multilingual",
+    "description": "",
+    "gender": "male",
+    "ageGroup": "adult",
+    "languages": [
+      {
+        "locale": "en-US",
+        "language": "English (United States)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-AndrewMultilingual-General-Audio.wav"
+      },
+      {
+        "locale": "he-IL",
+        "language": "Hebrew (Israel)",
+        "preview": "https://speechstudioblobcdn.azureedge.net/ttsvoice/Masterpieces/en-US-AndrewMultilingual-heIL-Audio.wav"
+      }
+    ],
+    "access": "public",
+    "provider": "microsoft",
+    "styles": ["empathetic", "relieved"]
+  },
+  {
     "id": "en-US-JasonNeural",
     "name": "Jason",
     "description": "An early-20s male voice that's polite and unassuming, perhaps a little shy, with a respectful and professional tone that leaves a good impression.",

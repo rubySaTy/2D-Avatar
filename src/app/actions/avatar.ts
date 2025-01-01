@@ -189,7 +189,7 @@ export async function deleteAvatar(formData: FormData) {
   }
 }
 
-export async function generateLLMAvatar(prevState: any, formData: FormData) {
+export async function generateAIAvatar(prevState: any, formData: FormData) {
   const res = generateLLMAvatarSchema.safeParse({
     prompt: formData.get("prompt"),
   });
@@ -224,7 +224,7 @@ export async function generateLLMAvatar(prevState: any, formData: FormData) {
   }
 }
 
-export async function generateLLMAvatarWithImage(prevState: any, formData: FormData) {
+export async function generateAIAvatarWithImage(prevState: any, formData: FormData) {
   const res = generateLLMAvatarWithImageSchema.safeParse({
     prompt: formData.get("prompt"),
     imageFile: formData.get("image-file"),
@@ -256,7 +256,7 @@ export async function generateLLMAvatarWithImage(prevState: any, formData: FormD
   }
 }
 
-export async function createLLMAvatar(prevState: any, formData: FormData) {
+export async function createAIAvatar(prevState: any, formData: FormData) {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 

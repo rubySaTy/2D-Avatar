@@ -8,9 +8,8 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, Brain, Wand2, Plus } from "lucide-react";
-import { CreateAvatarForm } from "../avatar/AvatarForm";
-import CreateLLMAvatarForm from "../avatar/CreateLLMAvatarForm";
-import CreateLLMAvatarWithImageForm from "../avatar/CreateLLMAvatarWithImageForm";
+import { CreateAvatarForm } from "@/components/avatar/AvatarForm";
+import { CreateAIAvatarForm } from "@/components/avatar/ai/CreateAIAvatarForm";
 
 export function AvatarCreationDropdown() {
   return (
@@ -41,7 +40,7 @@ export function AvatarCreationDropdown() {
           </DialogTrigger>
           <DialogContent>
             <ScrollArea>
-              <CreateLLMAvatarForm />
+              <CreateAIAvatarForm />
             </ScrollArea>
           </DialogContent>
         </Dialog>
@@ -53,7 +52,7 @@ export function AvatarCreationDropdown() {
           </DialogTrigger>
           <DialogContent>
             <ScrollArea>
-              <CreateLLMAvatarWithImageForm />
+              <CreateAIAvatarForm withImage />
             </ScrollArea>
           </DialogContent>
         </Dialog>

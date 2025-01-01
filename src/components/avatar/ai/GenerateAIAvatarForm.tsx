@@ -5,22 +5,28 @@ import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/SubmitButton";
-import { generateLLMAvatarWithImage } from "@/app/actions/avatar";
-import ServerActionAlertMessage from "../ServerActionAlertMessage";
-import type { Image as OpenAIImage } from "openai/resources/images.mjs";
+import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
+import { generateAIAvatar, generateAIAvatarWithImage } from "@/app/actions/avatar";
 import { fileArrayToFileList } from "@/lib/utils";
 import { X, LucideImage } from "lucide-react";
 import { FileRejection, useDropzone } from "react-dropzone";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
+import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 
-interface GenerateAvatarWithImageFormProps {
+interface BaseGenerateFormProps {
   onGenerate: (images: OpenAIImage[]) => void;
+  serverAction: (
+    prevState: any,
+    formData: FormData
+  ) => Promise<
+    | { success: boolean; message: string; payload?: undefined; data?: undefined }
+    | { success: boolean; message: string; payload: FormData; data: OpenAIImage[] }
+  >;
+  children?: React.ReactNode;
 }
 
-export function GenerateAvatarWithImage({
-  onGenerate,
-}: GenerateAvatarWithImageFormProps) {
-  const [state, formAction] = useActionState(generateLLMAvatarWithImage, null);
+function BaseGenerateForm({ onGenerate, serverAction, children }: BaseGenerateFormProps) {
+  const [state, formAction] = useActionState(serverAction, null);
 
   useEffect(() => {
     if (state && state.data) {
@@ -40,13 +46,30 @@ export function GenerateAvatarWithImage({
           defaultValue={(state?.payload?.get("prompt") || "") as string}
         />
       </div>
-      <Separator />
-      <ImageUploader />
-      <Separator />
+
+      {children}
 
       <ServerActionAlertMessage state={state} />
       <SubmitButton>Generate</SubmitButton>
     </form>
+  );
+}
+
+interface GenerateAIImageProps {
+  onGenerate: (images: OpenAIImage[]) => void;
+}
+
+export function GenerateAIAvatarForm({ onGenerate }: GenerateAIImageProps) {
+  return <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatar} />;
+}
+
+export function GenerateAIAvatarWithImageForm({ onGenerate }: GenerateAIImageProps) {
+  return (
+    <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatarWithImage}>
+      <Separator />
+      <ImageUploader />
+      <Separator />
+    </BaseGenerateForm>
   );
 }
 

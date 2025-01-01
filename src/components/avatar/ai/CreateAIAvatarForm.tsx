@@ -3,20 +3,31 @@
 import { useState } from "react";
 import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
-import { SelectAndCreateAvatar } from "@/components/therapist/SelectAndCreateAvatar";
-import { GenerateAvatarWithImage } from "@/components/therapist/GenerateAvatarWithImage";
-import type { Image } from "openai/resources/images.mjs";
+import { SelectAndCreateAvatar } from "@/components/avatar/ai/SelectAndCreateAvatar";
+import {
+  GenerateAIAvatarForm,
+  GenerateAIAvatarWithImageForm,
+} from "@/components/avatar/ai/GenerateAIAvatarForm";
+import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 
-export default function CreateLLMAvatarWithImageForm() {
-  const [images, setImages] = useState<Image[]>([]);
+interface AIAvatarFormProps {
+  withImage?: boolean;
+}
 
-  const handleGenerate = (newImages: Image[]) => {
+export function CreateAIAvatarForm({ withImage = false }: AIAvatarFormProps) {
+  const [images, setImages] = useState<OpenAIImage[]>([]);
+
+  const handleGenerate = (newImages: OpenAIImage[]) => {
     setImages(newImages);
   };
 
   const handleRegenerate = () => {
     setImages([]);
   };
+
+  const GenerationComponent = withImage
+    ? GenerateAIAvatarWithImageForm
+    : GenerateAIAvatarForm;
 
   return (
     <motion.div transition={{ duration: 0.3 }} className="space-y-4">
@@ -26,7 +37,7 @@ export default function CreateLLMAvatarWithImageForm() {
       </DialogHeader>
 
       {images.length === 0 ? (
-        <GenerateAvatarWithImage onGenerate={handleGenerate} />
+        <GenerationComponent onGenerate={handleGenerate} />
       ) : (
         <SelectAndCreateAvatar images={images} onRegenerate={handleRegenerate} />
       )}
