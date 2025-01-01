@@ -1,14 +1,12 @@
-import didApi from "../lib/d-idApi";
+import didApi from "@/lib/d-idApi";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import type {
-  DIDCreditsResponse,
   DIDCreateTalkResponse,
   DIDCreateWebRTCStreamResponse,
   PollConfig,
   VoiceProviderConfig,
   DIDCreateTalkStreamResponse,
-} from "../lib/types";
-import axios from "axios";
+} from "@/lib/types";
 
 export async function createTalkStream(
   streamId: string,
@@ -71,17 +69,6 @@ export async function createWebRTCStream(imageUrl: string) {
     console.error("Failed to create a WebRTC stream:", error);
     return null;
   }
-}
-
-export async function getDIDCredits() {
-  const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
-    headers: {
-      Authorization: `Basic ${process.env.DID_API_KEY}`,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-  return res.data.remaining;
 }
 
 // TODO: add retry mechanism to axios requests?

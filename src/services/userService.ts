@@ -1,7 +1,9 @@
+import { cache } from "react";
+import { eq, or, and, gt } from "drizzle-orm";
+import axios from "axios";
 import { db } from "@/lib/db/db";
 import { users, type UserDto, type User, usersToAvatars } from "@/lib/db/schema";
-import { eq, or, and, gt } from "drizzle-orm";
-import { cache } from "react";
+import type { DIDCreditsResponse } from "@/lib/types";
 
 export async function findUserByUsernameOrEmail(
   username?: string,
@@ -77,4 +79,26 @@ export async function getUserAvatars(userId: string) {
     },
   });
   return res.map((ua) => ua.avatar);
+}
+
+export async function getUserCredits(userId: string, userRole: string) {
+  if (userRole === "admin") {
+    const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
+      headers: {
+        Authorization: `Basic ${process.env.DID_API_KEY}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    return res.data.remaining ?? null;
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: {
+      credits: true,
+    },
+  });
+
+  return user?.credits ?? null;
 }

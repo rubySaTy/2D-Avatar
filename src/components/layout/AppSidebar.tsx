@@ -1,5 +1,7 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Calendar,
   ChevronUp,
@@ -23,6 +25,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 
@@ -34,73 +37,65 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User } from "lucia";
-import Logout from "../auth/Logout";
-import { getDIDCredits, getUserCredits } from "@/services";
+import Logout from "@/components/auth/Logout";
 import { ModeToggle } from "./dark-mode-toggle";
 
-// Menu items.
-const baseItems = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Therapist Panel",
-    url: "/therapist",
-    icon: MessageCircle,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-];
+const data = {
+  navMain: [
+    {
+      title: "Home",
+      url: "/",
+      icon: Home,
+    },
+    {
+      title: "Therapist Panel",
+      url: "/therapist",
+      icon: MessageCircle,
+    },
+    {
+      title: "Calendar",
+      url: "#",
+      icon: Calendar,
+    },
+  ],
+  navAdmin: [
+    {
+      title: "Admin Dashboard",
+      url: "/admin",
+      icon: Settings,
+    },
+    {
+      title: "OpenAI Playground",
+      url: "/admin/playground",
+      icon: Play,
+    },
+  ],
+};
 
-interface AppSidebarProps {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   currentUser: User;
+  credits: number;
 }
 
-export async function AppSidebar({ currentUser }: AppSidebarProps) {
-  const credits =
-    currentUser.role === "admin"
-      ? await getDIDCredits()
-      : await getUserCredits(currentUser.id);
-
-  const items = [...baseItems];
-
-  if (currentUser.role === "admin") {
-    items.push(
-      {
-        title: "Admin Dashboard",
-        url: "/admin",
-        icon: Settings,
-      },
-      {
-        title: "OpenAI Playground",
-        url: "/admin/playground",
-        icon: Play,
-      }
-    );
-  }
+export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) {
+  const pathname = usePathname();
 
   return (
-    <Sidebar>
+    <Sidebar {...props}>
       <SidebarHeader>
         <ModeToggle />
       </SidebarHeader>
-      <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.title}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -108,6 +103,25 @@ export async function AppSidebar({ currentUser }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {currentUser.role === "admin" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {data.navAdmin.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={pathname === item.url}>
+                      <Link href={item.url}>
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {item.title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter className="p-4">
@@ -147,6 +161,7 @@ export async function AppSidebar({ currentUser }: AppSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

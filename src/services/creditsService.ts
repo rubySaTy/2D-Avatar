@@ -10,19 +10,14 @@ TODO: Handle edge cases (e.g., race conditions/concurrent transactions, credit l
     Credit Limits: If there's a maximum credit limit, enforce it during additions.
 */
 
-export async function addCredits(
-  userId: string,
-  amount: number,
-  reason: string
-) {
+export async function addCredits(userId: string, amount: number, reason: string) {
   return db.transaction(async (tx) => {
     const user = await tx.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) throw new Error("User not found");
-    if (user.role === "admin")
-      throw new Error("Cannot add credits to an admin.");
+    if (user.role === "admin") throw new Error("Cannot add credits to an admin.");
 
     const updatedCreditsAmount = user.credits + amount;
 
@@ -39,19 +34,14 @@ export async function addCredits(
   });
 }
 
-export async function removeCredits(
-  userId: string,
-  amount: number,
-  reason: string
-) {
+export async function removeCredits(userId: string, amount: number, reason: string) {
   return db.transaction(async (tx) => {
     const user = await tx.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) throw new Error("User not found");
-    if (user.role === "admin")
-      throw new Error("Cannot remove credits from an admin.");
+    if (user.role === "admin") throw new Error("Cannot remove credits from an admin.");
 
     if (user.credits < amount)
       throw new Error(
@@ -72,19 +62,14 @@ export async function removeCredits(
   });
 }
 
-export async function updateUserCredits(
-  userId: string,
-  amount: number,
-  reason: string
-) {
+export async function updateUserCredits(userId: string, amount: number, reason: string) {
   return db.transaction(async (tx) => {
     const user = await tx.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
     if (!user) throw new Error("User not found");
-    if (user.role === "admin")
-      throw new Error("Cannot modify credits for an admin.");
+    if (user.role === "admin") throw new Error("Cannot modify credits for an admin.");
 
     const updatedCreditsAmount = user.credits + amount;
 
@@ -108,15 +93,4 @@ export async function updateUserCredits(
       reason,
     });
   });
-}
-
-export async function getUserCredits(userId: string) {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    columns: {
-      credits: true,
-    },
-  });
-
-  return user?.credits ?? null;
 }
