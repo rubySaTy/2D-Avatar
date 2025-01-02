@@ -2,25 +2,70 @@ import { cache } from "react";
 import { eq, or, and, gt } from "drizzle-orm";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import { users, type UserDto, type User, usersToAvatars } from "@/lib/db/schema";
+import {
+  users,
+  type UserDto,
+  type User,
+  usersToAvatars,
+  type NewUser,
+  sessions,
+} from "@/lib/db/schema";
+import { generateIdFromEntropySize } from "lucia";
+import * as argon2 from "argon2";
 import type { DIDCreditsResponse } from "@/lib/types";
+
+export async function createUser(
+  username: string,
+  email: string,
+  password: string,
+  role: "admin" | "therapist"
+) {
+  const passwordHash = await argon2.hash(password);
+  const newUser: NewUser = {
+    id: generateIdFromEntropySize(10),
+    username,
+    usernameLower: username.toLowerCase(),
+    email: email.toLowerCase(),
+    passwordHash,
+    role,
+  };
+
+  await db.insert(users).values(newUser);
+}
+
+export async function editUser(
+  existingUser: User,
+  username: string,
+  email: string,
+  role: "admin" | "therapist"
+) {
+  const updates: Partial<NewUser> = {
+    username,
+    email: email.toLowerCase(),
+    usernameLower: username.toLowerCase(),
+  };
+
+  const roleChanged = role && existingUser.role !== role;
+  if (roleChanged) updates.role = role;
+  await db.update(users).set(updates).where(eq(users.id, existingUser.id));
+
+  // If user role has changed, delete their sessions to sign them out.
+  if (roleChanged) await db.delete(sessions).where(eq(sessions.userId, existingUser.id));
+}
 
 export async function findUserByUsernameOrEmail(
   username?: string,
   email?: string
 ): Promise<User | null> {
   if (username || email) {
-    const usersRes = await db
-      .select()
-      .from(users)
-      .where(
-        or(
-          username ? eq(users.username, username) : undefined,
-          email ? eq(users.email, email) : undefined
-        )
-      )
-      .limit(1);
-    return usersRes[0] ?? null;
+    const user = await db.query.users.findFirst({
+      where: or(
+        username ? eq(users.usernameLower, username.toLowerCase()) : undefined,
+        email ? eq(users.email, email.toLowerCase()) : undefined
+      ),
+    });
+
+    return user ?? null;
   }
 
   throw new Error("No valid identifier provided");
@@ -31,6 +76,7 @@ export const getUsersDto = cache(async (): Promise<UserDto[]> => {
     .select({
       id: users.id,
       username: users.username,
+      usernameLower: users.usernameLower,
       email: users.email,
       role: users.role,
       credits: users.credits,
@@ -41,7 +87,7 @@ export const getUsersDto = cache(async (): Promise<UserDto[]> => {
 });
 
 export async function findUserByEmail(email: string) {
-  return db.query.users.findFirst({ where: eq(users.email, email) });
+  return db.query.users.findFirst({ where: eq(users.email, email.toLowerCase()) });
 }
 
 export async function findUserByResetToken(token: string) {
@@ -54,7 +100,7 @@ export async function setResetToken(email: string, token: string, expires: Date)
   await db
     .update(users)
     .set({ resetToken: token, resetTokenExpires: expires })
-    .where(eq(users.email, email));
+    .where(eq(users.email, email.toLowerCase()));
 }
 
 export async function clearResetToken(userId: string) {

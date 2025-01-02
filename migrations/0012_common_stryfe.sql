@@ -1,0 +1,1 @@
+ALTER TABLE "user" ALTER COLUMN "username_lower" SET NOT NULL;

@@ -18,14 +18,14 @@ import {
 } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/SubmitButton";
 import type { UserDto } from "@/lib/db/schema";
-import { createUser, editUser } from "@/app/actions/admin";
+import { createUserAction, editUserAction } from "@/app/actions/admin";
 import PasswordInputWithToggle from "@/components/PasswordInputWithToggle";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 
 export function EditUserForm({ user }: { user: UserDto }) {
   return (
     <BaseUserForm
-      serverAction={editUser}
+      serverAction={editUserAction}
       initialData={user}
       title="Edit User"
       description="Update user details."
@@ -38,7 +38,7 @@ export function EditUserForm({ user }: { user: UserDto }) {
 export function CreateUserForm() {
   return (
     <BaseUserForm
-      serverAction={createUser}
+      serverAction={createUserAction}
       title="Create New User"
       description="Add a new user to the system."
       submitText="Create User"
@@ -77,9 +77,7 @@ function BaseUserForm({
       </DialogHeader>
 
       <div className="space-y-4">
-        {isEditing && (
-          <input type="hidden" name="user-id" value={initialData.id} />
-        )}
+        {isEditing && <input type="hidden" name="user-id" value={initialData.id} />}
 
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="username" className="text-right">
@@ -126,11 +124,7 @@ function BaseUserForm({
             User Role
           </Label>
           <div className="col-span-3">
-            <Select
-              name="role"
-              defaultValue={initialData.role || "therapist"}
-              required
-            >
+            <Select name="role" defaultValue={initialData.role || "therapist"} required>
               <SelectTrigger id="role">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>

@@ -1,10 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { generateIdFromEntropySize } from "lucia";
-import * as argon2 from "argon2";
 import { db } from "@/lib/db/db";
-import { users, type NewUser, sessions } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import {
   createClonedVoiceSchema,
   createUserSchema,
@@ -18,10 +16,12 @@ import {
   findUserByUsernameOrEmail,
   updateUserCredits,
   updateManyAvatars,
+  createUser,
+  editUser,
 } from "@/services";
 import elevenlabs from "@/lib/integrations/elevenlabs";
 
-export async function createUser(prevState: any, formData: FormData) {
+export async function createUserAction(prevState: any, formData: FormData) {
   const parseResult = createUserSchema.safeParse({
     username: formData.get("username"),
     email: formData.get("email"),
@@ -36,18 +36,14 @@ export async function createUser(prevState: any, formData: FormData) {
 
   const { username, email, password, role } = parseResult.data;
 
+  // TODO: move to service layer
   try {
     const foundUser = await findUserByUsernameOrEmail(username, email);
     if (foundUser) {
       const conflicts: string[] = [];
 
-      if (foundUser.username === username) {
-        conflicts.push("Username already exists.");
-      }
-
-      if (foundUser.email === email) {
-        conflicts.push("Email already exists.");
-      }
+      if (foundUser.username === username) conflicts.push("Username already exists.");
+      if (foundUser.email === email) conflicts.push("Email already exists.");
 
       const conflictMessage =
         conflicts.length > 1
@@ -57,16 +53,7 @@ export async function createUser(prevState: any, formData: FormData) {
       return { success: false, message: conflictMessage };
     }
 
-    const passwordHash = await argon2.hash(password);
-    const newUser: NewUser = {
-      id: generateIdFromEntropySize(10),
-      username,
-      email,
-      passwordHash,
-      role,
-    };
-
-    await db.insert(users).values(newUser);
+    await createUser(username, email, password, role);
     revalidatePath("/admin");
     return { success: true, message: "User created" };
   } catch (error) {
@@ -75,7 +62,7 @@ export async function createUser(prevState: any, formData: FormData) {
   }
 }
 
-export async function editUser(prevState: any, formData: FormData) {
+export async function editUserAction(prevState: any, formData: FormData) {
   const parseResult = editUserSchema.safeParse({
     userId: formData.get("user-id"),
     username: formData.get("username"),
@@ -91,24 +78,13 @@ export async function editUser(prevState: any, formData: FormData) {
   const { userId, username, email, role } = parseResult.data;
 
   try {
-    const existingUser = await db.select().from(users).where(eq(users.id, userId));
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
 
-    if (existingUser.length === 0) {
-      return { success: false, message: "User not found." };
-    }
+    if (!existingUser) return { success: false, message: "User not found." };
 
-    const user = existingUser[0];
-    const updates: Partial<NewUser> = { username, email };
-    const roleChanged = role && user.role !== role;
-
-    if (roleChanged) updates.role = role;
-
-    await db.update(users).set(updates).where(eq(users.id, userId));
-
-    if (roleChanged) {
-      await db.delete(sessions).where(eq(sessions.userId, userId));
-    }
-
+    await editUser(existingUser, username, email, role);
     revalidatePath("/admin");
     return { success: true, message: "User updated successfully." };
   } catch (error) {

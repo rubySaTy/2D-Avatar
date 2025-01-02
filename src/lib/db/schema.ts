@@ -12,8 +12,8 @@ import {
   customType,
   boolean,
 } from "drizzle-orm/pg-core";
-import { decrypt, encrypt } from "../cryptoHelpers";
-import { type CipherKey } from "ably";
+import { decrypt, encrypt } from "@/lib/cryptoHelpers";
+import type { CipherKey } from "ably";
 
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -24,6 +24,7 @@ TODO: "Add user versioning for optimistic concurrency control?";
 export const users = pgTable("user", {
   id: text("id").primaryKey(),
   username: varchar("username", { length: 255 }).notNull().unique(),
+  usernameLower: varchar("username_lower", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "therapist"] }).notNull(),
