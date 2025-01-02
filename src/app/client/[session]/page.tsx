@@ -16,7 +16,7 @@ export default async function ClientSessionPage(props: {
   if (!avatar.idleVideoUrl) notFound();
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen">
       <div className="flex-1 flex items-center justify-center">
         <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
       </div>

@@ -47,9 +47,7 @@ export default function VoiceCapture({ meetingLink }: { meetingLink: string }) {
       setIsRecording(true);
     } catch (error) {
       console.warn("Error accessing microphone:", error);
-      alert(
-        "Could not start recording. Please check your microphone permissions."
-      );
+      alert("Could not start recording. Please check your microphone permissions.");
     }
   };
 
