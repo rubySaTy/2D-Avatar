@@ -176,6 +176,7 @@ export async function getAvatarsWithAssociatedUsers(): Promise<AvatarWithUsersDt
             columns: {
               id: true,
               username: true,
+              usernameLower: true,
               email: true,
               role: true,
               credits: true,
