@@ -5,12 +5,36 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getMessageTimestamp } from "@/lib/utils";
-import { getLLMResponse, Transcribe } from "@/app/actions";
+import { Transcribe } from "@/app/actions";
 import { transcribedTextSchema } from "@/lib/validationSchema";
 import { Loader2 } from "lucide-react";
-import { StyleSelector } from "../therapist/therapist-session-panel/StyleSelector";
-import type { OpenAIChatMessage } from "@/lib/types";
+import { StyleSelector } from "@/components/therapist/therapist-session-panel/StyleSelector";
+import { useMessageHistory } from "@/hooks/useMessageHistory";
+import { useLLMResponse } from "@/hooks/useLLMResponse";
+import type { ChatModel } from "openai/resources/index.mjs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const llmModels: ChatModel[] = [
+  "gpt-4o",
+  "gpt-4o-2024-11-20",
+  "gpt-4o-2024-08-06",
+  "gpt-4o-2024-05-13",
+  "chatgpt-4o-latest",
+  "gpt-4o-mini",
+  "gpt-4o-mini-2024-07-18",
+  "gpt-4-turbo",
+  "gpt-4-turbo-2024-04-09",
+  "gpt-4-0125-preview",
+  "gpt-4-turbo-preview",
+  "gpt-4-1106-preview",
+  "gpt-4",
+];
 
 interface MessageHistory {
   type: "incoming" | "outgoing";
@@ -22,18 +46,23 @@ const EXAMPLE_SYSTEM_PROMPT =
   "A 30-year-old wife named Sarah in marriage counseling, who feels hurt due to her husband’s emotional distance. She’s empathetic but needs to express her feelings more assertively so that he understands how neglected she feels. She genuinely loves him but is frustrated by his lack of engagement.";
 
 export default function OpenAITesting() {
-  const [history, setHistory] = useState<Array<MessageHistory>>([]);
   const [therapistPersona, setTherapistPersona] = useState("");
-  const [LLMConversationHistory, setLLMConversationHistory] = useState<
-    Array<OpenAIChatMessage>
-  >([]);
+
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
-  const [isRegeneratingAnswer, setIsRegeneratingAnswer] = useState(false);
+  const [llmPartialResponse, setLlmPartialResponse] = useState("");
 
-  const messageRef = useRef<HTMLTextAreaElement>(null);
-
+  const [llmModel, setLLMModel] = useState<ChatModel | string>();
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
+
+  const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
+    useMessageHistory();
+
+  const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse({
+    therapistPersona,
+    style: selectedStyle,
+    intensity: styleIntensity,
+  });
 
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
@@ -49,88 +78,44 @@ export default function OpenAITesting() {
     }
     const transcribedText = res.data;
 
-    const timestamp = getMessageTimestamp();
-    setHistory((history) => [
-      ...history,
-      {
-        type: "incoming",
-        content: transcribedText,
-        timestamp,
-      },
-    ]);
+    addHistoryMessage(transcribedText, "incoming");
+    addLLMHistoryMessage(transcribedText, "user");
 
-    const newMessage: OpenAIChatMessage = {
-      role: "user",
-      content: transcribedText,
-    };
-    const updatedHistory = [...LLMConversationHistory, newMessage];
-
-    setLLMConversationHistory(updatedHistory);
-
-    const llmResponse = await getLLMResponse(
+    // Here we generate the response, showing partial tokens
+    const llmResponse = await generateResponse(
       transcribedText,
-      LLMConversationHistory,
-      therapistPersona,
-      `${selectedStyle}:${styleIntensity}`
+      llmHistory,
+      (token) => {
+        // This callback fires on each partial chunk
+        setLlmPartialResponse((prev) => prev + token);
+      },
+      llmModel
     );
 
-    const assistantMessage: OpenAIChatMessage = {
-      role: "assistant",
-      content: llmResponse,
-    };
+    // Once done, we push the final result into our LLM history
+    addLLMHistoryMessage(llmResponse, "assistant");
+    setHasIncomingLLMResponse(true);
 
-    if (messageRef.current) {
-      setLLMConversationHistory((prev) => [...prev, assistantMessage]);
-      messageRef.current.value = llmResponse;
-      setHasIncomingLLMResponse(true);
-
-      const timestamp = getMessageTimestamp();
-
-      const newMessage: MessageHistory = {
-        type: "outgoing",
-        content: llmResponse,
-        timestamp,
-      };
-      setHistory((history) => [...history, newMessage]);
-    }
+    addHistoryMessage(llmResponse, "outgoing");
+    // Clear out partialResponse for next time (or keep it around if you want to display it)
+    setLlmPartialResponse("");
   }
 
   async function handleRegenerate() {
-    const tempLLMHistory = [...LLMConversationHistory];
-
-    tempLLMHistory.push({
-      role: "system",
-      content:
-        "Please ignore your previous assistant response. Provide a new answer to the last user message, keeping the same context and persona but taking a different approach.",
-    });
-    const newAssistantReply = await getLLMResponse(
-      "",
-      tempLLMHistory,
-      therapistPersona,
-      `${selectedStyle}:${styleIntensity}`
+    setLlmPartialResponse("");
+    const llmResponse = await regenerateResponse(
+      llmHistory,
+      (token) => {
+        setLlmPartialResponse((prev) => prev + token);
+      },
+      llmModel
     );
 
-    const assistantMessage: OpenAIChatMessage = {
-      role: "assistant",
-      content: newAssistantReply,
-    };
+    addLLMHistoryMessage(llmResponse, "assistant");
+    setHasIncomingLLMResponse(true);
 
-    LLMConversationHistory.push(assistantMessage);
-
-    if (messageRef.current) {
-      setLLMConversationHistory((prev) => [...prev, assistantMessage]);
-      messageRef.current.value = newAssistantReply;
-      setHasIncomingLLMResponse(true);
-
-      const timestamp = getMessageTimestamp();
-
-      const newMessage: MessageHistory = {
-        type: "outgoing",
-        content: newAssistantReply,
-        timestamp,
-      };
-      setHistory((history) => [...history, newMessage]);
-    }
+    addHistoryMessage(llmResponse, "outgoing");
+    setLlmPartialResponse("");
   }
 
   const [isRecording, setIsRecording] = useState(false);
@@ -177,9 +162,7 @@ export default function OpenAITesting() {
       setIsRecording(true);
     } catch (error) {
       console.warn("Error accessing microphone:", error);
-      alert(
-        "Could not start recording. Please check your microphone permissions."
-      );
+      alert("Could not start recording. Please check your microphone permissions.");
     }
   };
 
@@ -206,7 +189,7 @@ export default function OpenAITesting() {
           <div className="space-y-4">
             <div className="relative">
               <Textarea
-                ref={messageRef}
+                value={llmPartialResponse}
                 className="min-h-[150px] text-lg pr-28"
                 readOnly={true}
               />
@@ -218,14 +201,10 @@ export default function OpenAITesting() {
                   <Button
                     type="button"
                     variant="destructive"
-                    disabled={isRegeneratingAnswer}
-                    onClick={async () => {
-                      setIsRegeneratingAnswer(true);
-                      await handleRegenerate();
-                      setIsRegeneratingAnswer(false);
-                    }}
+                    disabled={isGenerating}
+                    onClick={handleRegenerate}
                   >
-                    {isRegeneratingAnswer ? (
+                    {isGenerating ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Regenerating LLM Response...
@@ -241,12 +220,30 @@ export default function OpenAITesting() {
         </div>
         <MessageHistory history={history} />
       </div>
-      <Button
-        onClick={isRecording ? stopRecording : startRecording}
-        variant={isRecording ? "destructive" : "default"}
-      >
-        {isRecording ? "Stop Recording" : "Start Recording"}
-      </Button>
+      <div className="flex items-center space-x-4">
+        <Select value={llmModel} onValueChange={setLLMModel}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Model" />
+          </SelectTrigger>
+          <SelectContent>
+            {llmModels.length > 0 ? (
+              llmModels.map((model) => (
+                <SelectItem key={model} value={model}>
+                  {model}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-models">No models available</SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+        <Button
+          onClick={isRecording ? stopRecording : startRecording}
+          variant={isRecording ? "destructive" : "default"}
+        >
+          {isRecording ? "Stop Recording" : "Start Recording"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -280,9 +277,7 @@ function MessageHistory({ history }: { history: MessageHistory[] }) {
                     }`}
                   >
                     <p className="text-sm">{msg.content}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {msg.timestamp}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{msg.timestamp}</p>
                   </div>
                 </div>
               </div>

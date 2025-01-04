@@ -1,6 +1,6 @@
 import OpenAITesting from "@/components/playground/OpenAITesting";
 
-export default function Page() {
+export default async function Page() {
   return (
     <>
       <OpenAITesting />

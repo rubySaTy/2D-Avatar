@@ -13,8 +13,7 @@ export function useMessageHistory() {
       timestamp: getMessageTimestamp(),
     };
 
-    setHistory((prev) => [newMessage, ...prev]); // TODO: temp - Add new messages to the start
-    // setHistory((prev) => [...prev, newMessage]);
+    setHistory((prev) => [...prev, newMessage]);
   };
 
   const addLLMHistoryMessage = (content: string, role: OpenAIChatMessage["role"]) => {

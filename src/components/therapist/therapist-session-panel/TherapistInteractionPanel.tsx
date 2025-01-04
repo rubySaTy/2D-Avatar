@@ -15,6 +15,7 @@ import { StyleSelector } from "./StyleSelector";
 import { Loader2 } from "lucide-react";
 import { useMessageHistory } from "@/hooks/useMessageHistory";
 import { useLLMResponse } from "@/hooks/useLLMResponse";
+import { Label } from "@/components/ui/label";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -38,8 +39,6 @@ export default function TherapistInteractionPanel({
   const [therapistPersona, setTherapistPersona] = useState("");
 
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
-
-  const messageRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [selectedStyle, setSelectedStyle] = useState("");
@@ -48,13 +47,13 @@ export default function TherapistInteractionPanel({
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
     useMessageHistory();
 
-  const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse(
-    {
-      therapistPersona,
-      style: selectedStyle,
-      intensity: styleIntensity,
-    }
-  );
+  const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse({
+    therapistPersona,
+    style: selectedStyle,
+    intensity: styleIntensity,
+  });
+
+  const [llmPartialResponse, setLlmPartialResponse] = useState("");
 
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
@@ -72,34 +71,43 @@ export default function TherapistInteractionPanel({
     addHistoryMessage(transcribedText, "incoming");
     addLLMHistoryMessage(transcribedText, "user");
 
-    const llmResponse = await generateResponse(transcribedText, llmHistory);
+    // Here we generate the response, showing partial tokens
+    const llmResponse = await generateResponse(transcribedText, llmHistory, (token) => {
+      // This callback fires on each partial chunk
+      setLlmPartialResponse((prev) => prev + token);
+    });
+
+    // Once done, we push the final result into our LLM history
+    addLLMHistoryMessage(llmResponse, "assistant");
+    setHasIncomingLLMResponse(true);
+
+    // And then submit to D-ID
+    if (formRef.current) {
+      formRef.current.requestSubmit();
+    }
+
+    // Clear out partialResponse for next time (or keep it around if you want to display it)
+    setLlmPartialResponse("");
+  });
+
+  async function handleRegenerate() {
+    setLlmPartialResponse("");
+    const llmResponse = await regenerateResponse(llmHistory, (token) => {
+      setLlmPartialResponse((prev) => prev + token);
+    });
 
     addLLMHistoryMessage(llmResponse, "assistant");
     setHasIncomingLLMResponse(true);
 
-    if (messageRef.current && formRef.current) {
-      messageRef.current.value = llmResponse;
+    if (formRef.current) {
       formRef.current.requestSubmit();
     }
-  });
-
-  async function handleRegenerate() {
-    const response = await regenerateResponse(llmHistory);
-
-    addLLMHistoryMessage(response, "assistant");
-    setHasIncomingLLMResponse(true);
-
-    if (messageRef.current && formRef.current) {
-      messageRef.current.value = response;
-      formRef.current.requestSubmit();
-    }
+    setLlmPartialResponse("");
   }
 
   useEffect(() => {
     if (state?.success && state.message) {
       addHistoryMessage(state.message, "outgoing");
-
-      if (formRef.current) formRef.current.reset();
     }
   }, [state]);
 
@@ -108,14 +116,19 @@ export default function TherapistInteractionPanel({
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-3/4 space-y-8">
           <div className="space-y-2 mb-6">
-            <h2 className="text-lg font-semibold">System Prompt</h2>
+            <Label htmlFor="system-prompt" className="text-lg font-semibold">
+              System Prompt
+            </Label>
             <Textarea
+              id="system-prompt"
               value={therapistPersona}
               onChange={(e) => setTherapistPersona(e.target.value)}
               placeholder={`Example: ${EXAMPLE_SYSTEM_PROMPT}`}
               className="min-h-[100px] text-base resize-none"
             />
           </div>
+
+          {/* Form that sends message to D-ID */}
           <form action={formAction} className="space-y-6" ref={formRef}>
             <input type="hidden" name="meetingLink" value={meetingLink} />
             <input type="hidden" name="voiceStyle" value={selectedStyle} />
@@ -123,7 +136,8 @@ export default function TherapistInteractionPanel({
             <div className="space-y-4">
               <div className="relative">
                 <Textarea
-                  ref={messageRef}
+                  value={llmPartialResponse}
+                  onChange={(e) => setLlmPartialResponse(e.target.value)}
                   placeholder="Type your message here."
                   id="message"
                   name="message"
@@ -131,6 +145,7 @@ export default function TherapistInteractionPanel({
                 />
                 <StyleSelector onStyleSelect={handleStyleSelect} />
               </div>
+
               <div className="flex justify-between">
                 <div className="space-x-2">
                   <SubmitButton>Send Message</SubmitButton>
@@ -157,13 +172,18 @@ export default function TherapistInteractionPanel({
                   variant="outline"
                   onClick={() => {
                     setHasIncomingLLMResponse(false);
+                    setLlmPartialResponse("");
                   }}
                 >
                   Clear
                 </Button>
               </div>
             </div>
-            {!state?.success && state?.message}
+
+            {state?.message && !state.success && (
+              <div className="text-red-600">{state.message}</div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <PremadeMessages />
               <Card>
@@ -217,9 +237,7 @@ function MessageHistory({ history }: { history: MessageHistory[] }) {
                     }`}
                   >
                     <p className="text-sm">{msg.content}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {msg.timestamp}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{msg.timestamp}</p>
                   </div>
                 </div>
               </div>
