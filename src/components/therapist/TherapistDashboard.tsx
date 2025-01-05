@@ -20,8 +20,8 @@ import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { EditAvatarForm } from "@/components/avatar/AvatarForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import type { Avatar } from "@/lib/db/schema";
 import { AvatarCreationDropdown } from "./AvatarCreationDropdown";
+import type { Avatar } from "@/lib/db/schema";
 
 interface AvatarDashboardProps {
   avatars: Avatar[];
@@ -39,21 +39,21 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
   }, [searchTerm]);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Avatar Dashboard</h1>
+    <div className="container mx-auto p-4 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Avatar Dashboard</h1>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
         <h2 className="text-xl font-semibold">Available Avatars</h2>
         <AvatarCreationDropdown />
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         <Card className="flex-grow">
           <CardHeader>
             <CardDescription>Select an avatar to create a session</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <Input
                 placeholder="Search avatars..."
                 value={searchTerm}
@@ -63,10 +63,12 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Select from Gallery</Button>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    Select from Gallery
+                  </Button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] p-0">
-                  <ScrollArea className="max-h-[90vh] p-6">
+                <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] p-0">
+                  <ScrollArea className="max-h-[90vh] p-4 sm:p-6">
                     <SelectFromGallery
                       publicAvatars={publicAvatars}
                       onAvatarSelected={setSelectedAvatar}
@@ -75,8 +77,8 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
                 </DialogContent>
               </Dialog>
             </div>
-            <ScrollArea className="h-[400px]">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
+            <ScrollArea className="h-[300px] sm:h-[400px]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-1">
                 {filteredAvatars.map((avatar) => (
                   <div
                     key={avatar.id}
@@ -96,7 +98,7 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
                       className="rounded-full"
                       priority
                     />
-                    <span className="text-sm text-center">{avatar.avatarName}</span>
+                    <span className="text-sm text-center mt-2">{avatar.avatarName}</span>
                   </div>
                 ))}
               </div>
@@ -126,8 +128,8 @@ function CreateSessionForm({
 }: CreateSessionFormProps) {
   const [state, action] = useActionState(createSession, null);
 
-  return (
-    <Card className="w-64">
+return (
+    <Card className="w-full lg:w-64">
       <CardHeader>
         <CardTitle>Selected Avatar</CardTitle>
       </CardHeader>
@@ -145,7 +147,7 @@ function CreateSessionForm({
               className="rounded-full"
             />
 
-            <h3 className="text-lg font-semibold mb-2">{selectedAvatar.avatarName}</h3>
+            <h3 className="text-lg font-semibold mt-4 mb-2">{selectedAvatar.avatarName}</h3>
             <div className="flex gap-2 mb-4">
               <Dialog>
                 <DialogTrigger asChild>
@@ -154,7 +156,7 @@ function CreateSessionForm({
                     Edit
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-[90vw] sm:max-w-[500px]">
                   <EditAvatarForm avatar={selectedAvatar} />
                 </DialogContent>
               </Dialog>
@@ -177,5 +179,5 @@ function CreateSessionForm({
         </CardFooter>
       </form>
     </Card>
-  );
+  )
 }

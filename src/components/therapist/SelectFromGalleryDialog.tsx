@@ -27,14 +27,14 @@ export function SelectFromGallery({
     if (selectedGalleryAvatar) onAvatarSelected(selectedGalleryAvatar);
   };
 
-  return (
+return (
     <>
       <DialogHeader>
         <DialogTitle>Select Avatar from Gallery</DialogTitle>
         <DialogDescription>Choose a pre-made avatar from our gallery</DialogDescription>
       </DialogHeader>
       <ScrollArea className="h-[300px] pr-4">
-        <div className="grid grid-cols-2 gap-4 p-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-1">
           {publicAvatars.map((avatar) => (
             <div
               key={avatar.id}
@@ -53,16 +53,16 @@ export function SelectFromGallery({
                 style={{ width: "auto", height: "auto" }}
                 className="rounded-full"
               />
-              <span className="text-sm text-center">{avatar.avatarName}</span>
+              <span className="text-sm text-center mt-2">{avatar.avatarName}</span>
             </div>
           ))}
         </div>
       </ScrollArea>
       <DialogFooter>
-        <Button onClick={handleSelect} disabled={!selectedGalleryAvatar}>
+        <Button onClick={handleSelect} disabled={!selectedGalleryAvatar} className="w-full sm:w-auto">
           Select Avatar
         </Button>
       </DialogFooter>
     </>
-  );
+  )
 }
