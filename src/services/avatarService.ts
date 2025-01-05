@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@/lib/db/db";
 import {
   usersToAvatars,
@@ -221,7 +223,6 @@ async function processAvatarAndVideo(avatarName: string, imageInput: File | Buff
   return { imageUrl, imageKey, createdIdleVideoRes };
 }
 
-// TODO: move to voice service if there is one
 export async function getAvatarsByVoiceId(voiceId: string) {
   return db.query.avatars.findMany({
     where: eq(avatars.elevenlabsClonedVoiceId, voiceId),
@@ -231,4 +232,14 @@ export async function getAvatarsByVoiceId(voiceId: string) {
       imageUrl: true,
     },
   });
+}
+
+export async function getUserAvatars(userId: string) {
+  const res = await db.query.usersToAvatars.findMany({
+    where: eq(usersToAvatars.userId, userId),
+    with: {
+      avatar: true,
+    },
+  });
+  return res.map((ua) => ua.avatar);
 }

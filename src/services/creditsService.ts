@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { db } from "@/lib/db/db";
 import { creditTransactions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";

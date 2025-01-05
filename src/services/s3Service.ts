@@ -1,3 +1,5 @@
+import 'server-only'
+
 import s3Client from "@/lib/integrations/s3";
 import {
   DeleteObjectsCommand,

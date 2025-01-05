@@ -3,6 +3,8 @@ import { validateRequest } from "@/lib/auth";
 import { getPublicAvatars, getUserAvatars } from "@/services";
 import { AvatarDashboard } from "@/components/therapist/TherapistDashboard";
 
+export const dynamic = "force-dynamic";
+
 export default async function TherapistPage() {
   const { user } = await validateRequest();
   if (!user) return redirect("/login");
@@ -20,7 +22,11 @@ export default async function TherapistPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <AvatarDashboard avatars={sortedAvatars} publicAvatars={publicAvatars} />
+      <AvatarDashboard
+        key={sortedAvatars.length}
+        avatars={sortedAvatars}
+        publicAvatars={publicAvatars}
+      />
     </div>
   );
 }

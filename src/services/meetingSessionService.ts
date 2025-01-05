@@ -1,10 +1,7 @@
+import "server-only";
+
 import { db } from "@/lib/db/db";
-import {
-  type Avatar,
-  type MeetingSession,
-  meetingSessions,
-  type NewMeetingSession,
-} from "@/lib/db/schema";
+import { meetingSessions, type NewMeetingSession } from "@/lib/db/schema";
 import { Rest } from "ably";
 import { eq } from "drizzle-orm";
 import type { DIDCreateWebRTCStreamResponse } from "@/lib/types";
@@ -29,40 +26,19 @@ export async function getMeetingSessionCipherKey(meetingLink: string) {
     columns: { cipherKey: true },
   });
 
-  return result?.cipherKey;
+  return result?.cipherKey ?? null;
 }
 
-export async function getMeetingSessionWithAvatarAndUser(meetingLink: string) {
-  return db.query.meetingSessions.findFirst({
+export async function getMeetingSession(meetingLink: string) {
+  const result = await db.query.meetingSessions.findFirst({
     where: eq(meetingSessions.meetingLink, meetingLink),
     with: {
       avatar: true,
       user: { columns: { role: true } },
     },
   });
-}
 
-type MeetingSessionWithAvatar = MeetingSession & {
-  avatar: Avatar;
-};
-
-export async function getMeetingSessionWithAvatar(
-  meetingLink: string
-): Promise<MeetingSessionWithAvatar | null> {
-  try {
-    const result = await db.query.meetingSessions.findFirst({
-      where: eq(meetingSessions.meetingLink, meetingLink),
-      with: {
-        avatar: true,
-      },
-    });
-
-    if (!result) return null;
-    return result;
-  } catch (error) {
-    console.error("Error getting avatar by meeting link from DB:", error);
-    return null;
-  }
+  return result ?? null;
 }
 
 function generateMeetingSessionLink() {

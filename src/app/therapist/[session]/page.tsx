@@ -1,7 +1,7 @@
 import path from "path";
 import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
-import { getMeetingSessionWithAvatar } from "@/services";
+import { getMeetingSession } from "@/services";
 import { validateRequest } from "@/lib/auth";
 import TherapistMeetingDashboard from "@/components/therapist/therapist-session-panel/TherapistMeetingDashboard";
 import type { MicrosoftVoice } from "@/lib/types";
@@ -11,7 +11,7 @@ export default async function TherapistSessionPage(props: {
 }) {
   const params = await props.params;
   const meetingLink = params.session;
-  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
+  const meetingSessionData = await getMeetingSession(meetingLink);
   if (!meetingSessionData) notFound();
 
   const { user } = await validateRequest();

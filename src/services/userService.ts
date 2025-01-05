@@ -1,15 +1,9 @@
-import { cache } from "react";
+import "server-only";
+
 import { eq, or, and, gt } from "drizzle-orm";
 import axios from "axios";
 import { db } from "@/lib/db/db";
-import {
-  users,
-  type UserDto,
-  type User,
-  usersToAvatars,
-  type NewUser,
-  sessions,
-} from "@/lib/db/schema";
+import { users, type UserDto, type User, type NewUser, sessions } from "@/lib/db/schema";
 import { generateIdFromEntropySize } from "lucia";
 import * as argon2 from "argon2";
 import type { DIDCreditsResponse } from "@/lib/types";
@@ -71,7 +65,7 @@ export async function findUserByUsernameOrEmail(
   throw new Error("No valid identifier provided");
 }
 
-export const getUsersDto = cache(async (): Promise<UserDto[]> => {
+export async function getUsersDto(): Promise<UserDto[]> {
   return db
     .select({
       id: users.id,
@@ -84,7 +78,7 @@ export const getUsersDto = cache(async (): Promise<UserDto[]> => {
       updatedAt: users.updatedAt,
     })
     .from(users);
-});
+}
 
 export async function findUserByEmail(email: string) {
   return db.query.users.findFirst({ where: eq(users.email, email.toLowerCase()) });
@@ -119,16 +113,6 @@ export async function updateUserPassword(userId: string, hashedPassword: string)
 
 export async function getUserByID(userId: string) {
   return db.query.users.findFirst({ where: eq(users.id, userId) });
-}
-
-export async function getUserAvatars(userId: string) {
-  const res = await db.query.usersToAvatars.findMany({
-    where: eq(usersToAvatars.userId, userId),
-    with: {
-      avatar: true,
-    },
-  });
-  return res.map((ua) => ua.avatar);
 }
 
 export async function getUserCredits(userId: string, userRole: string) {

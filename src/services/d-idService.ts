@@ -1,3 +1,5 @@
+import 'server-only'
+
 import didApi from "@/lib/d-idApi";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import type {

@@ -14,7 +14,7 @@ import {
   // VoicesList,
 } from "@/components/admin";
 import {
-  getTalksWithUser,
+  getTalksWithUserData,
   // getAvatarsByVoiceId,
 } from "@/services";
 import AvatarManagement from "@/components/avatar/AvatarManagement";
@@ -24,7 +24,7 @@ export default async function AdminPage() {
   const { user } = await validateRequest();
   if (!user || user.role !== "admin") redirect("/login");
 
-  const talks = await getTalksWithUser();
+  const talks = await getTalksWithUserData();
 
   // const data = await elevenlabs.voices.getAll();
   // const clonedVoices = data.voices.filter((v) => v.category === "cloned");

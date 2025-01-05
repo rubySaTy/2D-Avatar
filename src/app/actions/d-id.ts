@@ -6,8 +6,7 @@ import { createTalkStreamSchema } from "@/lib/validationSchema";
 import {
   createTalkStream,
   createWebRTCStream,
-  getMeetingSessionWithAvatar,
-  getMeetingSessionWithAvatarAndUser,
+  getMeetingSession,
   createTalkInDb,
   removeCredits,
   updateMeetingSessionWithWebRTCData,
@@ -92,7 +91,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
   } = parsedData.data;
   const message = premadeMessage ?? userMessage;
 
-  const meetingData = await getMeetingSessionWithAvatarAndUser(meetingLink);
+  const meetingData = await getMeetingSession(meetingLink);
   if (!meetingData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
     return { success: false, message: "Meeting data not found" };
@@ -155,7 +154,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
 export async function createDIDStream(meetingLink: string) {
   if (!meetingLink) return null;
 
-  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
+  const meetingSessionData = await getMeetingSession(meetingLink);
   if (!meetingSessionData) return null;
 
   const { avatar } = meetingSessionData;

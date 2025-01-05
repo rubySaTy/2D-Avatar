@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Stream from "@/components/Stream";
 import VoiceCapture from "@/components/VoiceCapture";
-import { getMeetingSessionWithAvatar } from "@/services";
+import { getMeetingSession } from "@/services";
 import { Card } from "@/components/ui/card";
 
 export default async function ClientSessionPage(props: {
@@ -9,7 +9,7 @@ export default async function ClientSessionPage(props: {
 }) {
   const params = await props.params;
   const meetingLink = params.session;
-  const meetingSessionData = await getMeetingSessionWithAvatar(meetingLink);
+  const meetingSessionData = await getMeetingSession(meetingLink);
 
   if (!meetingSessionData) notFound();
   const { avatar } = meetingSessionData;
