@@ -1,27 +1,41 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db/db";
-import { users } from "@/lib/db/schema";
 import {
+  createAvatarSchema,
   createClonedVoiceSchema,
   createUserSchema,
+  editAvatarSchema,
   editUserSchema,
   updateCreditsSchema,
   userIdSchema,
 } from "@/lib/validationSchema";
-import { eq } from "drizzle-orm";
 import { isDbError } from "@/lib/typeGuards";
 import {
   findUserByUsernameOrEmail,
   updateUserCredits,
   updateManyAvatars,
-  createUser,
-  editUser,
+  createUserInDB,
+  editUserInDB,
+  getUserByID,
+  deleteUserById,
+  getAvatarById,
+  editAvatarData,
+  createAvatarData,
 } from "@/services";
 import elevenlabs from "@/lib/integrations/elevenlabs";
+import { getUser, validateRequest } from "@/lib/auth";
+import { isValidFileUpload } from "@/lib/utils";
+
+async function isAdmin() {
+  const { user } = await validateRequest();
+  return user && user.role === "admin";
+}
+const unauthorized = { success: false, message: "Unauthorized" };
 
 export async function createUserAction(prevState: any, formData: FormData) {
+  if (!(await isAdmin())) return unauthorized;
+
   const parseResult = createUserSchema.safeParse({
     username: formData.get("username"),
     email: formData.get("email"),
@@ -53,7 +67,7 @@ export async function createUserAction(prevState: any, formData: FormData) {
       return { success: false, message: conflictMessage };
     }
 
-    await createUser(username, email, password, role);
+    await createUserInDB(username, email, password, role);
     revalidatePath("/admin");
     return { success: true, message: "User created" };
   } catch (error) {
@@ -63,6 +77,8 @@ export async function createUserAction(prevState: any, formData: FormData) {
 }
 
 export async function editUserAction(prevState: any, formData: FormData) {
+  if (!(await isAdmin())) return unauthorized;
+
   const parseResult = editUserSchema.safeParse({
     userId: formData.get("user-id"),
     username: formData.get("username"),
@@ -78,13 +94,10 @@ export async function editUserAction(prevState: any, formData: FormData) {
   const { userId, username, email, role } = parseResult.data;
 
   try {
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
+    const existingUser = await getUserByID(userId);
     if (!existingUser) return { success: false, message: "User not found." };
 
-    await editUser(existingUser, username, email, role);
+    await editUserInDB(existingUser, username, email, role);
     revalidatePath("/admin");
     return { success: true, message: "User updated successfully." };
   } catch (error) {
@@ -106,18 +119,18 @@ export async function editUserAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function deleteUser(formData: FormData) {
-  const id = formData.get("id");
-  const parseResult = userIdSchema.safeParse(id);
+export async function deleteUserAction(formData: FormData) {
+  if (!(await isAdmin())) return;
+
+  const parseResult = userIdSchema.safeParse(formData.get("id"));
 
   if (!parseResult.success) {
-    console.error(parseResult.error.errors);
+    console.error(parseResult.error);
     return;
   }
 
-  const userId = parseResult.data;
   try {
-    await db.delete(users).where(eq(users.id, userId));
+    await deleteUserById(parseResult.data);
     revalidatePath("/admin");
   } catch (error) {
     console.error("Error deleting user:", error);
@@ -125,6 +138,8 @@ export async function deleteUser(formData: FormData) {
 }
 
 export async function uploadClonedVoice(prevState: any, formData: FormData) {
+  if (!(await isAdmin())) return unauthorized;
+
   const parseResult = createClonedVoiceSchema.safeParse({
     voiceName: formData.get("voice-name"),
     voiceFiles: formData.getAll("voice-files"),
@@ -166,6 +181,8 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
 }
 
 export async function handleUpdateCredits(prevState: any, formData: FormData) {
+  if (!(await isAdmin())) return unauthorized;
+
   const parseResult = updateCreditsSchema.safeParse({
     userId: formData.get("user-id"),
     amount: Number(formData.get("amount")),
@@ -189,5 +206,74 @@ export async function handleUpdateCredits(prevState: any, formData: FormData) {
   } catch (error) {
     console.error(error);
     return { success: false, message: "An unexpected error occurred." };
+  }
+}
+
+export async function createAvatarAdminAction(prevState: any, formData: FormData) {
+  const currentUser = await getUser();
+  if (!currentUser || currentUser.role !== "admin") return unauthorized;
+
+  const parsedData = createAvatarSchema.safeParse({
+    avatarName: formData.get("avatar-name"),
+    imageFile: formData.get("image-file"),
+    associatedUsersIds: formData.getAll("associated-users-ids"),
+  });
+
+  if (!parsedData.success) {
+    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
+
+  try {
+    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
+    revalidatePath("/admin");
+    revalidatePath("/therapist");
+    return { success: true, message: "Avatar created" };
+  } catch (error) {
+    console.error("Error creating avatar:", error);
+    return { success: false, message: "Internal server error" };
+  }
+}
+
+export async function editAvatarAdminAction(prevState: any, formData: FormData) {
+  if (!(await isAdmin())) return unauthorized;
+
+  const image = formData.get("image-file") as File;
+  const parsedData = editAvatarSchema.safeParse({
+    avatarId: formData.get("avatar-id"),
+    avatarName: formData.get("avatar-name"),
+    imageFile: isValidFileUpload(image) ? image : undefined,
+    associatedUsersIds: formData.getAll("associated-users-ids"),
+  });
+
+  if (!parsedData.success) {
+    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
+    return { success: false, message: `Validation failed: ${errors}` };
+  }
+
+  const { avatarId, avatarName, imageFile, associatedUsersIds } = parsedData.data;
+
+  try {
+    // TODO: move to avatar service layer
+    const existingAvatar = await getAvatarById(avatarId);
+    if (!existingAvatar) {
+      console.error("Avatar not found in DB");
+      return { success: false, message: "Avatar not found" };
+    }
+
+    await editAvatarData(
+      existingAvatar,
+      avatarId,
+      avatarName,
+      imageFile,
+      associatedUsersIds
+    );
+    revalidatePath("/admin");
+    return { success: true, message: "Avatar updated" };
+  } catch (error) {
+    console.error("Error updating avatar:", error);
+    return { success: false, message: "Internal server error" };
   }
 }

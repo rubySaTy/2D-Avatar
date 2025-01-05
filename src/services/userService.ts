@@ -14,7 +14,7 @@ import { generateIdFromEntropySize } from "lucia";
 import * as argon2 from "argon2";
 import type { DIDCreditsResponse } from "@/lib/types";
 
-export async function createUser(
+export async function createUserInDB(
   username: string,
   email: string,
   password: string,
@@ -33,7 +33,7 @@ export async function createUser(
   await db.insert(users).values(newUser);
 }
 
-export async function editUser(
+export async function editUserInDB(
   existingUser: User,
   username: string,
   email: string,
@@ -117,6 +117,10 @@ export async function updateUserPassword(userId: string, hashedPassword: string)
     .where(eq(users.id, userId));
 }
 
+export async function getUserByID(userId: string) {
+  return db.query.users.findFirst({ where: eq(users.id, userId) });
+}
+
 export async function getUserAvatars(userId: string) {
   const res = await db.query.usersToAvatars.findMany({
     where: eq(usersToAvatars.userId, userId),
@@ -147,4 +151,8 @@ export async function getUserCredits(userId: string, userRole: string) {
   });
 
   return user?.credits ?? null;
+}
+
+export async function deleteUserById(userId: string) {
+  await db.delete(users).where(eq(users.id, userId));
 }

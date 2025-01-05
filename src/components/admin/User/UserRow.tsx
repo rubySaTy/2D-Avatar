@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { deleteUser } from "@/app/actions/admin";
+import { deleteUserAction } from "@/app/actions/admin";
 import UpdateCreditsForm from "./UpdateCreditsForm";
 import { EditUserForm } from "./UserForm";
 import type { UserDto } from "@/lib/db/schema";
@@ -64,7 +64,7 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
                 <EditUserForm user={user} />
               </DialogContent>
             </Dialog>
-            <form action={deleteUser}>
+            <form action={deleteUserAction}>
               <input type="hidden" name="id" value={user.id} />
               <Button variant="destructive" size="icon" type="submit">
                 <Trash2 className="h-4 w-4" />

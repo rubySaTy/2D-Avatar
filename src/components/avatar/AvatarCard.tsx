@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { AdminEditAvatarForm } from "./AdminAvatarForm";
 import { getUser } from "@/lib/auth";
-import { deleteAvatar } from "@/app/actions/avatar";
+import { deleteAvatarAction } from "@/app/actions/avatar";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 
 type AvatarCardProps = {
@@ -85,7 +85,7 @@ export default async function AvatarCard({
             </DialogContent>
           </Dialog>
 
-          <form action={deleteAvatar}>
+          <form action={deleteAvatarAction}>
             <input type="hidden" name="id" value={avatar.id} />
             <Button variant="destructive" size="sm" type="submit">
               <Trash2 className="mr-2 h-3.5 w-3.5" />

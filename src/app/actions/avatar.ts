@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import axios from "axios";
 import { getUser } from "@/lib/auth";
 import { isValidFileUpload } from "@/lib/utils";
 import {
@@ -18,9 +19,8 @@ import {
   removeAvatar,
 } from "@/services";
 import { openAI } from "@/lib/integrations/openai";
-import axios from "axios";
 
-export async function createAvatarTherapist(prevState: any, formData: FormData) {
+export async function createAvatarTherapistAction(prevState: any, formData: FormData) {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
@@ -48,7 +48,7 @@ export async function createAvatarTherapist(prevState: any, formData: FormData) 
   }
 }
 
-export async function editAvatarTherapist(prevState: any, formData: FormData) {
+export async function editAvatarTherapistAction(prevState: any, formData: FormData) {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
@@ -86,79 +86,7 @@ export async function editAvatarTherapist(prevState: any, formData: FormData) {
   }
 }
 
-export async function createAvatarAdmin(prevState: any, formData: FormData) {
-  const currentUser = await getUser();
-  if (!currentUser || currentUser.role !== "admin")
-    return { success: false, message: "Unauthorized" };
-
-  const parsedData = createAvatarSchema.safeParse({
-    avatarName: formData.get("avatar-name"),
-    imageFile: formData.get("image-file"),
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
-
-  if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
-  }
-
-  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
-
-  try {
-    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
-    revalidatePath("/admin");
-    revalidatePath("/therapist");
-    return { success: true, message: "Avatar created" };
-  } catch (error) {
-    console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error" };
-  }
-}
-
-export async function editAvatarAdmin(prevState: any, formData: FormData) {
-  const currentUser = await getUser();
-  if (!currentUser || currentUser.role !== "admin")
-    return { success: false, message: "Unauthorized" };
-
-  const image = formData.get("image-file") as File;
-  const parsedData = editAvatarSchema.safeParse({
-    avatarId: formData.get("avatar-id"),
-    avatarName: formData.get("avatar-name"),
-    imageFile: isValidFileUpload(image) ? image : undefined,
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
-
-  if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
-  }
-
-  const { avatarId, avatarName, imageFile, associatedUsersIds } = parsedData.data;
-
-  try {
-    // TODO: move to avatar service layer
-    const existingAvatar = await getAvatarById(avatarId);
-    if (!existingAvatar) {
-      console.error("Avatar not found in DB");
-      return { success: false, message: "Avatar not found" };
-    }
-
-    await editAvatarData(
-      existingAvatar,
-      avatarId,
-      avatarName,
-      imageFile,
-      associatedUsersIds
-    );
-    revalidatePath("/admin");
-    return { success: true, message: "Avatar updated" };
-  } catch (error) {
-    console.error("Error updating avatar:", error);
-    return { success: false, message: "Internal server error" };
-  }
-}
-
-export async function deleteAvatar(formData: FormData) {
+export async function deleteAvatarAction(formData: FormData) {
   const currentUser = await getUser();
   if (!currentUser) return;
 
@@ -189,7 +117,10 @@ export async function deleteAvatar(formData: FormData) {
   }
 }
 
-export async function generateAIAvatar(prevState: any, formData: FormData) {
+export async function generateAIAvatarAction(prevState: any, formData: FormData) {
+  const currentUser = await getUser();
+  if (!currentUser) return { success: false, message: "Unauthorized" };
+
   const res = generateLLMAvatarSchema.safeParse({
     prompt: formData.get("prompt"),
   });
@@ -224,7 +155,13 @@ export async function generateAIAvatar(prevState: any, formData: FormData) {
   }
 }
 
-export async function generateAIAvatarWithImage(prevState: any, formData: FormData) {
+export async function generateAIAvatarWithImageAction(
+  prevState: any,
+  formData: FormData
+) {
+  const currentUser = await getUser();
+  if (!currentUser) return { success: false, message: "Unauthorized" };
+
   const res = generateLLMAvatarWithImageSchema.safeParse({
     prompt: formData.get("prompt"),
     imageFile: formData.get("image-file"),
@@ -256,7 +193,7 @@ export async function generateAIAvatarWithImage(prevState: any, formData: FormDa
   }
 }
 
-export async function createAIAvatar(prevState: any, formData: FormData) {
+export async function createAIAvatarAction(prevState: any, formData: FormData) {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 

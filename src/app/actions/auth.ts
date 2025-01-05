@@ -45,9 +45,7 @@ export async function loginUser(prevState: any, formData: FormData) {
     if (!user) return { success: false, message: "Invalid credentials" };
 
     const validPassword = await argon2.verify(user.passwordHash, password);
-    if (!validPassword) {
-      return { success: false, message: "Invalid credentials" };
-    }
+    if (!validPassword) return { success: false, message: "Invalid credentials" };
 
     const session = await lucia.createSession(user.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
@@ -65,9 +63,7 @@ export async function loginUser(prevState: any, formData: FormData) {
 
 export async function logout() {
   const { session } = await validateRequest();
-  if (!session) {
-    return { message: "Unauthorized" };
-  }
+  if (!session) return { message: "Unauthorized" };
 
   await lucia.invalidateSession(session.id);
 

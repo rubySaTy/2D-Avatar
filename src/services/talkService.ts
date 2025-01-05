@@ -1,6 +1,10 @@
 import { db } from "@/lib/db/db";
-import { talks } from "@/lib/db/schema";
+import { type NewTalk, talks } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
+
+export async function createTalkInDb(newTalk: NewTalk) {
+  return db.insert(talks).values(newTalk);
+}
 
 export async function getTalksWithUser() {
   const results = await db.query.talks.findMany({

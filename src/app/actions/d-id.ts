@@ -3,17 +3,17 @@
 import didApi from "@/lib/d-idApi";
 import { AxiosError } from "axios";
 import { createTalkStreamSchema } from "@/lib/validationSchema";
-import type { VoiceProviderConfig } from "@/lib/types";
 import {
   createTalkStream,
   createWebRTCStream,
   getMeetingSessionWithAvatar,
   getMeetingSessionWithAvatarAndUser,
+  createTalkInDb,
   removeCredits,
+  updateMeetingSessionWithWebRTCData,
 } from "@/services";
-import { meetingSessions, type NewTalk, talks } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db/db";
+import { type NewTalk } from "@/lib/db/schema";
+import type { VoiceProviderConfig } from "@/lib/types";
 
 export async function sendICECandidate(
   streamId: string,
@@ -33,10 +33,7 @@ export async function sendICECandidate(
   }
 }
 
-export async function notifyICEGatheringComplete(
-  sessionId: string,
-  streamId: string
-) {
+export async function notifyICEGatheringComplete(sessionId: string, streamId: string) {
   try {
     didApi.post(`/streams/${streamId}/ice`, { session_id: sessionId });
   } catch (error) {
@@ -94,7 +91,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
     voiceStyle,
   } = parsedData.data;
   const message = premadeMessage ?? userMessage;
-  
+
   const meetingData = await getMeetingSessionWithAvatarAndUser(meetingLink);
   if (!meetingData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
@@ -138,7 +135,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
     }
 
     const newTalk: NewTalk = { id: newTalkStream.video_id, meetingSessionId };
-    await db.insert(talks).values(newTalk);
+    await createTalkInDb(newTalk);
 
     return { success: true, message: message };
   } catch (error) {
@@ -166,16 +163,7 @@ export async function createDIDStream(meetingLink: string) {
   if (!didWebRTCStreamData) return null;
 
   try {
-    await db
-      .update(meetingSessions)
-      .set({
-        didStreamId: didWebRTCStreamData.id,
-        didSessionId: didWebRTCStreamData.session_id,
-        offer: didWebRTCStreamData.offer,
-        iceServers: didWebRTCStreamData.ice_servers,
-      })
-      .where(eq(meetingSessions.meetingLink, meetingLink));
-
+    await updateMeetingSessionWithWebRTCData(didWebRTCStreamData, meetingLink);
     return didWebRTCStreamData;
   } catch (error) {
     console.error(error);

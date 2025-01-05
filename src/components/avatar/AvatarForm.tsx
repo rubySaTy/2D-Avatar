@@ -13,13 +13,16 @@ import ImageUpload from "@/components/ImageUpload";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { createAvatarTherapist, editAvatarTherapist } from "@/app/actions/avatar";
+import {
+  createAvatarTherapistAction,
+  editAvatarTherapistAction,
+} from "@/app/actions/avatar";
 import type { Avatar } from "@/lib/db/schema";
 
 export function CreateAvatarForm() {
   return (
     <BaseAvatarForm
-      serverAction={createAvatarTherapist}
+      serverAction={createAvatarTherapistAction}
       title="Create New Avatar"
       description="Upload a photo to create a new avatar"
       submitText="Create Avatar"
@@ -34,7 +37,7 @@ interface EditAvatarFormProps {
 export function EditAvatarForm({ avatar }: EditAvatarFormProps) {
   return (
     <BaseAvatarForm
-      serverAction={editAvatarTherapist}
+      serverAction={editAvatarTherapistAction}
       initialData={avatar}
       title="Edit Avatar"
       description="Update avatar details."

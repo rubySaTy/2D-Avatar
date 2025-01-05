@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/schema";
 import { Rest } from "ably";
 import { eq } from "drizzle-orm";
+import type { DIDCreateWebRTCStreamResponse } from "@/lib/types";
 
 export async function createNewMeetingSession(userId: string, avatarId: number) {
   const meetingLink = generateMeetingSessionLink();
@@ -85,4 +86,19 @@ function generateMeetingSessionLink() {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .substring(0, 10);
+}
+
+export async function updateMeetingSessionWithWebRTCData(
+  webRTCData: DIDCreateWebRTCStreamResponse,
+  meetingLink: string
+) {
+  await db
+    .update(meetingSessions)
+    .set({
+      didStreamId: webRTCData.id,
+      didSessionId: webRTCData.session_id,
+      offer: webRTCData.offer,
+      iceServers: webRTCData.ice_servers,
+    })
+    .where(eq(meetingSessions.meetingLink, meetingLink));
 }

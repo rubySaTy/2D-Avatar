@@ -6,7 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { generateAIAvatar, generateAIAvatarWithImage } from "@/app/actions/avatar";
+import {
+  generateAIAvatarAction,
+  generateAIAvatarWithImageAction,
+} from "@/app/actions/avatar";
 import { fileArrayToFileList } from "@/lib/utils";
 import { X, LucideImage } from "lucide-react";
 import { FileRejection, useDropzone } from "react-dropzone";
@@ -60,12 +63,17 @@ interface GenerateAIImageProps {
 }
 
 export function GenerateAIAvatarForm({ onGenerate }: GenerateAIImageProps) {
-  return <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatar} />;
+  return (
+    <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatarAction} />
+  );
 }
 
 export function GenerateAIAvatarWithImageForm({ onGenerate }: GenerateAIImageProps) {
   return (
-    <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatarWithImage}>
+    <BaseGenerateForm
+      onGenerate={onGenerate}
+      serverAction={generateAIAvatarWithImageAction}
+    >
       <Separator />
       <ImageUploader />
       <Separator />

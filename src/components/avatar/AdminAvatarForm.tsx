@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import MultiUserSelector from "./MultiUserSelector";
-import { createAvatarAdmin, editAvatarAdmin } from "@/app/actions/avatar";
+import { createAvatarAdminAction, editAvatarAdminAction } from "@/app/actions/admin";
 import type { UserDto, Avatar } from "@/lib/db/schema";
 
 interface CreateAvatarFormProps {
@@ -25,7 +25,7 @@ interface CreateAvatarFormProps {
 export function AdminCreateAvatarForm({ users, currentUserId }: CreateAvatarFormProps) {
   return (
     <AdminBaseAvatarForm
-      serverAction={createAvatarAdmin}
+      serverAction={createAvatarAdminAction}
       currentUserId={currentUserId}
       users={users}
       title="Create New Avatar"
@@ -50,7 +50,7 @@ export function AdminEditAvatarForm({
 }: EditAvatarFormProps) {
   return (
     <AdminBaseAvatarForm
-      serverAction={editAvatarAdmin}
+      serverAction={editAvatarAdminAction}
       currentUserId={currentUserId}
       users={users}
       associatedUsers={associatedUsers}

@@ -3,7 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import ImageSelector from "@/components/therapist/ImageSelector";
-import { createAIAvatar } from "@/app/actions/avatar";
+import { createAIAvatarAction } from "@/app/actions/avatar";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export function SelectAndCreateAvatar({
   onRegenerate,
 }: SelectAndCreateAvatarProps) {
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
-  const [state, formAction, isPending] = useActionState(createAIAvatar, null);
+  const [state, formAction, isPending] = useActionState(createAIAvatarAction, null);
 
   const formRef = useRef<HTMLFormElement>(null);
 
