@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import ImageUpload from "@/components/ImageUpload";
+import ImageUploader from "@/components/ImageUploader";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
@@ -86,7 +86,10 @@ export function BaseAvatarForm({
           />
         </div>
         <Separator />
-        <ImageUpload
+        <ImageUploader
+          title="Drag & drop an image here, or click to select"
+          description="Supports: JPEG, JPG, PNG"
+          accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
           existingImageUrl={initialData?.imageUrl}
           isFormSubmitted={isPending}
           isValidationError={!!state?.errors?.imageFile?.[0]}
