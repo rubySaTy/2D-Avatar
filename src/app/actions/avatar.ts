@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import axios from "axios";
 import { getUser } from "@/lib/auth";
-import { isValidFileUpload } from "@/lib/utils";
 import {
   createAvatarSchema,
   editAvatarSchema,
@@ -19,12 +18,11 @@ import {
   removeAvatar,
 } from "@/services";
 import { openAI } from "@/lib/integrations/openai";
-import {
+import type {
   ActionResponse,
   BaseAvatarFormData,
   CreateAIAvatarFormData,
   GenerateAIAvatarActionResponse,
-  GenerateAIAvatarFormData,
 } from "@/lib/types";
 
 export async function createAvatarTherapistAction(
@@ -55,7 +53,6 @@ export async function createAvatarTherapistAction(
 
   try {
     await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
-    revalidatePath("/admin");
     revalidatePath("/therapist");
     return { success: true, message: "Avatar created" };
   } catch (error) {
@@ -71,11 +68,9 @@ export async function editAvatarTherapistAction(
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
-  const image = formData.get("image-file") as File;
   const rawData = {
     avatarId: formData.get("avatar-id"),
     avatarName: formData.get("avatar-name") as string,
-    imageFile: isValidFileUpload(image) ? image : undefined,
   };
 
   const parsedData = editAvatarSchema.safeParse(rawData);
@@ -89,7 +84,7 @@ export async function editAvatarTherapistAction(
     };
   }
 
-  const { avatarId, avatarName, imageFile } = parsedData.data;
+  const { avatarId, avatarName } = parsedData.data;
 
   try {
     const existingAvatar = await getAvatarById(avatarId);
@@ -101,8 +96,8 @@ export async function editAvatarTherapistAction(
     if (existingAvatar.uploaderId !== currentUser.id)
       return { success: false, message: "Unauthorized" };
 
-    await editAvatarData(existingAvatar, avatarId, avatarName, imageFile);
-    revalidatePath("/admin");
+    await editAvatarData(existingAvatar, avatarId, avatarName);
+    revalidatePath("/therapist");
     return { success: true, message: "Avatar updated" };
   } catch (error) {
     console.error("Error updating avatar:", error);

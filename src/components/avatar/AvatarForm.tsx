@@ -41,7 +41,7 @@ interface BaseAvatarFormProps {
   currentUserId?: string;
 }
 
-export function BaseAvatarForm({
+function BaseAvatarForm({
   serverAction,
   initialData,
   title,
@@ -65,14 +65,7 @@ export function BaseAvatarForm({
       </DialogHeader>
 
       <div className="space-y-4">
-        {initialData && (
-          <>
-            <input type="hidden" name="avatar-id" value={initialData.id} />
-            {initialData.uploaderId && (
-              <input type="hidden" name="uploader-id" value={initialData.uploaderId} />
-            )}
-          </>
-        )}
+        {initialData && <input type="hidden" name="avatar-id" value={initialData.id} />}
 
         <div className="space-y-2">
           <FormInput
@@ -85,22 +78,28 @@ export function BaseAvatarForm({
             maxLength={20}
           />
         </div>
-        <Separator />
-        <ImageUploader
-          title="Drag & drop an image here, or click to select"
-          description="Supports: JPEG, JPG, PNG"
-          accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
-          existingImageUrl={initialData?.imageUrl}
-          isFormSubmitted={isPending}
-          isValidationError={!!state?.errors?.imageFile?.[0]}
-        />
-        {state?.errors?.imageFile && (
-          <p
-            id={`image-file-error`}
-            className="text-sm text-destructive [&>svg]:text-destructive"
-          >
-            {state.errors.imageFile[0]}
-          </p>
+
+        {/* Only Admins can edit images */}
+        {initialData && users && associatedUsers && currentUserId && (
+          <>
+            <Separator />
+            <ImageUploader
+              title="Drag & drop an image here, or click to select"
+              description="Supports: JPEG, JPG, PNG"
+              accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
+              existingImageUrl={initialData?.imageUrl}
+              isFormSubmitted={isPending}
+              isValidationError={!!state?.errors?.imageFile?.[0]}
+            />
+            {state?.errors?.imageFile && (
+              <p
+                id={`image-file-error`}
+                className="text-sm text-destructive [&>svg]:text-destructive"
+              >
+                {state.errors.imageFile[0]}
+              </p>
+            )}
+          </>
         )}
 
         {/* 

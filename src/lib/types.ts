@@ -125,7 +125,7 @@ export interface BaseAvatarFormData {
   imageFile?: File;
 }
 
-export interface GenerateAIAvatarFormData {
+interface GenerateAIAvatarFormData {
   prompt: string;
   imageFile?: File;
 }
