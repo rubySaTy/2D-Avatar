@@ -26,6 +26,7 @@ import {
 import elevenlabs from "@/lib/integrations/elevenlabs";
 import { getUser, validateRequest } from "@/lib/auth";
 import { isValidFileUpload } from "@/lib/utils";
+import type { ActionResponse, BaseAvatarFormData, BaseUserFormData } from "@/lib/types";
 
 async function isAdmin() {
   const { user } = await validateRequest();
@@ -33,24 +34,32 @@ async function isAdmin() {
 }
 const unauthorized = { success: false, message: "Unauthorized" };
 
-export async function createUserAction(prevState: any, formData: FormData) {
+export async function createUserAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseUserFormData>> {
   if (!(await isAdmin())) return unauthorized;
 
-  const parseResult = createUserSchema.safeParse({
-    username: formData.get("username"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    role: formData.get("role"),
-  });
+  const rawData = {
+    username: formData.get("username") as string,
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    role: formData.get("role") as string,
+  };
 
-  if (!parseResult.success) {
-    const errorMessages = parseResult.error.errors.map((err) => err.message);
-    return { success: false, message: errorMessages.join(", ") };
+  const parsedData = createUserSchema.safeParse(rawData);
+
+  if (!parsedData.success) {
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
-  const { username, email, password, role } = parseResult.data;
+  const { username, email, password, role } = parsedData.data;
 
-  // TODO: move to service layer
   try {
     const foundUser = await findUserByUsernameOrEmail(username, email);
     if (foundUser) {
@@ -64,7 +73,7 @@ export async function createUserAction(prevState: any, formData: FormData) {
           ? conflicts.join(" ")
           : conflicts[0] || "User already exists.";
 
-      return { success: false, message: conflictMessage };
+      return { success: false, message: conflictMessage, inputs: rawData };
     }
 
     await createUserInDB(username, email, password, role);
@@ -72,30 +81,40 @@ export async function createUserAction(prevState: any, formData: FormData) {
     return { success: true, message: "User created" };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "An unexpected error occurred" };
+    return { success: false, message: "An unexpected error occurred", inputs: rawData };
   }
 }
 
-export async function editUserAction(prevState: any, formData: FormData) {
+export async function editUserAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseUserFormData>> {
   if (!(await isAdmin())) return unauthorized;
 
-  const parseResult = editUserSchema.safeParse({
-    userId: formData.get("user-id"),
-    username: formData.get("username"),
-    email: formData.get("email"),
-    role: formData.get("role"),
-  });
+  const rawData = {
+    userId: formData.get("user-id") as string,
+    username: formData.get("username") as string,
+    email: formData.get("email") as string,
+    role: formData.get("role") as string,
+  };
 
-  if (!parseResult.success) {
-    const errorMessages = parseResult.error.errors.map((err) => err.message);
-    return { success: false, message: errorMessages.join(", ") };
+  const parsedData = editUserSchema.safeParse(rawData);
+
+  if (!parsedData.success) {
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
-  const { userId, username, email, role } = parseResult.data;
+  const { userId, username, email, role } = parsedData.data;
 
   try {
     const existingUser = await getUserByID(userId);
-    if (!existingUser) return { success: false, message: "User not found." };
+    if (!existingUser)
+      return { success: false, message: "User not found.", inputs: rawData };
 
     await editUserInDB(existingUser, username, email, role);
     revalidatePath("/admin");
@@ -112,6 +131,7 @@ export async function editUserAction(prevState: any, formData: FormData) {
       return {
         success: false,
         message: constraintMessages[error.constraint] || "Duplicate entry.",
+        inputs: rawData,
       };
     }
 
@@ -122,15 +142,15 @@ export async function editUserAction(prevState: any, formData: FormData) {
 export async function deleteUserAction(formData: FormData) {
   if (!(await isAdmin())) return;
 
-  const parseResult = userIdSchema.safeParse(formData.get("id"));
+  const parsedData = userIdSchema.safeParse(formData.get("id"));
 
-  if (!parseResult.success) {
-    console.error(parseResult.error);
+  if (!parsedData.success) {
+    console.error(parsedData.error);
     return;
   }
 
   try {
-    await deleteUserById(parseResult.data);
+    await deleteUserById(parsedData.data);
     revalidatePath("/admin");
   } catch (error) {
     console.error("Error deleting user:", error);
@@ -140,7 +160,7 @@ export async function deleteUserAction(formData: FormData) {
 export async function uploadClonedVoice(prevState: any, formData: FormData) {
   if (!(await isAdmin())) return unauthorized;
 
-  const parseResult = createClonedVoiceSchema.safeParse({
+  const parsedData = createClonedVoiceSchema.safeParse({
     voiceName: formData.get("voice-name"),
     voiceFiles: formData.getAll("voice-files"),
     removeBackgroundNoise: formData.get("remove-background-noise") === "on",
@@ -148,8 +168,8 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
     associatedAvatarsIds: formData.getAll("associated-avatars-ids"),
   });
 
-  if (!parseResult.success) {
-    const errorMessages = parseResult.error.errors.map((err) => err.message);
+  if (!parsedData.success) {
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
     return { success: false, message: errorMessages.join(", ") };
   }
 
@@ -159,7 +179,7 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
     removeBackgroundNoise,
     // description,
     associatedAvatarsIds,
-  } = parseResult.data;
+  } = parsedData.data;
 
   try {
     const elevenlabsRes = await elevenlabs.voices.add({
@@ -183,18 +203,18 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
 export async function handleUpdateCredits(prevState: any, formData: FormData) {
   if (!(await isAdmin())) return unauthorized;
 
-  const parseResult = updateCreditsSchema.safeParse({
+  const parsedData = updateCreditsSchema.safeParse({
     userId: formData.get("user-id"),
     amount: Number(formData.get("amount")),
     reason: formData.get("reason"),
   });
 
-  if (!parseResult.success) {
-    const errorMessages = parseResult.error.errors.map((err) => err.message);
+  if (!parsedData.success) {
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
     return { success: false, message: errorMessages.join(", ") };
   }
 
-  const { userId, amount, reason } = parseResult.data;
+  const { userId, amount, reason } = parsedData.data;
 
   try {
     await updateUserCredits(userId, amount, reason);
@@ -209,19 +229,28 @@ export async function handleUpdateCredits(prevState: any, formData: FormData) {
   }
 }
 
-export async function createAvatarAdminAction(prevState: any, formData: FormData) {
+export async function createAvatarAdminAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseAvatarFormData>> {
   const currentUser = await getUser();
   if (!currentUser || currentUser.role !== "admin") return unauthorized;
 
-  const parsedData = createAvatarSchema.safeParse({
-    avatarName: formData.get("avatar-name"),
-    imageFile: formData.get("image-file"),
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
+  const rawData = {
+    avatarName: formData.get("avatar-name") as string,
+    imageFile: formData.get("image-file") as File,
+    associatedUsersIds: formData.getAll("associated-users-ids") as string[],
+  };
+
+  const parsedData = createAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
@@ -233,24 +262,33 @@ export async function createAvatarAdminAction(prevState: any, formData: FormData
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error" };
+    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }
 
-export async function editAvatarAdminAction(prevState: any, formData: FormData) {
+export async function editAvatarAdminAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseAvatarFormData>> {
   if (!(await isAdmin())) return unauthorized;
 
   const image = formData.get("image-file") as File;
-  const parsedData = editAvatarSchema.safeParse({
-    avatarId: formData.get("avatar-id"),
-    avatarName: formData.get("avatar-name"),
+  const rawData = {
+    avatarId: formData.get("avatar-id") as string,
+    avatarName: formData.get("avatar-name") as string,
     imageFile: isValidFileUpload(image) ? image : undefined,
-    associatedUsersIds: formData.getAll("associated-users-ids"),
-  });
+    associatedUsersIds: formData.getAll("associated-users-ids") as string[],
+  };
+
+  const parsedData = editAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { avatarId, avatarName, imageFile, associatedUsersIds } = parsedData.data;
@@ -274,6 +312,6 @@ export async function editAvatarAdminAction(prevState: any, formData: FormData) 
     return { success: true, message: "Avatar updated" };
   } catch (error) {
     console.error("Error updating avatar:", error);
-    return { success: false, message: "Internal server error" };
+    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }

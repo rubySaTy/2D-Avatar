@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AvatarCard from "./AvatarCard";
 import { getUser } from "@/lib/auth";
 import CreateClonedVoiceForm from "./CreateClonedVoiceForm";
-import { AdminCreateAvatarForm } from "./AdminAvatarForm";
 import { getAvatarsWithAssociatedUsers, getUsersDto } from "@/services";
+import { AdminCreateAvatarForm } from "./AvatarForm";
 
 export default async function AvatarManagement() {
   const currentUser = await getUser();

@@ -9,13 +9,22 @@ import { fileArrayToFileList } from "@/lib/utils";
 
 interface ImageUploaderProps {
   existingImageUrl?: string;
+  isFormSubmitted?: boolean;
+  isValidationError?: boolean;
 }
 
 export default function ImageUploader({
   existingImageUrl,
+  isFormSubmitted,
+  isValidationError,
 }: ImageUploaderProps) {
   const [preview, setPreview] = useState(existingImageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // TOOD: find a way to keep the image if uploading fails - defaultValue not supported
+  useEffect(() => {
+    if (isFormSubmitted === false) setPreview(null);
+  }, [isFormSubmitted]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -82,7 +91,9 @@ export default function ImageUploader({
         className={`border-2 rounded-lg p-4 cursor-pointer text-center transition-colors
           ${preview ? "border-solid" : "border-dashed"}
           ${
-            isDragActive
+            isValidationError
+              ? "border-destructive/50 dark:border-destructive"
+              : isDragActive
               ? "border-primary bg-primary/10"
               : "border-gray-300 hover:border-primary"
           }`}
@@ -112,12 +123,8 @@ export default function ImageUploader({
         ) : (
           <div className="space-y-2 py-4">
             <LucideImage className="mx-auto h-8 w-8" />
-            <p className="text-base">
-              Drag & drop an image here, or click to select
-            </p>
-            <p className="text-sm text-gray-500">
-              Supports: JPEG, JPG, PNG (max 10MB)
-            </p>
+            <p className="text-base">Drag & drop an image here, or click to select</p>
+            <p className="text-sm text-gray-500">Supports: JPEG, JPG, PNG (max 10MB)</p>
           </div>
         )}
       </div>

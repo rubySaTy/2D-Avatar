@@ -39,18 +39,18 @@ export async function loginUser(
     identifier: formData.get("identifier") as string,
     password: formData.get("password") as string,
   };
-  const parsedResult = loginUserSchema.safeParse(rawData);
+  const parsedData = loginUserSchema.safeParse(rawData);
 
-  if (!parsedResult.success) {
+  if (!parsedData.success) {
     return {
       success: false,
       message: "Validation failed",
-      errors: parsedResult.error.flatten().fieldErrors,
+      errors: parsedData.error.flatten().fieldErrors,
       inputs: rawData,
     };
   }
 
-  const { identifier, password } = parsedResult.data;
+  const { identifier, password } = parsedData.data;
   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 
   try {
@@ -99,18 +99,18 @@ export async function sendResetLink(
   formData: FormData
 ): Promise<ActionResponse<{ email: string }>> {
   const emailInput = formData.get("email") as string;
-  const parsedResult = forgotPasswordSchema.safeParse({ email: emailInput });
+  const parsedData = forgotPasswordSchema.safeParse({ email: emailInput });
 
-  if (!parsedResult.success) {
+  if (!parsedData.success) {
     return {
       success: false,
       message: "Validation failed",
-      errors: parsedResult.error.flatten().fieldErrors,
+      errors: parsedData.error.flatten().fieldErrors,
       inputs: { email: emailInput },
     };
   }
 
-  const { email } = parsedResult.data;
+  const { email } = parsedData.data;
 
   try {
     const user = await findUserByEmail(email);
@@ -155,18 +155,18 @@ export async function resetPassword(
     resetToken: formData.get("reset-token") as string,
   };
 
-  const parsedResult = resetPasswordSchema.safeParse(rawData);
+  const parsedData = resetPasswordSchema.safeParse(rawData);
 
-  if (!parsedResult.success) {
+  if (!parsedData.success) {
     return {
       success: false,
       message: "Validation failed",
-      errors: parsedResult.error.flatten().fieldErrors,
+      errors: parsedData.error.flatten().fieldErrors,
       inputs: rawData,
     };
   }
 
-  const { password, resetToken } = parsedResult.data;
+  const { password, resetToken } = parsedData.data;
 
   try {
     const user = await findUserByResetToken(resetToken);

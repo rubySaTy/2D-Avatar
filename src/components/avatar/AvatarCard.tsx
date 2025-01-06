@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { AdminEditAvatarForm } from "./AdminAvatarForm";
 import { getUser } from "@/lib/auth";
 import { deleteAvatarAction } from "@/app/actions/avatar";
 import type { Avatar, UserDto } from "@/lib/db/schema";
+import { AdminEditAvatarForm } from "./AvatarForm";
 
 type AvatarCardProps = {
   avatar: Avatar;

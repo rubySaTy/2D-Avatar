@@ -19,20 +19,30 @@ import {
   removeAvatar,
 } from "@/services";
 import { openAI } from "@/lib/integrations/openai";
+import { ActionResponse, BaseAvatarFormData } from "@/lib/types";
 
-export async function createAvatarTherapistAction(prevState: any, formData: FormData) {
+export async function createAvatarTherapistAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseAvatarFormData>> {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
-  const parsedData = createAvatarSchema.safeParse({
-    avatarName: formData.get("avatar-name"),
-    imageFile: formData.get("image-file"),
-    associatedUsersIds: [currentUser.id],
-  });
+  const rawData = {
+    avatarName: formData.get("avatar-name") as string,
+    imageFile: formData.get("image-file") as File,
+    associatedUsersIds: [currentUser.id] as string[],
+  };
+
+  const parsedData = createAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
@@ -44,30 +54,38 @@ export async function createAvatarTherapistAction(prevState: any, formData: Form
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error" };
+    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }
 
-export async function editAvatarTherapistAction(prevState: any, formData: FormData) {
+export async function editAvatarTherapistAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<BaseAvatarFormData>> {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
   const image = formData.get("image-file") as File;
-  const parsedData = editAvatarSchema.safeParse({
+  const rawData = {
     avatarId: formData.get("avatar-id"),
-    avatarName: formData.get("avatar-name"),
+    avatarName: formData.get("avatar-name") as string,
     imageFile: isValidFileUpload(image) ? image : undefined,
-  });
+  };
+
+  const parsedData = editAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
-    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { avatarId, avatarName, imageFile } = parsedData.data;
 
   try {
-    // TODO: move to avatar service layer
     const existingAvatar = await getAvatarById(avatarId);
     if (!existingAvatar) {
       console.error("Avatar not found in DB");
@@ -82,7 +100,7 @@ export async function editAvatarTherapistAction(prevState: any, formData: FormDa
     return { success: true, message: "Avatar updated" };
   } catch (error) {
     console.error("Error updating avatar:", error);
-    return { success: false, message: "Internal server error" };
+    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }
 
@@ -91,15 +109,15 @@ export async function deleteAvatarAction(formData: FormData) {
   if (!currentUser) return;
 
   const id = formData.get("id");
-  const parseResult = avatarIdSchema.safeParse(id);
+  const parsedData = avatarIdSchema.safeParse(id);
 
-  if (!parseResult.success) {
-    console.error(parseResult.error.errors);
+  if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return;
   }
 
   try {
-    const existingAvatar = await getAvatarById(parseResult.data);
+    const existingAvatar = await getAvatarById(parsedData.data);
     if (!existingAvatar) {
       console.error("Avatar not found in DB");
       return;

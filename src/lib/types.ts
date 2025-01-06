@@ -109,3 +109,16 @@ export interface ActionResponse<T> {
   };
   inputs?: T;
 }
+
+export interface BaseUserFormData {
+  username: string;
+  email: string;
+  role: string;
+  password?: string;
+}
+
+export interface BaseAvatarFormData {
+  avatarName: string;
+  associatedUsersIds?: string[];
+  imageFile?: File;
+}

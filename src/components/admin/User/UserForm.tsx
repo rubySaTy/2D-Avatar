@@ -17,10 +17,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/SubmitButton";
-import type { UserDto } from "@/lib/db/schema";
-import { createUserAction, editUserAction } from "@/app/actions/admin";
 import PasswordInputWithToggle from "@/components/PasswordInputWithToggle";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
+import { createUserAction, editUserAction } from "@/app/actions/admin";
+import type { UserDto } from "@/lib/db/schema";
+import type { ActionResponse, BaseUserFormData } from "@/lib/types";
 
 export function EditUserForm({ user }: { user: UserDto }) {
   return (
@@ -50,7 +51,7 @@ interface BaseUserFormProps {
   serverAction: (
     prevState: any,
     formData: FormData
-  ) => Promise<{ success: boolean; message: string }>;
+  ) => Promise<ActionResponse<BaseUserFormData>>;
   initialData?: Partial<UserDto>;
   title: string;
   description: string;
@@ -68,7 +69,6 @@ function BaseUserForm({
 }: BaseUserFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
 
-  // TODO: "Add zod validation on client side too";
   return (
     <form action={formAction} className="space-y-6">
       <DialogHeader>
@@ -87,9 +87,24 @@ function BaseUserForm({
             <Input
               id="username"
               name="username"
-              defaultValue={initialData.username || ""}
+              defaultValue={initialData.username ?? state?.inputs?.username ?? ""}
+              className={
+                state?.errors?.username?.[0]
+                  ? "border-destructive/50 dark:border-destructive"
+                  : ""
+              }
               required
+              minLength={3}
+              maxLength={30}
             />
+            {state?.errors?.username && (
+              <p
+                id={`username-error`}
+                className="text-sm text-destructive [&>svg]:text-destructive"
+              >
+                {state.errors.username[0]}
+              </p>
+            )}
           </div>
         </div>
 
@@ -102,9 +117,22 @@ function BaseUserForm({
               id="email"
               name="email"
               type="email"
-              defaultValue={initialData.email || ""}
+              defaultValue={initialData.email ?? state?.inputs?.email ?? ""}
+              className={
+                state?.errors?.email?.[0]
+                  ? "border-destructive/50 dark:border-destructive"
+                  : ""
+              }
               required
             />
+            {state?.errors?.email && (
+              <p
+                id={`email-error`}
+                className="text-sm text-destructive [&>svg]:text-destructive"
+              >
+                {state.errors.email[0]}
+              </p>
+            )}
           </div>
         </div>
 
@@ -114,7 +142,18 @@ function BaseUserForm({
               Password
             </Label>
             <div className="col-span-3">
-              <PasswordInputWithToggle />
+              <PasswordInputWithToggle
+                data={state?.inputs?.password}
+                error={!!state?.errors?.password}
+              />
+              {state?.errors?.password && (
+                <p
+                  id="password-error"
+                  className="text-sm text-destructive [&>svg]:text-destructive"
+                >
+                  {state.errors.password[0]}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -124,7 +163,11 @@ function BaseUserForm({
             User Role
           </Label>
           <div className="col-span-3">
-            <Select name="role" defaultValue={initialData.role || "therapist"} required>
+            <Select
+              name="role"
+              defaultValue={initialData.role ?? state?.inputs?.role ?? "therapist"}
+              required
+            >
               <SelectTrigger id="role">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -133,6 +176,14 @@ function BaseUserForm({
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
+            {state?.errors?.role && (
+              <p
+                id="role-error"
+                className="text-sm text-destructive [&>svg]:text-destructive"
+              >
+                {state.errors.role[0]}
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   DialogFooter,
@@ -13,28 +12,182 @@ import ImageUpload from "@/components/ImageUpload";
 import { Separator } from "@/components/ui/separator";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
+import { FormInput } from "@/components/FormInput";
+import MultiUserSelector from "./MultiUserSelector";
+import { createAvatarAdminAction, editAvatarAdminAction } from "@/app/actions/admin";
 import {
   createAvatarTherapistAction,
   editAvatarTherapistAction,
 } from "@/app/actions/avatar";
-import type { Avatar } from "@/lib/db/schema";
+import type { Avatar, UserDto } from "@/lib/db/schema";
+import type { ActionResponse, BaseAvatarFormData } from "@/lib/types";
+
+interface BaseAvatarFormProps {
+  serverAction: (
+    prevState: any,
+    formData: FormData
+  ) => Promise<ActionResponse<BaseAvatarFormData>>;
+  initialData?: Avatar;
+  title: string;
+  description: string;
+  submitText: "Create Avatar" | "Update Avatar";
+
+  /**
+   *  Optional Admin-specific fields.
+   *  If provided, we'll render the associated user section.
+   */
+  users?: Array<UserDto>;
+  associatedUsers?: Array<UserDto>;
+  currentUserId?: string;
+}
+
+export function BaseAvatarForm({
+  serverAction,
+  initialData,
+  title,
+  description,
+  submitText,
+  users,
+  associatedUsers,
+  currentUserId,
+}: BaseAvatarFormProps) {
+  const [state, formAction, isPending] = useActionState(serverAction, null);
+
+  return (
+    <form action={formAction} className="space-y-6">
+      <DialogHeader>
+        <DialogTitle className="text-2xl font-semibold tracking-tight">
+          {title}
+        </DialogTitle>
+        <DialogDescription className="text-base text-muted-foreground">
+          {description}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4">
+        {initialData && (
+          <>
+            <input type="hidden" name="avatar-id" value={initialData.id} />
+            {initialData.uploaderId && (
+              <input type="hidden" name="uploader-id" value={initialData.uploaderId} />
+            )}
+          </>
+        )}
+
+        <div className="space-y-2">
+          <FormInput
+            label="Avatar Name"
+            id="avatar-name"
+            defaultValue={initialData?.avatarName ?? state?.inputs?.avatarName ?? ""}
+            error={state?.errors?.avatarName?.[0]}
+            required
+            minLength={3}
+            maxLength={20}
+          />
+        </div>
+        <Separator />
+        <ImageUpload
+          existingImageUrl={initialData?.imageUrl}
+          isFormSubmitted={isPending}
+          isValidationError={!!state?.errors?.imageFile?.[0]}
+        />
+        {state?.errors?.imageFile && (
+          <p
+            id={`image-file-error`}
+            className="text-sm text-destructive [&>svg]:text-destructive"
+          >
+            {state.errors.imageFile[0]}
+          </p>
+        )}
+
+        {/* 
+          If users/associatedUsers/currentUserId are passed in, 
+          this indicates it's an Admin usage, so show the MultiUserSelector 
+        */}
+        {users && associatedUsers && currentUserId && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <Label>Associated Users</Label>
+              <MultiUserSelector
+                users={users}
+                currentUserId={currentUserId}
+                associatedUsers={associatedUsers}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <ServerActionAlertMessage state={state} />
+      <DialogFooter>
+        <SubmitButton>{submitText}</SubmitButton>
+      </DialogFooter>
+    </form>
+  );
+}
+
+interface AdminCreateAvatarFormProps {
+  users: Array<UserDto>;
+  currentUserId: string;
+}
+
+export function AdminCreateAvatarForm({
+  users,
+  currentUserId,
+}: AdminCreateAvatarFormProps) {
+  return (
+    <BaseAvatarForm
+      serverAction={createAvatarAdminAction}
+      title="Create New Avatar"
+      description="Add a new avatar to the system."
+      submitText="Create Avatar"
+      users={users}
+      currentUserId={currentUserId}
+      associatedUsers={[]}
+    />
+  );
+}
+
+interface AdminEditAvatarFormProps {
+  avatar: Avatar;
+  users: Array<UserDto>;
+  associatedUsers: Array<UserDto>;
+  currentUserId: string;
+}
+
+export function AdminEditAvatarForm({
+  avatar,
+  users,
+  associatedUsers,
+  currentUserId,
+}: AdminEditAvatarFormProps) {
+  return (
+    <BaseAvatarForm
+      serverAction={editAvatarAdminAction}
+      initialData={avatar}
+      title="Edit Avatar"
+      description="Update avatar details."
+      submitText="Update Avatar"
+      users={users}
+      associatedUsers={associatedUsers}
+      currentUserId={currentUserId}
+    />
+  );
+}
 
 export function CreateAvatarForm() {
   return (
     <BaseAvatarForm
       serverAction={createAvatarTherapistAction}
       title="Create New Avatar"
-      description="Upload a photo to create a new avatar"
+      description="Upload a photo to create a new avatar."
       submitText="Create Avatar"
     />
   );
 }
 
-interface EditAvatarFormProps {
-  avatar: Avatar;
-}
-
-export function EditAvatarForm({ avatar }: EditAvatarFormProps) {
+export function EditAvatarForm({ avatar }: { avatar: Avatar }) {
   return (
     <BaseAvatarForm
       serverAction={editAvatarTherapistAction}
@@ -43,60 +196,5 @@ export function EditAvatarForm({ avatar }: EditAvatarFormProps) {
       description="Update avatar details."
       submitText="Update Avatar"
     />
-  );
-}
-
-interface BaseAvatarFormProps {
-  serverAction: (
-    prevState: any,
-    formData: FormData
-  ) => Promise<{ success: boolean; message: string }>;
-  initialData?: Avatar;
-  title: string;
-  description: string;
-  submitText: "Create Avatar" | "Update Avatar";
-}
-
-function BaseAvatarForm({
-  serverAction,
-  initialData,
-  title,
-  description,
-  submitText,
-}: BaseAvatarFormProps) {
-  const [state, formAction] = useActionState(serverAction, null);
-
-  return (
-    <form action={formAction} className="space-y-6">
-      <DialogHeader>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
-      <div className="space-y-4">
-        {initialData && (
-          <>
-            <input type="hidden" name="avatar-id" value={initialData.id} />
-            <input type="hidden" name="uploader-id" value={initialData.uploaderId} />
-          </>
-        )}
-
-        <div className="space-y-2">
-          <Label htmlFor="avatar-name">Avatar Name</Label>
-          <Input
-            id="avatar-name"
-            name="avatar-name"
-            required
-            defaultValue={initialData?.avatarName || ""}
-          />
-        </div>
-        <Separator />
-        <ImageUpload existingImageUrl={initialData?.imageUrl} />
-      </div>
-
-      <ServerActionAlertMessage state={state} />
-      <DialogFooter>
-        <SubmitButton>{submitText}</SubmitButton>
-      </DialogFooter>
-    </form>
   );
 }
