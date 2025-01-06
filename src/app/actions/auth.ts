@@ -21,16 +21,33 @@ import {
   updateUserPassword,
 } from "@/services";
 import { sendPasswordResetEmail } from "@/lib/integrations/resend";
+import type { ActionResponse } from "@/lib/types";
 
-export async function loginUser(prevState: any, formData: FormData) {
-  const parsedResult = loginUserSchema.safeParse({
-    identifier: formData.get("identifier"),
-    password: formData.get("password"),
-  });
+interface LoginFormData {
+  identifier: string;
+  password: string;
+}
+
+export async function loginUser(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<LoginFormData>> {
+  const { session } = await validateRequest();
+  if (session) return { success: false, message: "Already logged in" };
+
+  const rawData = {
+    identifier: formData.get("identifier") as string,
+    password: formData.get("password") as string,
+  };
+  const parsedResult = loginUserSchema.safeParse(rawData);
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: errorMessages };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedResult.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { identifier, password } = parsedResult.data;
@@ -42,10 +59,11 @@ export async function loginUser(prevState: any, formData: FormData) {
       isEmail ? identifier : undefined
     );
 
-    if (!user) return { success: false, message: "Invalid credentials" };
+    if (!user) return { success: false, message: "Invalid credentials", inputs: rawData };
 
-    const validPassword = await argon2.verify(user.passwordHash, password);
-    if (!validPassword) return { success: false, message: "Invalid credentials" };
+    const isValidPassword = await argon2.verify(user.passwordHash, password);
+    if (!isValidPassword)
+      return { success: false, message: "Invalid credentials", inputs: rawData };
 
     const session = await lucia.createSession(user.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
@@ -57,7 +75,7 @@ export async function loginUser(prevState: any, formData: FormData) {
     return { success: true, message: "Login successful" };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "An unexpected error occurred" };
+    return { success: false, message: "An unexpected error occurred", inputs: rawData };
   }
 }
 
@@ -76,14 +94,20 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function sendResetLink(prevState: any, formData: FormData) {
-  const parsedResult = forgotPasswordSchema.safeParse({
-    email: formData.get("email"),
-  });
+export async function sendResetLink(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<{ email: string }>> {
+  const emailInput = formData.get("email") as string;
+  const parsedResult = forgotPasswordSchema.safeParse({ email: emailInput });
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: errorMessages };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedResult.error.flatten().fieldErrors,
+      inputs: { email: emailInput },
+    };
   }
 
   const { email } = parsedResult.data;
@@ -103,7 +127,8 @@ export async function sendResetLink(prevState: any, formData: FormData) {
     await setResetToken(email, token, expires);
 
     const res = await sendPasswordResetEmail(email, token);
-    if (!res) return { success: false, message: "Failed to send email" };
+    if (!res)
+      return { success: false, message: "Failed to send email", inputs: { email } };
 
     return {
       success: true,
@@ -111,27 +136,47 @@ export async function sendResetLink(prevState: any, formData: FormData) {
     };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "An unexpected error occurred" };
+    return { success: false, message: "An unexpected error occurred", inputs: { email } };
   }
 }
 
-export async function resetPassword(prevState: any, formData: FormData) {
-  const parsedResult = resetPasswordSchema.safeParse({
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-    resetToken: formData.get("resetToken"),
-  });
+interface resetPasswordData {
+  password: string;
+  confirmPassword: string;
+}
+
+export async function resetPassword(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<resetPasswordData>> {
+  const rawData = {
+    password: formData.get("password") as string,
+    confirmPassword: formData.get("confirm-password") as string,
+    resetToken: formData.get("reset-token") as string,
+  };
+
+  const parsedResult = resetPasswordSchema.safeParse(rawData);
 
   if (!parsedResult.success) {
-    const errorMessages = parsedResult.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: errorMessages };
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedResult.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
   const { password, resetToken } = parsedResult.data;
 
   try {
     const user = await findUserByResetToken(resetToken);
-    if (!user) return { success: false, message: "Invalid reset token" };
+    if (!user)
+      return {
+        success: false,
+        message:
+          "The reset token is either invalid, expired, or already used. Please request a new password reset email.",
+        inputs: rawData,
+      };
 
     const hashedPassword = await argon2.hash(password);
     await updateUserPassword(user.id, hashedPassword);
@@ -139,6 +184,6 @@ export async function resetPassword(prevState: any, formData: FormData) {
     return { success: true, message: "Password reset was successful" };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "An unexpected error occurred" };
+    return { success: false, message: "An unexpected error occurred", inputs: rawData };
   }
 }

@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { resetPassword } from "@/app/actions/auth";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardHeader,
@@ -12,7 +11,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { FormInput } from "@/components/FormInput";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 
@@ -29,32 +28,33 @@ export default function ResetPasswordForm({ token }: { token: string }) {
       </CardHeader>
       <CardContent>
         <form action={formAction}>
-          <input
-            name="resetToken"
-            id="resetToken"
-            value={token}
-            readOnly
-            hidden
-          />
+          <input name="reset-token" id="reset-token" value={token} readOnly hidden />
+
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="password">New Password</Label>
-              <Input
+              <FormInput
+                label="New Password"
                 id="password"
-                name="password"
                 type="password"
                 placeholder="Enter your new password"
+                defaultValue={state?.inputs?.password}
+                error={state?.errors?.password?.[0]}
                 required
+                minLength={6}
+                maxLength={16}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
+              <FormInput
+                label="Confirm New Password"
+                id="confirm-password"
                 type="password"
                 placeholder="Confirm your new password"
+                defaultValue={state?.inputs?.confirmPassword}
+                error={state?.errors?.confirmPassword?.[0]}
                 required
+                minLength={6}
+                maxLength={16}
               />
             </div>
             <SubmitButton className="w-full">Reset Password</SubmitButton>
