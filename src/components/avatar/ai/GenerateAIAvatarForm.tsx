@@ -5,32 +5,30 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import {
-  generateAIAvatarAction,
-  generateAIAvatarWithImageAction,
-} from "@/app/actions/avatar";
 import { Separator } from "@/components/ui/separator";
 import ImageUploader from "@/components/ImageUploader";
 import type { Image as OpenAIImage } from "openai/resources/images.mjs";
+import type { GenerateAIAvatarActionResponse } from "@/lib/types";
 
-interface BaseGenerateFormProps {
+interface GenerateFormProps {
+  withImage: boolean;
   onGenerate: (images: OpenAIImage[]) => void;
   serverAction: (
     prevState: any,
     formData: FormData
-  ) => Promise<
-    | { success: boolean; message: string; payload?: undefined; data?: undefined }
-    | { success: boolean; message: string; payload: FormData; data: OpenAIImage[] }
-  >;
-  children?: React.ReactNode;
+  ) => Promise<GenerateAIAvatarActionResponse>;
 }
 
-function BaseGenerateForm({ onGenerate, serverAction, children }: BaseGenerateFormProps) {
-  const [state, formAction] = useActionState(serverAction, null);
+export function GenerateAIAvatarForm({
+  withImage,
+  onGenerate,
+  serverAction,
+}: GenerateFormProps) {
+  const [state, formAction, isPending] = useActionState(serverAction, null);
 
   useEffect(() => {
-    if (state && state.data) {
-      onGenerate(state.data);
+    if (state && state.payload) {
+      onGenerate(state.payload);
     }
   }, [state]);
 
@@ -42,42 +40,41 @@ function BaseGenerateForm({ onGenerate, serverAction, children }: BaseGenerateFo
           id="prompt"
           name="prompt"
           placeholder="Describe the avatar you want to generate"
+          defaultValue={state?.inputs?.prompt}
+          className={
+            state?.errors?.prompt?.[0]
+              ? "border-destructive/50 dark:border-destructive"
+              : ""
+          }
           required
-          defaultValue={(state?.payload?.get("prompt") || "") as string}
         />
+        {state?.errors?.prompt && (
+          <p
+            id={`prompt-error`}
+            className="text-sm text-destructive [&>svg]:text-destructive"
+          >
+            {state.errors.prompt[0]}
+          </p>
+        )}
       </div>
 
-      {children}
+      {withImage && (
+        <>
+          <Separator />
+          <ImageUploader
+            title="Drag & drop an image here, or click to select"
+            description="Supports: PNG"
+            accept={{ "image/png": [".png"] }}
+            maxSize={4 * 1024 * 1024}
+            isFormSubmitted={isPending}
+            isValidationError={!!state?.errors?.imageFile?.[0]}
+            required
+          />
+        </>
+      )}
 
       <ServerActionAlertMessage state={state} />
       <SubmitButton>Generate</SubmitButton>
     </form>
-  );
-}
-
-interface GenerateAIImageProps {
-  onGenerate: (images: OpenAIImage[]) => void;
-}
-
-export function GenerateAIAvatarForm({ onGenerate }: GenerateAIImageProps) {
-  return (
-    <BaseGenerateForm onGenerate={onGenerate} serverAction={generateAIAvatarAction} />
-  );
-}
-
-export function GenerateAIAvatarWithImageForm({ onGenerate }: GenerateAIImageProps) {
-  return (
-    <BaseGenerateForm
-      onGenerate={onGenerate}
-      serverAction={generateAIAvatarWithImageAction}
-    >
-      <Separator />
-      <ImageUploader
-        title="Drag & drop an image here, or click to select"
-        description="Supports: PNG"
-        accept={{ "image/png": [".png"] }}
-        maxSize={4 * 1024 * 1024}
-      />
-    </BaseGenerateForm>
   );
 }

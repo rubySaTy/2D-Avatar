@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { motion } from "framer-motion";
 import { SelectAndCreateAvatar } from "@/components/avatar/ai/SelectAndCreateAvatar";
+import { GenerateAIAvatarForm } from "./GenerateAIAvatarForm";
 import {
-  GenerateAIAvatarForm,
-  GenerateAIAvatarWithImageForm,
-} from "@/components/avatar/ai/GenerateAIAvatarForm";
+  generateAIAvatarAction,
+  generateAIAvatarWithImageAction,
+} from "@/app/actions/avatar";
 import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 
 interface AIAvatarFormProps {
@@ -25,22 +25,26 @@ export function CreateAIAvatarForm({ withImage = false }: AIAvatarFormProps) {
     setImages([]);
   };
 
-  const GenerationComponent = withImage
-    ? GenerateAIAvatarWithImageForm
-    : GenerateAIAvatarForm;
+  const FormComponent = (
+    <GenerateAIAvatarForm
+      withImage={withImage}
+      onGenerate={handleGenerate}
+      serverAction={withImage ? generateAIAvatarWithImageAction : generateAIAvatarAction}
+    />
+  );
 
   return (
-    <motion.div transition={{ duration: 0.3 }} className="space-y-4">
+    <div className="space-y-4">
       <DialogHeader>
         <DialogTitle>AI Avatar Generation</DialogTitle>
         <DialogDescription>Create a new avatar with AI generation</DialogDescription>
       </DialogHeader>
 
       {images.length === 0 ? (
-        <GenerationComponent onGenerate={handleGenerate} />
+        FormComponent
       ) : (
         <SelectAndCreateAvatar images={images} onRegenerate={handleRegenerate} />
       )}
-    </motion.div>
+    </div>
   );
 }

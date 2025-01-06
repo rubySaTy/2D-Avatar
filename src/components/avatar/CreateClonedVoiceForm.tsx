@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import MultiAvatarSelector from "./MultiAvatarSelector";
 import type { Avatar } from "@/lib/db/schema";
 
@@ -22,9 +21,7 @@ interface CreateClonedVoiceFormProps {
   avatars: Array<Avatar>;
 }
 
-export default function CreateClonedVoiceForm({
-  avatars,
-}: CreateClonedVoiceFormProps) {
+export default function CreateClonedVoiceForm({ avatars }: CreateClonedVoiceFormProps) {
   const [state, formAction] = useActionState(uploadClonedVoice, null);
 
   return (
@@ -48,10 +45,7 @@ export default function CreateClonedVoiceForm({
         </div>
 
         <div className="flex space-x-2">
-          <Checkbox
-            id="remove-background-noise"
-            name="remove-background-noise"
-          />
+          <Checkbox id="remove-background-noise" name="remove-background-noise" />
           <div className="grid gap-1.5 leading-none">
             <Label
               htmlFor="remove-background-noise"
@@ -60,8 +54,8 @@ export default function CreateClonedVoiceForm({
               Remove background noises
             </Label>
             <p className="text-sm text-muted-foreground">
-              Tip: If the samples do not include background noise, it can make
-              the quality worse.
+              Tip: If the samples do not include background noise, it can make the quality
+              worse.
             </p>
           </div>
         </div>

@@ -139,10 +139,10 @@ export async function editUserAction(
   }
 }
 
-export async function deleteUserAction(formData: FormData) {
+export async function deleteUserAction(userId: string) {
   if (!(await isAdmin())) return;
 
-  const parsedData = userIdSchema.safeParse(formData.get("id"));
+  const parsedData = userIdSchema.safeParse(userId);
 
   if (!parsedData.success) {
     console.error(parsedData.error);

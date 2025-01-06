@@ -1,11 +1,11 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { deleteUserAction } from "@/app/actions/admin";
 import UpdateCreditsForm from "./UpdateCreditsForm";
 import { EditUserForm } from "./UserForm";
+import DeleteUserButton from "./DeleteUserButton";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserRowProps = {
@@ -64,12 +64,8 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
                 <EditUserForm user={user} />
               </DialogContent>
             </Dialog>
-            <form action={deleteUserAction}>
-              <input type="hidden" name="id" value={user.id} />
-              <Button variant="destructive" size="icon" type="submit">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </form>
+
+            <DeleteUserButton userId={user.id} />
           </div>
         )}
       </TableCell>

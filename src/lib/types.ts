@@ -1,3 +1,5 @@
+import { Image as OpenAIImage } from "openai/resources/images.mjs";
+
 interface Language {
   locale: string;
   language: string;
@@ -121,4 +123,19 @@ export interface BaseAvatarFormData {
   avatarName: string;
   associatedUsersIds?: string[];
   imageFile?: File;
+}
+
+export interface GenerateAIAvatarFormData {
+  prompt: string;
+  imageFile?: File;
+}
+
+export interface GenerateAIAvatarActionResponse
+  extends ActionResponse<GenerateAIAvatarFormData> {
+  payload?: OpenAIImage[];
+}
+
+export interface CreateAIAvatarFormData {
+  avatarName: string;
+  imageUrl: string;
 }

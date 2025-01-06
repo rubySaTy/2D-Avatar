@@ -38,6 +38,7 @@ export function LoginForm() {
                 placeholder="m@example.com"
                 defaultValue={state?.inputs?.identifier}
                 error={state?.errors?.identifier?.[0]}
+                required
               />
             </div>
             <div className="grid gap-2">

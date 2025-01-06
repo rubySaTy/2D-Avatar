@@ -1,14 +1,14 @@
 import Image from "next/image";
-import { Pencil, Trash2, Users } from "lucide-react";
+import { Pencil, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
-import { deleteAvatarAction } from "@/app/actions/avatar";
-import type { Avatar, UserDto } from "@/lib/db/schema";
 import { AdminEditAvatarForm } from "./AvatarForm";
+import DeleteAvatarButton from "./DeleteAvatarButton";
+import type { Avatar, UserDto } from "@/lib/db/schema";
 
 type AvatarCardProps = {
   avatar: Avatar;
@@ -85,13 +85,7 @@ export default async function AvatarCard({
             </DialogContent>
           </Dialog>
 
-          <form action={deleteAvatarAction}>
-            <input type="hidden" name="id" value={avatar.id} />
-            <Button variant="destructive" size="sm" type="submit">
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
-              Delete
-            </Button>
-          </form>
+          <DeleteAvatarButton avatarId={avatar.id} />
         </div>
       </CardContent>
     </Card>

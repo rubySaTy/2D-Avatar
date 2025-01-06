@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import ImageSelector from "@/components/therapist/ImageSelector";
 import { createAIAvatarAction } from "@/app/actions/avatar";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import type { Image } from "openai/resources/images.mjs";
+import { FormInput } from "@/components/FormInput";
+import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 
 interface SelectAndCreateAvatarProps {
-  images: Image[];
+  images: OpenAIImage[];
   onRegenerate: () => void;
 }
 
@@ -19,7 +18,7 @@ export function SelectAndCreateAvatar({
   images,
   onRegenerate,
 }: SelectAndCreateAvatarProps) {
-  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
+  const [selectedImage, setSelectedImage] = useState<OpenAIImage | null>(null);
   const [state, formAction, isPending] = useActionState(createAIAvatarAction, null);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -36,14 +35,16 @@ export function SelectAndCreateAvatar({
       {selectedImage && (
         <form ref={formRef} action={formAction}>
           <input type="hidden" name="image-url" value={selectedImage.url} />
-
           <div className="space-y-2">
-            <Label htmlFor="avatar-name">Avatar name</Label>
-            <Input
+            <FormInput
+              label="Avatar Name"
               id="avatar-name"
-              name="avatar-name"
-              required
+              defaultValue={state?.inputs?.avatarName}
+              error={state?.errors?.avatarName?.[0]}
               placeholder="Give the avatar a name"
+              required
+              minLength={3}
+              maxLength={20}
             />
           </div>
         </form>

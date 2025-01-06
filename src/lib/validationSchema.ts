@@ -175,7 +175,7 @@ export const createClonedVoiceSchema = z.object({
   voiceName: z.string().min(1, { message: "Voice name is required." }),
   voiceFiles: voiceFilesSchema,
   removeBackgroundNoise: z.coerce.boolean(),
-  // description: z.string().optional(),
+  // description: z.string().optional(), TODO: Causes an error that takes too long and causes timeout? move to route-handler?
   associatedAvatarsIds: z
     .array(avatarIdSchema)
     .min(1, { message: "At least one avatar must be selected" }),
@@ -197,6 +197,6 @@ export const transcribedTextSchema = z
   });
 
 export const CreateLLMGeneratedAvatarSchema = z.object({
-  avatarName: z.string().min(1, { message: "Avatar name is required." }),
+  avatarName: avatarNameField,
   imageUrl: z.string().min(1, { message: "Image URL is required." }),
 });

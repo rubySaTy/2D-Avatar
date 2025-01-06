@@ -19,7 +19,13 @@ import {
   removeAvatar,
 } from "@/services";
 import { openAI } from "@/lib/integrations/openai";
-import { ActionResponse, BaseAvatarFormData } from "@/lib/types";
+import {
+  ActionResponse,
+  BaseAvatarFormData,
+  CreateAIAvatarFormData,
+  GenerateAIAvatarActionResponse,
+  GenerateAIAvatarFormData,
+} from "@/lib/types";
 
 export async function createAvatarTherapistAction(
   _: any,
@@ -104,12 +110,11 @@ export async function editAvatarTherapistAction(
   }
 }
 
-export async function deleteAvatarAction(formData: FormData) {
+export async function deleteAvatarAction(avatarId: number) {
   const currentUser = await getUser();
   if (!currentUser) return;
 
-  const id = formData.get("id");
-  const parsedData = avatarIdSchema.safeParse(id);
+  const parsedData = avatarIdSchema.safeParse(avatarId);
 
   if (!parsedData.success) {
     console.error(parsedData.error.errors);
@@ -135,20 +140,26 @@ export async function deleteAvatarAction(formData: FormData) {
   }
 }
 
-export async function generateAIAvatarAction(prevState: any, formData: FormData) {
+export async function generateAIAvatarAction(
+  _: any,
+  formData: FormData
+): Promise<GenerateAIAvatarActionResponse> {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
-  const res = generateLLMAvatarSchema.safeParse({
-    prompt: formData.get("prompt"),
-  });
+  const rawData = { prompt: formData.get("prompt") as string };
+  const parsedData = generateLLMAvatarSchema.safeParse(rawData);
 
-  if (!res.success) {
-    const errors = res.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+  if (!parsedData.success) {
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
-  const { prompt } = res.data;
+  const { prompt } = parsedData.data;
   try {
     const systemDirective =
       "Generate a centered, front-facing headshot. The subject's face should be fully visible, directly facing the camera, with even lighting and a neutral background.";
@@ -164,33 +175,39 @@ export async function generateAIAvatarAction(prevState: any, formData: FormData)
     return {
       success: true,
       message: "Image Generated",
-      payload: formData,
-      data: response.data,
+      inputs: rawData,
+      payload: response.data,
     };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "Error generating avatar" };
+    return { success: false, message: "Error generating avatar", inputs: rawData };
   }
 }
 
 export async function generateAIAvatarWithImageAction(
-  prevState: any,
+  _: any,
   formData: FormData
-) {
+): Promise<GenerateAIAvatarActionResponse> {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
-  const res = generateLLMAvatarWithImageSchema.safeParse({
-    prompt: formData.get("prompt"),
-    imageFile: formData.get("image-file"),
-  });
+  const rawData = {
+    prompt: formData.get("prompt") as string,
+    imageFile: formData.get("image-file") as File,
+  };
 
-  if (!res.success) {
-    const errors = res.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+  const parsedData = generateLLMAvatarWithImageSchema.safeParse(rawData);
+
+  if (!parsedData.success) {
+    return {
+      success: false,
+      message: "Validation failed",
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
-  const { prompt, imageFile } = res.data;
+  const { prompt, imageFile } = parsedData.data;
   try {
     const response = await openAI.images.edit({
       image: imageFile,
@@ -202,30 +219,39 @@ export async function generateAIAvatarWithImageAction(
     return {
       success: true,
       message: "Image Generated",
-      payload: formData,
-      data: response.data,
+      inputs: rawData,
+      payload: response.data,
     };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "Error generating avatar" };
+    return { success: false, message: "Error generating avatar", inputs: rawData };
   }
 }
 
-export async function createAIAvatarAction(prevState: any, formData: FormData) {
+export async function createAIAvatarAction(
+  _: any,
+  formData: FormData
+): Promise<ActionResponse<CreateAIAvatarFormData>> {
   const currentUser = await getUser();
   if (!currentUser) return { success: false, message: "Unauthorized" };
 
-  const res = CreateLLMGeneratedAvatarSchema.safeParse({
-    avatarName: formData.get("avatar-name"),
-    imageUrl: formData.get("image-url"),
-  });
+  const rawData = {
+    avatarName: formData.get("avatar-name") as string,
+    imageUrl: formData.get("image-url") as string,
+  };
+  const parsedData = CreateLLMGeneratedAvatarSchema.safeParse(rawData);
 
-  if (!res.success) {
-    const errors = res.error.errors.map((err) => err.message).join(", ");
-    return { success: false, message: `Validation failed: ${errors}` };
+  if (!parsedData.success) {
+    const errors = parsedData.error.errors.map((err) => err.message).join(", ");
+    return {
+      success: false,
+      message: errors,
+      errors: parsedData.error.flatten().fieldErrors,
+      inputs: rawData,
+    };
   }
 
-  const { avatarName, imageUrl } = res.data;
+  const { avatarName, imageUrl } = parsedData.data;
 
   try {
     const response = await axios.get(imageUrl, {
@@ -247,6 +273,6 @@ export async function createAIAvatarAction(prevState: any, formData: FormData) {
     return { success: true, message: "Avatar created" };
   } catch (error) {
     console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error" };
+    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }
