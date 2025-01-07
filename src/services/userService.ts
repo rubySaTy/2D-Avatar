@@ -118,13 +118,16 @@ export async function getUserByID(userId: string) {
 export async function getUserCredits(userId: string, userRole: string) {
   try {
     if (userRole === "admin") {
-      const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
-        headers: {
-          Authorization: `Basic ${process.env.DID_API_KEY}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await axios.get<DIDCreditsResponse>(
+        `${process.env.DID_API_URL}/credits`,
+        {
+          headers: {
+            Authorization: `Basic ${process.env.DID_API_KEY}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       return res.data.remaining;
     }
 
