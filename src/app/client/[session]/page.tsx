@@ -14,8 +14,8 @@ export default async function ClientSessionPage(props: {
   if (!avatar.idleVideoUrl) notFound();
 
   return (
-    <div>
+    <>
       <Stream meetingLink={meetingLink} idleVideoUrl={avatar.idleVideoUrl} />
-    </div>
+    </>
   );
 }
