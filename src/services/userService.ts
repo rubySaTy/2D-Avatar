@@ -116,25 +116,30 @@ export async function getUserByID(userId: string) {
 }
 
 export async function getUserCredits(userId: string, userRole: string) {
-  if (userRole === "admin") {
-    const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
-      headers: {
-        Authorization: `Basic ${process.env.DID_API_KEY}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
+  try {
+    if (userRole === "admin") {
+      const res = await axios.get<DIDCreditsResponse>("https://api.d-id.com/credits", {
+        headers: {
+          Authorization: `Basic ${process.env.DID_API_KEY}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      return res.data.remaining;
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        credits: true,
       },
     });
-    return res.data.remaining ?? null;
+
+    return user?.credits ?? null;
+  } catch (error) {
+    console.error(error);
+    return null;
   }
-
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    columns: {
-      credits: true,
-    },
-  });
-
-  return user?.credits ?? null;
 }
 
 export async function deleteUserById(userId: string) {

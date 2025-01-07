@@ -74,7 +74,7 @@ const data = {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   currentUser: User;
-  credits: number;
+  credits: number | null;
 }
 
 export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) {
@@ -127,7 +127,11 @@ export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) 
       <SidebarFooter className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">Credits</span>
-          <span>{credits}</span>
+          {credits ? (
+            <span>{credits}</span>
+          ) : (
+            <span className="text-sm">Error retrieving credits</span>
+          )}
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
