@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,7 +23,7 @@ import { createUserAction, editUserAction } from "@/app/actions/admin";
 import type { UserDto } from "@/lib/db/schema";
 import type { ActionResponse, BaseUserFormData } from "@/lib/types";
 
-export function EditUserForm({ user }: { user: UserDto }) {
+export function EditUserForm({ user, onClose }: { user: UserDto; onClose: () => void }) {
   return (
     <BaseUserForm
       serverAction={editUserAction}
@@ -32,17 +32,19 @@ export function EditUserForm({ user }: { user: UserDto }) {
       description="Update user details."
       submitText="Update User"
       isEditing={true}
+      onClose={onClose}
     />
   );
 }
 
-export function CreateUserForm() {
+export function CreateUserForm({ onClose }: { onClose: () => void }) {
   return (
     <BaseUserForm
       serverAction={createUserAction}
       title="Create New User"
       description="Add a new user to the system."
       submitText="Create User"
+      onClose={onClose}
     />
   );
 }
@@ -57,6 +59,7 @@ interface BaseUserFormProps {
   description: string;
   submitText: "Create User" | "Update User";
   isEditing?: boolean;
+  onClose: () => void;
 }
 
 function BaseUserForm({
@@ -66,8 +69,13 @@ function BaseUserForm({
   description,
   submitText,
   isEditing = false,
+  onClose,
 }: BaseUserFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
+
+  useEffect(() => {
+    if (state?.success) onClose();
+  }, [state, onClose]);
 
   return (
     <form action={formAction} className="space-y-6">

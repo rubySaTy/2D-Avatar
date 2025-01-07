@@ -15,24 +15,30 @@ import type { Avatar } from "@/lib/db/schema";
 interface SelectFromGalleryProps {
   publicAvatars: Avatar[];
   onAvatarSelected: (avatar: Avatar) => void;
-};
+  onClose: () => void;
+}
 
 export function SelectFromGallery({
   publicAvatars,
   onAvatarSelected,
+  onClose,
 }: SelectFromGalleryProps) {
   const [selectedGalleryAvatar, setSelectedGalleryAvatar] = useState<Avatar | null>(null);
 
   const handleSelect = () => {
-    if (selectedGalleryAvatar) onAvatarSelected(selectedGalleryAvatar);
+    if (selectedGalleryAvatar) {
+      onAvatarSelected(selectedGalleryAvatar);
+      onClose();
+    }
   };
 
-return (
+  return (
     <>
       <DialogHeader>
         <DialogTitle>Select Avatar from Gallery</DialogTitle>
         <DialogDescription>Choose a pre-made avatar from our gallery</DialogDescription>
       </DialogHeader>
+
       <ScrollArea className="h-[300px] pr-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-1">
           {publicAvatars.map((avatar) => (
@@ -58,11 +64,16 @@ return (
           ))}
         </div>
       </ScrollArea>
+
       <DialogFooter>
-        <Button onClick={handleSelect} disabled={!selectedGalleryAvatar} className="w-full sm:w-auto">
+        <Button
+          onClick={handleSelect}
+          disabled={!selectedGalleryAvatar}
+          className="w-full sm:w-auto"
+        >
           Select Avatar
         </Button>
       </DialogFooter>
     </>
-  )
+  );
 }

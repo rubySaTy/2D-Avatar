@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import ImageSelector from "@/components/therapist/ImageSelector";
 import { createAIAvatarAction } from "@/app/actions/avatar";
@@ -12,15 +12,21 @@ import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 interface SelectAndCreateAvatarProps {
   images: OpenAIImage[];
   onRegenerate: () => void;
+  onClose: () => void;
 }
 
 export function SelectAndCreateAvatar({
   images,
   onRegenerate,
+  onClose,
 }: SelectAndCreateAvatarProps) {
   const [selectedImage, setSelectedImage] = useState<OpenAIImage | null>(null);
   const [state, formAction, isPending] = useActionState(createAIAvatarAction, null);
 
+  useEffect(() => {
+    if (state?.success) onClose();
+  }, [state, onClose]);
+  
   const formRef = useRef<HTMLFormElement>(null);
 
   return (

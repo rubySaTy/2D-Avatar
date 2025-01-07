@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import {
   DialogFooter,
@@ -31,6 +31,7 @@ interface BaseAvatarFormProps {
   title: string;
   description: string;
   submitText: "Create Avatar" | "Update Avatar";
+  onClose: () => void;
 
   /**
    *  Optional Admin-specific fields.
@@ -50,8 +51,13 @@ function BaseAvatarForm({
   users,
   associatedUsers,
   currentUserId,
+  onClose,
 }: BaseAvatarFormProps) {
   const [state, formAction, isPending] = useActionState(serverAction, null);
+
+  useEffect(() => {
+    if (state?.success) onClose();
+  }, [state, onClose]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -132,11 +138,13 @@ function BaseAvatarForm({
 interface AdminCreateAvatarFormProps {
   users: Array<UserDto>;
   currentUserId: string;
+  onClose: () => void;
 }
 
 export function AdminCreateAvatarForm({
   users,
   currentUserId,
+  onClose,
 }: AdminCreateAvatarFormProps) {
   return (
     <BaseAvatarForm
@@ -147,6 +155,7 @@ export function AdminCreateAvatarForm({
       users={users}
       currentUserId={currentUserId}
       associatedUsers={[]}
+      onClose={onClose}
     />
   );
 }
@@ -156,6 +165,7 @@ interface AdminEditAvatarFormProps {
   users: Array<UserDto>;
   associatedUsers: Array<UserDto>;
   currentUserId: string;
+  onClose: () => void;
 }
 
 export function AdminEditAvatarForm({
@@ -163,6 +173,7 @@ export function AdminEditAvatarForm({
   users,
   associatedUsers,
   currentUserId,
+  onClose,
 }: AdminEditAvatarFormProps) {
   return (
     <BaseAvatarForm
@@ -174,22 +185,29 @@ export function AdminEditAvatarForm({
       users={users}
       associatedUsers={associatedUsers}
       currentUserId={currentUserId}
+      onClose={onClose}
     />
   );
 }
 
-export function CreateAvatarForm() {
+export function CreateAvatarForm({ onClose }: { onClose: () => void }) {
   return (
     <BaseAvatarForm
       serverAction={createAvatarTherapistAction}
       title="Create New Avatar"
       description="Upload a photo to create a new avatar."
       submitText="Create Avatar"
+      onClose={onClose}
     />
   );
 }
 
-export function EditAvatarForm({ avatar }: { avatar: Avatar }) {
+interface EditAvatarFormProps {
+  avatar: Avatar;
+  onClose: () => void;
+}
+
+export function EditAvatarForm({ avatar, onClose }: EditAvatarFormProps) {
   return (
     <BaseAvatarForm
       serverAction={editAvatarTherapistAction}
@@ -197,6 +215,7 @@ export function EditAvatarForm({ avatar }: { avatar: Avatar }) {
       title="Edit Avatar"
       description="Update avatar details."
       submitText="Update Avatar"
+      onClose={onClose}
     />
   );
 }

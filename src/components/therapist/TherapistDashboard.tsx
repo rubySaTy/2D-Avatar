@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Edit, X } from "lucide-react";
-import { SelectFromGallery } from "./SelectFromGalleryDialog";
+import { X } from "lucide-react";
 import { createSession } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
-import { EditAvatarForm } from "@/components/avatar/AvatarForm";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { AvatarCreationDropdown } from "./AvatarCreationDropdown";
+import { AvatarCreationDropdown } from "@/components/avatar/AvatarCreationDropdown";
+import { EditAvatarDialog } from "@/components/avatar/AvatarDialog";
+import { SelectFromGalleryDialog } from "@/components/gallery/SelectFromGalleryDialog";
 import type { Avatar } from "@/lib/db/schema";
 
 interface AvatarDashboardProps {
@@ -61,21 +60,10 @@ export function AvatarDashboard({ avatars, publicAvatars }: AvatarDashboardProps
                 className="flex-grow"
               />
 
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    Select from Gallery
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] p-0">
-                  <ScrollArea className="max-h-[90vh] p-4 sm:p-6">
-                    <SelectFromGallery
-                      publicAvatars={publicAvatars}
-                      onAvatarSelected={setSelectedAvatar}
-                    />
-                  </ScrollArea>
-                </DialogContent>
-              </Dialog>
+              <SelectFromGalleryDialog
+                publicAvatars={publicAvatars}
+                setSelectedAvatar={setSelectedAvatar}
+              />
             </div>
             <ScrollArea className="h-[300px] sm:h-[400px]">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-1">
@@ -128,7 +116,7 @@ function CreateSessionForm({
 }: CreateSessionFormProps) {
   const [state, action] = useActionState(createSession, null);
 
-return (
+  return (
     <Card className="w-full lg:w-64">
       <CardHeader>
         <CardTitle>Selected Avatar</CardTitle>
@@ -147,20 +135,11 @@ return (
               className="rounded-full"
             />
 
-            <h3 className="text-lg font-semibold mt-4 mb-2">{selectedAvatar.avatarName}</h3>
+            <h3 className="text-lg font-semibold mt-4 mb-2">
+              {selectedAvatar.avatarName}
+            </h3>
             <div className="flex gap-2 mb-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Edit className="mr-2 h-3.5 w-3.5" />
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[90vw] sm:max-w-[500px]">
-                  <EditAvatarForm avatar={selectedAvatar} />
-                </DialogContent>
-              </Dialog>
-
+              <EditAvatarDialog selectedAvatar={selectedAvatar} />
               <Button
                 type="button"
                 size="sm"
@@ -179,5 +158,5 @@ return (
         </CardFooter>
       </form>
     </Card>
-  )
+  );
 }

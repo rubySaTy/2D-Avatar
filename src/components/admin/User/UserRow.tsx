@@ -1,11 +1,8 @@
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
 import UpdateCreditsForm from "./UpdateCreditsForm";
-import { EditUserForm } from "./UserForm";
 import DeleteUserButton from "./DeleteUserButton";
+import { EditUserDialog } from "./UserDialog";
 import type { UserDto } from "@/lib/db/schema";
 
 type UserRowProps = {
@@ -54,17 +51,7 @@ export default function UserRow({ user, currentUserId }: UserRowProps) {
       <TableCell>
         {!isCurrentUser && (
           <div className="flex space-x-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <EditUserForm user={user} />
-              </DialogContent>
-            </Dialog>
-
+            <EditUserDialog user={user} />
             <DeleteUserButton userId={user.id} />
           </div>
         )}

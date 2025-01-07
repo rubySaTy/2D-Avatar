@@ -1,12 +1,10 @@
 import Image from "next/image";
-import { Pencil, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
-import { AdminEditAvatarForm } from "./AvatarForm";
+import { AdminEditAvatarDialog } from "./AvatarDialog";
 import DeleteAvatarButton from "./DeleteAvatarButton";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 
@@ -68,23 +66,12 @@ export default async function AvatarCard({
           )}
         </ScrollArea>
         <div className="flex justify-end gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Pencil className="mr-2 h-3.5 w-3.5" />
-                Edit
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <AdminEditAvatarForm
-                avatar={avatar}
-                users={users}
-                associatedUsers={associatedUsers}
-                currentUserId={currentUser.id}
-              />
-            </DialogContent>
-          </Dialog>
-
+          <AdminEditAvatarDialog
+            avatar={avatar}
+            users={users}
+            associatedUsers={associatedUsers}
+            currentUserId={currentUser.id}
+          />
           <DeleteAvatarButton avatarId={avatar.id} />
         </div>
       </CardContent>

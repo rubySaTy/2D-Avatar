@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { uploadClonedVoice } from "@/app/actions/admin";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -19,10 +19,18 @@ import type { Avatar } from "@/lib/db/schema";
 
 interface CreateClonedVoiceFormProps {
   avatars: Array<Avatar>;
+  onClose: () => void;
 }
 
-export default function CreateClonedVoiceForm({ avatars }: CreateClonedVoiceFormProps) {
+export default function CreateClonedVoiceForm({
+  avatars,
+  onClose,
+}: CreateClonedVoiceFormProps) {
   const [state, formAction] = useActionState(uploadClonedVoice, null);
+
+  useEffect(() => {
+    if (state?.success) onClose();
+  }, [state, onClose]);
 
   return (
     <form action={formAction} className="space-y-6">

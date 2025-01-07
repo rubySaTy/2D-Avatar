@@ -9,14 +9,11 @@ import UserRow from "./UserRow";
 import { getUser } from "@/lib/auth";
 import { getUsersDto } from "@/services";
 
-
-
 export default async function UserTable() {
   const currentUser = await getUser();
   if (!currentUser) return null;
 
   const users = await getUsersDto();
-
   const sortedUsers = users.sort((a, b) => {
     const dateA = new Date(a.createdAt);
     const dateB = new Date(b.createdAt);

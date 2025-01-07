@@ -12,9 +12,10 @@ import type { Image as OpenAIImage } from "openai/resources/images.mjs";
 
 interface AIAvatarFormProps {
   withImage?: boolean;
+  onClose: () => void;
 }
 
-export function CreateAIAvatarForm({ withImage = false }: AIAvatarFormProps) {
+export function CreateAIAvatarForm({ withImage = false, onClose }: AIAvatarFormProps) {
   const [images, setImages] = useState<OpenAIImage[]>([]);
 
   const handleGenerate = (newImages: OpenAIImage[]) => {
@@ -43,7 +44,11 @@ export function CreateAIAvatarForm({ withImage = false }: AIAvatarFormProps) {
       {images.length === 0 ? (
         FormComponent
       ) : (
-        <SelectAndCreateAvatar images={images} onRegenerate={handleRegenerate} />
+        <SelectAndCreateAvatar
+          images={images}
+          onRegenerate={handleRegenerate}
+          onClose={onClose}
+        />
       )}
     </div>
   );
