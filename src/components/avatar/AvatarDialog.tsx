@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Brain, Edit, Image as LucideImage, Pencil, Upload } from "lucide-react";
+import { Brain, Edit, Image as LucideImage, Pencil, Upload, Wand2 } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -70,11 +70,23 @@ export function CreateAvatarDialog() {
 export function CreateAIAvatarDialog({ withImage }: { withImage: boolean }) {
   const [open, setOpen] = useState(false);
 
+  const menuItemContent = withImage ? (
+    <>
+      <Wand2 className="mr-2 h-4 w-4" />
+      Photo + LLM
+    </>
+  ) : (
+    <>
+      <Brain className="mr-2 h-4 w-4" />
+      LLM Generation
+    </>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Brain className="mr-2 h-4 w-4" /> LLM Generation
+          {menuItemContent}
         </DropdownMenuItem>
       </DialogTrigger>
       <DialogContent>
