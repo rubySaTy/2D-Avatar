@@ -25,7 +25,7 @@ export async function createAvatarData(
 
   try {
     // 1) process image/video
-    const { imageUrl, imageKey, createdIdleVideoRes } = await processAvatarAndVideo(
+    const { imageUrl, imageKey } = await processAvatarAndUploadToS3(
       avatarName,
       imageInput
     );
@@ -33,6 +33,8 @@ export async function createAvatarData(
     // store key for potential s3 cleanup if something goes wrong later
     s3ImageKey = imageKey;
 
+    // 2) create idle video
+    const createdIdleVideoRes = await createIdleVideo(imageUrl);
     const newAvatar: NewAvatar = {
       avatarName,
       imageKey,
@@ -41,7 +43,7 @@ export async function createAvatarData(
       isPublic,
     };
 
-    // 2) insert avatar in DB
+    // 3) insert avatar in DB
     await db.transaction(async (tx) => {
       const [createdAvatar] = await tx.insert(avatars).values(newAvatar).returning();
 
@@ -52,7 +54,7 @@ export async function createAvatarData(
 
       await tx.insert(usersToAvatars).values(associations);
 
-      // 3) store the new avatar ID in Redis for incoming webhook
+      // 4) store the new avatar ID in Redis for incoming webhook
       redis.set(createdIdleVideoRes.id, createdAvatar.id, { ex: 300 });
     });
   } catch (error) {
@@ -76,65 +78,85 @@ export async function editAvatarData(
   imageFile?: File,
   associatedUsersIds?: string[]
 ) {
-  // 1) Prepare files to delete
+  // 1) Prepare files to delete (if any)
   const filesToDelete: string[] = [];
+  let newS3ImageKey: string | null = null; // keep track of the uploaded S3 key
 
   // 2) prepare update object for avatar
   const updateData: Partial<NewAvatar> = {
     avatarName,
   };
 
-  // 3) process image/video if user has uploaded a new one
-  if (imageFile && imageFile.size > 0) {
-    const { imageKey, imageUrl, createdIdleVideoRes } = await processAvatarAndVideo(
-      avatarName,
-      imageFile
-    );
+  try {
+    if (imageFile && imageFile.size > 0) {
+      // 3) process image/video if user has uploaded a new one
+      const { imageKey, imageUrl } = await processAvatarAndUploadToS3(
+        avatarName,
+        imageFile
+      );
 
-    // 4) update object with new key of new image file
-    updateData.imageKey = imageKey;
-    updateData.imageUrl = imageUrl;
+      // store key for potential s3 cleanup if something goes wrong later
+      newS3ImageKey = imageKey;
 
-    // 5) Mark old files for deletion
-    if (existingAvatar.imageKey) filesToDelete.push(existingAvatar.imageKey);
-    if (existingAvatar.idleVideoKey) filesToDelete.push(existingAvatar.idleVideoKey);
+      // 4) create idle video
+      const createdIdleVideoRes = await createIdleVideo(imageUrl);
 
-    // 6) store Avatar ID in Redis for incoming webhook
-    redis.set(createdIdleVideoRes.id, existingAvatar.id, { ex: 300 });
-  }
+      // 5) update object with new key of new image file
+      updateData.imageKey = imageKey;
+      updateData.imageUrl = imageUrl;
 
-  // 7) update avatar
-  await db.transaction(async (tx) => {
-    await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
+      // 6) Mark old files for deletion
+      filesToDelete.push(existingAvatar.imageKey);
+      if (existingAvatar.idleVideoKey) filesToDelete.push(existingAvatar.idleVideoKey);
 
-    if (!associatedUsersIds) return;
-
-    const existingAssociations = await tx
-      .select({ userId: usersToAvatars.userId })
-      .from(usersToAvatars)
-      .where(eq(usersToAvatars.avatarId, avatarId));
-
-    const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
-
-    if (
-      existingUserIds.length !== associatedUsersIds.length ||
-      !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
-    ) {
-      // 8) Delete existing user associations
-      await tx.delete(usersToAvatars).where(eq(usersToAvatars.avatarId, avatarId));
-
-      // 9) Insert new user associations (if any)
-      const associations = associatedUsersIds.map((userId) => ({
-        userId,
-        avatarId,
-      }));
-
-      if (associations.length > 0) await tx.insert(usersToAvatars).values(associations);
+      // 7) store Avatar ID in Redis for incoming webhook
+      redis.set(createdIdleVideoRes.id, existingAvatar.id, { ex: 300 });
     }
-  });
 
-  // 10) Delete old S3 files after successful upload and database transaction
-  if (filesToDelete.length > 0) await deleteS3Objects(filesToDelete);
+    // 8) update avatar
+    await db.transaction(async (tx) => {
+      await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
+
+      if (!associatedUsersIds) return;
+
+      const existingAssociations = await tx
+        .select({ userId: usersToAvatars.userId })
+        .from(usersToAvatars)
+        .where(eq(usersToAvatars.avatarId, avatarId));
+
+      const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
+
+      if (
+        existingUserIds.length !== associatedUsersIds.length ||
+        !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
+      ) {
+        // 9) Delete existing user associations
+        await tx.delete(usersToAvatars).where(eq(usersToAvatars.avatarId, avatarId));
+
+        // 10) Insert new user associations (if any)
+        const associations = associatedUsersIds.map((userId) => ({
+          userId,
+          avatarId,
+        }));
+
+        if (associations.length > 0) await tx.insert(usersToAvatars).values(associations);
+      }
+    });
+
+    // 11) Delete old S3 files after successful upload and database transaction
+    if (filesToDelete.length > 0) await deleteS3Objects(filesToDelete);
+  } catch (error) {
+    if (newS3ImageKey) {
+      await deleteS3Objects([newS3ImageKey]).catch((deleteError) => {
+        console.error(
+          "Error while cleaning up the S3 file after a failed operation:",
+          deleteError
+        );
+      });
+    }
+
+    throw error;
+  }
 }
 
 export async function removeAvatar(avatarId: number) {
@@ -198,7 +220,7 @@ export async function getAvatarsWithAssociatedUsers(): Promise<AvatarWithUsersDt
   }));
 }
 
-async function processAvatarAndVideo(avatarName: string, imageInput: File | Buffer) {
+async function processAvatarAndUploadToS3(avatarName: string, imageInput: File | Buffer) {
   const sanitizedAvatarName = sanitizeString(avatarName);
 
   // Handle filename differently based on input type
@@ -219,8 +241,7 @@ async function processAvatarAndVideo(avatarName: string, imageInput: File | Buff
     contentType
   );
 
-  const createdIdleVideoRes = await createIdleVideo(imageUrl);
-  return { imageUrl, imageKey, createdIdleVideoRes };
+  return { imageUrl, imageKey };
 }
 
 export async function getAvatarsByVoiceId(voiceId: string) {
