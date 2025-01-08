@@ -1,6 +1,9 @@
 import "server-only";
 
 import { db } from "@/lib/db/db";
+import { redis } from "@/lib/integrations/redis";
+import didApi from "@/lib/d-idApi";
+import { eq, inArray } from "drizzle-orm";
 import {
   usersToAvatars,
   avatars,
@@ -9,10 +12,8 @@ import {
   type AvatarWithUsersDto,
 } from "@/lib/db/schema";
 import { sanitizeString, sanitizeFileName } from "@/lib/utils";
-import { eq, inArray } from "drizzle-orm";
-import { createIdleVideo } from "./d-idService";
 import { deleteS3Objects, uploadToS3 } from "./s3Service";
-import { redis } from "@/lib/integrations/redis";
+import type { DIDCreateTalkResponse } from "@/lib/types";
 
 export async function createAvatarData(
   avatarName: string,
@@ -34,7 +35,7 @@ export async function createAvatarData(
     s3ImageKey = imageKey;
 
     // 2) create idle video
-    const createdIdleVideoRes = await createIdleVideo(imageUrl);
+    const createdIdleVideoRes = await createIdleDIDVideo(imageUrl);
     const newAvatar: NewAvatar = {
       avatarName,
       imageKey,
@@ -99,7 +100,7 @@ export async function editAvatarData(
       newS3ImageKey = imageKey;
 
       // 4) create idle video
-      const createdIdleVideoRes = await createIdleVideo(imageUrl);
+      const createdIdleVideoRes = await createIdleDIDVideo(imageUrl);
 
       // 5) update object with new key of new image file
       updateData.imageKey = imageKey;
@@ -242,6 +243,25 @@ async function processAvatarAndUploadToS3(avatarName: string, imageInput: File |
   );
 
   return { imageUrl, imageKey };
+}
+
+async function createIdleDIDVideo(imageUrl: string) {
+  const res = await didApi.post<DIDCreateTalkResponse>("", {
+    source_url: imageUrl,
+    driver_url: "bank://lively/driver-06",
+    script: {
+      type: "text",
+      ssml: true,
+      input: '<break time="5000ms"/><break time="5000ms"/><break time="4000ms"/>',
+      provider: {
+        type: "microsoft",
+        voice_id: "en-US-JennyNeural",
+      },
+    },
+    config: { fluent: true },
+    webhook: `${process.env.WEBHOOK_URL}`,
+  });
+  return res.data;
 }
 
 export async function getAvatarsByVoiceId(voiceId: string) {

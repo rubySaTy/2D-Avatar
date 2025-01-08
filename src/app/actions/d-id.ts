@@ -4,15 +4,17 @@ import didApi from "@/lib/d-idApi";
 import { AxiosError } from "axios";
 import { createTalkStreamSchema } from "@/lib/validationSchema";
 import {
-  createTalkStream,
-  createWebRTCStream,
   getMeetingSession,
   createTalkInDb,
   removeCredits,
   updateMeetingSessionWithWebRTCData,
 } from "@/services";
-import { type NewTalk } from "@/lib/db/schema";
-import type { VoiceProviderConfig } from "@/lib/types";
+import type { NewTalk } from "@/lib/db/schema";
+import type {
+  DIDCreateTalkStreamResponse,
+  DIDCreateWebRTCStreamResponse,
+  VoiceProviderConfig,
+} from "@/lib/types";
 
 export async function sendICECandidate(
   streamId: string,
@@ -122,12 +124,28 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
   }
 
   try {
-    const newTalkStream = await createTalkStream(
-      didStreamId,
-      didSessionId,
-      voiceProvider,
-      message
+    const res = await didApi.post<DIDCreateTalkStreamResponse>(
+      `/streams/${didStreamId}`,
+      {
+        script: {
+          type: "text",
+          provider: voiceProvider,
+          ssml: "false",
+          input: message,
+        },
+        config: { fluent: true, pad_audio: "0.0" },
+        session_id: didSessionId,
+      },
+      {
+        headers: {
+          "x-api-key-external": JSON.stringify({
+            elevenlabs: process.env.ELEVENLABS_API_KEY,
+          }),
+        },
+      }
     );
+
+    const newTalkStream = res.data;
 
     if (user.role !== "admin") {
       await removeCredits(userId, 0.5, "Created a talk/stream");
@@ -154,14 +172,19 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
 export async function createDIDStream(meetingLink: string) {
   if (!meetingLink) return null;
 
-  const meetingSessionData = await getMeetingSession(meetingLink);
-  if (!meetingSessionData) return null;
-
-  const { avatar } = meetingSessionData;
-  const didWebRTCStreamData = await createWebRTCStream(avatar.imageUrl);
-  if (!didWebRTCStreamData) return null;
-
   try {
+    const meetingSessionData = await getMeetingSession(meetingLink);
+    if (!meetingSessionData) return null;
+
+    const { avatar } = meetingSessionData;
+
+    const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>("/streams", {
+      source_url: avatar.imageUrl,
+      stream_warmup: true,
+    });
+
+    const didWebRTCStreamData = sessionResponse.data;
+
     await updateMeetingSessionWithWebRTCData(didWebRTCStreamData, meetingLink);
     return didWebRTCStreamData;
   } catch (error) {
