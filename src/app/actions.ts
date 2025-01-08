@@ -29,30 +29,37 @@ export async function createSession(prevState: any, formData: FormData) {
 export async function transcribeAndBroadcast(audioFile: File, meetingLink: string) {
   if (!meetingLink || !audioFile) return;
 
-  const transcribe = await openAI.audio.transcriptions.create({
-    file: audioFile,
-    model: "whisper-1",
-  });
+  try {
+    const transcribe = await openAI.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+    });
 
-  const cipherKey = await getMeetingSessionCipherKey(meetingLink);
+    const cipherKey = await getMeetingSessionCipherKey(meetingLink);
 
-  if (!cipherKey) {
-    console.error("Cipher key not found for meeting link:", meetingLink);
-    throw new Error("Failed to get cipher key");
+    if (!cipherKey) {
+      console.error("Cipher key not found for meeting link:", meetingLink);
+      return;
+    }
+
+    await ablyRest.channels
+      .get(`meeting:${meetingLink}`, { cipher: { key: cipherKey } })
+      .publish("transcript", { transcribedText: transcribe.text });
+  } catch (error) {
+    console.error(error);
   }
-
-  await ablyRest.channels
-    .get(`meeting:${meetingLink}`, { cipher: { key: cipherKey } })
-    .publish("transcript", { transcribedText: transcribe.text });
 }
 
 export async function Transcribe(audioFile: File) {
   if (!audioFile) return;
+  try {
+    const transcribe = await openAI.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+    });
 
-  const transcribe = await openAI.audio.transcriptions.create({
-    file: audioFile,
-    model: "whisper-1",
-  });
-
-  return transcribe.text;
+    return transcribe.text;
+  } catch (error) {
+    console.error(error);
+  }
 }

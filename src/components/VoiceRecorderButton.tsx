@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 import { transcribeAndBroadcast } from "@/app/actions";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { MicOff, Mic } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
   // Pass in a callback that handles what to do with the audioFile
@@ -14,8 +13,6 @@ export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
       await transcribeAndBroadcast(audioFile, meetingLink);
     },
   });
-
-  const isMobile = useIsMobile();
 
   const handleRecordingToggle = () => {
     if (isRecording) {
@@ -48,7 +45,7 @@ export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
       >
         {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
       </motion.div>
-      <span className="hidden sm:inline">
+      <span className="hidden md:inline">
         {isRecording ? "Stop Recording" : "Start Recording"}
       </span>
     </Button>

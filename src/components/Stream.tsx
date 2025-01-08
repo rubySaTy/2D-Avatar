@@ -27,15 +27,39 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
 
   // Get container classes based on current state
   const getContainerClasses = () => {
-    const baseClasses =
-      "relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg overflow-hidden";
+    const baseClasses = "bg-gray-900";
 
     if (isMobileLandscape) {
-      // Updated mobile landscape classes to ensure proper fitting
-      return `fixed inset-0 z-50 flex items-center justify-center h-screen w-screen ${baseClasses}`;
+      return `fixed inset-0 z-50 ${baseClasses} flex justify-center items-center`;
     }
 
-    return `aspect-video max-w-5xl mx-auto ${baseClasses}`;
+    if (isMobile) {
+      return `fixed inset-0 z-50 ${baseClasses} flex items-center`;
+    }
+
+    return "aspect-video max-w-5xl mx-auto rounded-lg bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden";
+  };
+
+  // Get video wrapper classes based on device and orientation
+  const getVideoWrapperClasses = () => {
+    if (isMobileLandscape) {
+      return "h-full aspect-[9/16]"; // Force portrait aspect ratio in landscape
+    }
+    if (isMobile) {
+      return "w-full";
+    }
+    return "w-full h-full relative";
+  };
+
+  // Get video classes based on device and orientation
+  const getVideoClasses = () => {
+    if (isMobileLandscape) {
+      return "h-full w-auto max-w-none";
+    }
+    if (isMobile) {
+      return "w-full h-auto";
+    }
+    return "w-full h-full object-contain";
   };
 
   return (
@@ -47,7 +71,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative w-full h-full"
+            className={getVideoWrapperClasses()}
           >
             {/* Connection status indicator */}
             <ConnectionStatus isConnected={isConnected} />
@@ -57,7 +81,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: videoIsPlaying ? 0 : 1 }}
               transition={{ duration: 0.5 }}
-              className="w-full h-full object-contain"
+              className={getVideoClasses()}
               src={idleVideoUrl}
               autoPlay
               loop
@@ -71,7 +95,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: videoIsPlaying ? 1 : 0 }}
               transition={{ duration: 0.5 }}
-              className="w-full h-full object-contain absolute top-0 left-0"
+              className={`absolute top-0 left-0 ${getVideoClasses()}`}
               autoPlay
               playsInline
             />
@@ -175,7 +199,7 @@ function Controls({
         disabled={!videoIsPlaying}
       >
         <StopCircle className="w-4 h-4" />
-        <span className="hidden sm:inline">Stop & Restart</span>
+        <span className="hidden md:inline">Stop & Restart</span>
       </Button>
       <VoiceRecorderButton meetingLink={meetingLink} />
     </div>
