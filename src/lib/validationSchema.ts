@@ -38,6 +38,11 @@ export const editUserSchema = baseUserSchema.extend({
   userId: userIdSchema,
 });
 
+export const updateUserSchema = z.object({
+  username: usernameField,
+  email: emailField,
+});
+
 export const loginUserSchema = z.object({
   identifier: z.union([usernameField, emailField]),
   password: passwordField,
@@ -56,6 +61,17 @@ export const resetPasswordSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must match",
     path: ["confirmPassword"], // This targets the specific field where the error will show
+  });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    password: passwordField,
+    confirmPassword: passwordField,
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
   });
 
 export const createTalkStreamSchema = z

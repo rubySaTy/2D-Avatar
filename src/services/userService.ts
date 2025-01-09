@@ -27,11 +27,11 @@ export async function createUserInDB(
   await db.insert(users).values(newUser);
 }
 
-export async function editUserInDB(
+export async function updateUserInDB(
   existingUser: User,
   username: string,
   email: string,
-  role: "admin" | "therapist"
+  role?: "admin" | "therapist"
 ) {
   const updates: Partial<NewUser> = {
     username,
@@ -41,10 +41,16 @@ export async function editUserInDB(
 
   const roleChanged = role && existingUser.role !== role;
   if (roleChanged) updates.role = role;
-  await db.update(users).set(updates).where(eq(users.id, existingUser.id));
+  const [updatedUser] = await db
+    .update(users)
+    .set(updates)
+    .where(eq(users.id, existingUser.id))
+    .returning();
 
   // If user role has changed, delete their sessions to sign them out.
   if (roleChanged) await db.delete(sessions).where(eq(sessions.userId, existingUser.id));
+
+  return updatedUser;
 }
 
 export async function findUserByUsernameOrEmail(
@@ -104,7 +110,9 @@ export async function clearResetToken(userId: string) {
     .where(eq(users.id, userId));
 }
 
-export async function updateUserPassword(userId: string, hashedPassword: string) {
+export async function updateUserPassword(userId: string, password: string) {
+  const hashedPassword = await argon2.hash(password);
+
   await db
     .update(users)
     .set({ passwordHash: hashedPassword })
@@ -147,4 +155,8 @@ export async function getUserCredits(userId: string, userRole: string) {
 
 export async function deleteUserById(userId: string) {
   await db.delete(users).where(eq(users.id, userId));
+}
+
+export async function verifyUserPassword(passwordHash: string, password: string) {
+  return argon2.verify(passwordHash, password);
 }

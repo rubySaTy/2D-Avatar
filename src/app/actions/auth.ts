@@ -19,6 +19,7 @@ import {
   findUserByUsernameOrEmail,
   setResetToken,
   updateUserPassword,
+  verifyUserPassword,
 } from "@/services";
 import { sendPasswordResetEmail } from "@/lib/integrations/resend";
 import type { ActionResponse } from "@/lib/types";
@@ -61,7 +62,7 @@ export async function loginUser(
 
     if (!user) return { success: false, message: "Invalid credentials", inputs: rawData };
 
-    const isValidPassword = await argon2.verify(user.passwordHash, password);
+    const isValidPassword = await verifyUserPassword(user.passwordHash, password);
     if (!isValidPassword)
       return { success: false, message: "Invalid credentials", inputs: rawData };
 
@@ -178,8 +179,7 @@ export async function resetPassword(
         inputs: rawData,
       };
 
-    const hashedPassword = await argon2.hash(password);
-    await updateUserPassword(user.id, hashedPassword);
+    await updateUserPassword(user.id, password);
     await clearResetToken(user.id);
     return { success: true, message: "Password reset was successful" };
   } catch (error) {

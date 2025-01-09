@@ -8,7 +8,6 @@ import {
   editAvatarSchema,
   editUserSchema,
   updateCreditsSchema,
-  userIdSchema,
 } from "@/lib/validationSchema";
 import { isDbError } from "@/lib/typeGuards";
 import {
@@ -16,9 +15,8 @@ import {
   updateUserCredits,
   updateManyAvatars,
   createUserInDB,
-  editUserInDB,
+  updateUserInDB,
   getUserByID,
-  deleteUserById,
   getAvatarById,
   editAvatarData,
   createAvatarData,
@@ -116,7 +114,7 @@ export async function editUserAction(
     if (!existingUser)
       return { success: false, message: "User not found.", inputs: rawData };
 
-    await editUserInDB(existingUser, username, email, role);
+    await updateUserInDB(existingUser, username, email, role);
     revalidatePath("/admin");
     return { success: true, message: "User updated successfully." };
   } catch (error) {
@@ -136,24 +134,6 @@ export async function editUserAction(
     }
 
     return { success: false, message: "An unexpected error occurred" };
-  }
-}
-
-export async function deleteUserAction(userId: string) {
-  if (!(await isAdmin())) return;
-
-  const parsedData = userIdSchema.safeParse(userId);
-
-  if (!parsedData.success) {
-    console.error(parsedData.error);
-    return;
-  }
-
-  try {
-    await deleteUserById(parsedData.data);
-    revalidatePath("/admin");
-  } catch (error) {
-    console.error("Error deleting user:", error);
   }
 }
 

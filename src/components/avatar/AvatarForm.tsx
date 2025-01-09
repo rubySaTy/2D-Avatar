@@ -85,28 +85,26 @@ function BaseAvatarForm({
           />
         </div>
 
-        {/* Only Admins can edit images */}
-        {initialData && users && associatedUsers && currentUserId && (
-          <>
-            <Separator />
-            <ImageUploader
-              title="Drag & drop an image here, or click to select"
-              description="Supports: JPEG, JPG, PNG"
-              accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
-              existingImageUrl={initialData?.imageUrl}
-              isFormSubmitted={isPending}
-              isValidationError={!!state?.errors?.imageFile?.[0]}
-            />
-            {state?.errors?.imageFile && (
-              <p
-                id={`image-file-error`}
-                className="text-sm text-destructive [&>svg]:text-destructive"
-              >
-                {state.errors.imageFile[0]}
-              </p>
-            )}
-          </>
-        )}
+        {/* TODO: Only allow admins to edit images? */}
+        <>
+          <Separator />
+          <ImageUploader
+            title="Drag & drop an image here, or click to select"
+            description="Supports: JPEG, JPG, PNG"
+            accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
+            existingImageUrl={initialData?.imageUrl}
+            isFormSubmitted={isPending}
+            isValidationError={!!state?.errors?.imageFile?.[0]}
+          />
+          {state?.errors?.imageFile && (
+            <p
+              id={`image-file-error`}
+              className="text-sm text-destructive [&>svg]:text-destructive"
+            >
+              {state.errors.imageFile[0]}
+            </p>
+          )}
+        </>
 
         {/* 
           If users/associatedUsers/currentUserId are passed in, 

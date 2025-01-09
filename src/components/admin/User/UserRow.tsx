@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
 import UpdateCreditsForm from "./UpdateCreditsForm";
-import DeleteUserButton from "./DeleteUserButton";
+import DeleteUserButton from "@/components/user/DeleteUserButton";
 import { EditUserDialog } from "./UserDialog";
 import type { UserDto } from "@/lib/db/schema";
 

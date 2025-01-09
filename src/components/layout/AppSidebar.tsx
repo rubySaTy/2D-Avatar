@@ -36,9 +36,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { User } from "lucia";
-import Logout from "@/components/auth/Logout";
 import { ModeToggle } from "./dark-mode-toggle";
+import { logout } from "@/app/actions/auth";
 
 const data = {
   navMain: [
@@ -143,9 +144,13 @@ export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) 
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem>
-                  <User2 className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <div className="flex items-center">
+                      <User2 className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </div>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <CreditCard className="mr-2 h-4 w-4" />
@@ -157,8 +162,12 @@ export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) 
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <Logout />
+                  <button onClick={() => logout()}>
+                    <div className="flex items-center">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign out
+                    </div>
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

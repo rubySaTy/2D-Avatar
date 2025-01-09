@@ -125,6 +125,12 @@ export interface BaseAvatarFormData {
   imageFile?: File;
 }
 
+export interface ChangePasswordFormData {
+  currentPassword: string;
+  password: string;
+  confirmPassword: string;
+}
+
 interface GenerateAIAvatarFormData {
   prompt: string;
   imageFile?: File;
