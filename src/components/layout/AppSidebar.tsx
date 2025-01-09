@@ -145,7 +145,7 @@ export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) 
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">
+                  <Link href="/profile" className="cursor-pointer">
                     <div className="flex items-center">
                       <User2 className="mr-2 h-4 w-4" />
                       <span>Profile</span>
@@ -161,12 +161,13 @@ export function AppSidebar({ currentUser, credits, ...props }: AppSidebarProps) 
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <button onClick={() => logout()}>
-                    <div className="flex items-center">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </div>
+                <DropdownMenuItem asChild>
+                  <button
+                    onClick={() => logout()}
+                    className="flex items-center w-full cursor-pointer"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
                   </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
