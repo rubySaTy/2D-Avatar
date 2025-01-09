@@ -32,10 +32,12 @@ export async function POST(req: Request) {
 
   // Style and tone instructions remain stable and separate:
   const styleMessage: OpenAIChatMessage = {
-    role: "system",
-    content: `Your response will be spoken as if out loud. Do not add meta commentary. ${getToneInstruction(
-      tone
-    )}`,
+    role: "developer",
+    content: `You are generating responses intended to be spoken aloud by a Text-to-Speech (TTS) system. 
+  Ensure your output contains only content that can be verbalized naturally. Avoid including any meta commentary, such as descriptions of actions, sounds, or non-verbal expressions (e.g., sighs deeply, laughs). 
+  Focus on producing clear, conversational, and natural speech suitable for direct verbalization. ${getToneInstruction(
+    tone
+  )}`,
   };
 
   // Check if persona instructions are already present

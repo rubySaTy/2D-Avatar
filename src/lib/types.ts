@@ -93,7 +93,7 @@ export interface PollConfig<T> extends RetryConfig {
 }
 
 export interface OpenAIChatMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "developer";
   content: string;
 }
 
