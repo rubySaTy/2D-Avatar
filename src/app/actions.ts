@@ -30,17 +30,16 @@ export async function transcribeAndBroadcast(audioFile: File, meetingLink: strin
   if (!meetingLink || !audioFile) return;
 
   try {
-    const transcribe = await openAI.audio.transcriptions.create({
-      file: audioFile,
-      model: "whisper-1",
-    });
-
     const cipherKey = await getMeetingSessionCipherKey(meetingLink);
-
     if (!cipherKey) {
       console.error("Cipher key not found for meeting link:", meetingLink);
       return;
     }
+
+    const transcribe = await openAI.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+    });
 
     await ablyRest.channels
       .get(`meeting:${meetingLink}`, { cipher: { key: cipherKey } })
@@ -50,7 +49,7 @@ export async function transcribeAndBroadcast(audioFile: File, meetingLink: strin
   }
 }
 
-export async function Transcribe(audioFile: File) {
+export async function transcribe(audioFile: File) {
   if (!audioFile) return;
   try {
     const transcribe = await openAI.audio.transcriptions.create({

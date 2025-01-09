@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { OpenAIChatMessage } from "@/lib/types";
 
 interface LLMConfig {
-  therapistPersona: string;
+  personaPrompt: string;
   style: string;
   intensity: number;
 }
@@ -27,7 +27,7 @@ export function useLLMResponse(config: LLMConfig) {
     const body = {
       message,
       conversationHistory: history,
-      therapistPersona: config.therapistPersona,
+      personaPrompt: config.personaPrompt,
       tone: `${config.style}:${config.intensity}`,
       model,
     };

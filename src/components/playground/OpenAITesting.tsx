@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Transcribe } from "@/app/actions";
+import { transcribe } from "@/app/actions";
 import { transcribedTextSchema } from "@/lib/validationSchema";
 import { Loader2 } from "lucide-react";
 import { StyleSelector } from "@/components/therapist/therapist-session-panel/StyleSelector";
@@ -46,7 +46,7 @@ const EXAMPLE_SYSTEM_PROMPT =
   "A 30-year-old wife named Sarah in marriage counseling, who feels hurt due to her husband’s emotional distance. She’s empathetic but needs to express her feelings more assertively so that he understands how neglected she feels. She genuinely loves him but is frustrated by his lack of engagement.";
 
 export default function OpenAITesting() {
-  const [therapistPersona, setTherapistPersona] = useState("");
+  const [personaPrompt, setPersonaPrompt] = useState("");
 
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
   const [llmPartialResponse, setLlmPartialResponse] = useState("");
@@ -59,7 +59,7 @@ export default function OpenAITesting() {
     useMessageHistory();
 
   const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse({
-    therapistPersona,
+    personaPrompt,
     style: selectedStyle,
     intensity: styleIntensity,
   });
@@ -150,7 +150,7 @@ export default function OpenAITesting() {
         });
 
         try {
-          const transcribedText = await Transcribe(audioFile);
+          const transcribedText = await transcribe(audioFile);
           if (!transcribedText) return;
           sendMessage(transcribedText);
         } catch (transcribeError) {
@@ -180,8 +180,8 @@ export default function OpenAITesting() {
           <div className="space-y-2 mb-6">
             <h2 className="text-lg font-semibold">System Prompt</h2>
             <Textarea
-              value={therapistPersona}
-              onChange={(e) => setTherapistPersona(e.target.value)}
+              value={personaPrompt}
+              onChange={(e) => setPersonaPrompt(e.target.value)}
               placeholder={`Example: ${EXAMPLE_SYSTEM_PROMPT}`}
               className="min-h-[100px] text-base resize-none"
             />

@@ -15,7 +15,7 @@ import { StyleSelector } from "./StyleSelector";
 import { Loader2 } from "lucide-react";
 import { useMessageHistory } from "@/hooks/useMessageHistory";
 import { useLLMResponse } from "@/hooks/useLLMResponse";
-import { Label } from "@/components/ui/label";
+import { LLMPersonaPrompt } from "./LLMPersonaPrompt";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -28,15 +28,12 @@ interface TherapistInteractionPanelProps {
   };
 }
 
-const EXAMPLE_SYSTEM_PROMPT =
-  "A 30-year-old wife named Sarah in marriage counseling, who feels hurt due to her husband’s emotional distance. She’s empathetic but needs to express her feelings more assertively so that he understands how neglected she feels. She genuinely loves him but is frustrated by his lack of engagement.";
-
 export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
   const [state, formAction] = useActionState(submitMessageToDID, null);
-  const [therapistPersona, setTherapistPersona] = useState("");
+  const [personaPrompt, setPersonaPrompt] = useState("");
 
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -48,7 +45,7 @@ export default function TherapistInteractionPanel({
     useMessageHistory();
 
   const { isGenerating, generateResponse, regenerateResponse } = useLLMResponse({
-    therapistPersona,
+    personaPrompt,
     style: selectedStyle,
     intensity: styleIntensity,
   });
@@ -115,18 +112,10 @@ export default function TherapistInteractionPanel({
     <div className="container mx-auto p-4">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-3/4 space-y-8">
-          <div className="space-y-2 mb-6">
-            <Label htmlFor="system-prompt" className="text-lg font-semibold">
-              System Prompt
-            </Label>
-            <Textarea
-              id="system-prompt"
-              value={therapistPersona}
-              onChange={(e) => setTherapistPersona(e.target.value)}
-              placeholder={`Example: ${EXAMPLE_SYSTEM_PROMPT}`}
-              className="min-h-[100px] text-base resize-none"
-            />
-          </div>
+          <LLMPersonaPrompt
+            therapistPersona={personaPrompt}
+            setTherapistPersona={setPersonaPrompt}
+          />
 
           {/* Form that sends message to D-ID */}
           <form action={formAction} className="space-y-6" ref={formRef}>

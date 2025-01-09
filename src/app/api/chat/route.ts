@@ -8,7 +8,7 @@ import type { ChatModel } from "openai/resources/index.mjs";
 interface PromptData {
   message: string;
   conversationHistory: OpenAIChatMessage[];
-  therapistPersona: string; // e.g. "the wife in a couples therapy session with the user (your husband)"
+  personaPrompt: string; // e.g. "the wife in a couples therapy session with the user (your husband)"
   tone?: string;
   model?: ChatModel;
 }
@@ -19,12 +19,12 @@ export async function POST(req: Request) {
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
   // 1. Parse the request body -- TODO: add zod validation
-  const { message, conversationHistory, therapistPersona, tone, model }: PromptData =
+  const { message, conversationHistory, personaPrompt, tone, model }: PromptData =
     await req.json();
 
   // 2) add system messages if missing
   // Predefined stable instructions that the therapist does not have to worry about.
-  const personaInstructions = `${process.env.PERSONA_INSTRUCTIONS} Persona: ${therapistPersona}.`;
+  const personaInstructions = `${process.env.PERSONA_INSTRUCTIONS} Persona: ${personaPrompt}.`;
   const personaMessage: OpenAIChatMessage = {
     role: "system",
     content: personaInstructions,
