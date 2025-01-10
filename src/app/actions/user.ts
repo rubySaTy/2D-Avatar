@@ -15,6 +15,7 @@ import {
   verifyUserPassword,
 } from "@/services";
 import { ActionResponse, ChangePasswordFormData } from "@/lib/types";
+import { isDbError } from "@/lib/typeGuards";
 
 export async function deleteUserAction(userId: string) {
   const { user } = await validateRequest();
@@ -122,6 +123,20 @@ export async function updateUserAction(
     };
   } catch (error) {
     console.error("Error updating user:", error);
+
+    // Simple type guard to check if error is a DbError
+    if (isDbError(error) && error.code === "23505") {
+      const constraintMessages: Record<string, string> = {
+        user_username_lower_unique: "Username already exists.",
+        user_email_unique: "Email already exists.",
+      };
+      return {
+        success: false,
+        message: constraintMessages[error.constraint] || "Duplicate entry.",
+        inputs: rawData,
+      };
+    }
+
     return { success: false, message: "An unexpected error occurred.", inputs: rawData };
   }
 }

@@ -41,6 +41,7 @@ export async function updateUserInDB(
 
   const roleChanged = role && existingUser.role !== role;
   if (roleChanged) updates.role = role;
+
   const [updatedUser] = await db
     .update(users)
     .set(updates)

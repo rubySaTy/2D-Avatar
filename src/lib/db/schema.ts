@@ -23,8 +23,8 @@ const timestamps = {
 TODO: "Add user versioning for optimistic concurrency control?";
 export const users = pgTable("user", {
   id: text("id").primaryKey(),
-  username: varchar("username", { length: 255 }).notNull().unique(),
-  usernameLower: varchar("username_lower", { length: 255 }).notNull(),
+  username: varchar("username", { length: 255 }).unique().notNull(),
+  usernameLower: varchar("username_lower", { length: 255 }).unique().notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["admin", "therapist"] }).notNull(),
