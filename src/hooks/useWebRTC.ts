@@ -10,12 +10,14 @@ import {
 interface UseWebRTCStreamOptions {
   meetingLink: string;
   hasStarted: boolean;
+  DIDCodec: string;
   maxReconnectionAttempts?: number;
 }
 
 export function useWebRTCStream({
   meetingLink,
   hasStarted,
+  DIDCodec,
   maxReconnectionAttempts = 5,
 }: UseWebRTCStreamOptions) {
   const [isReady, setIsReady] = useState(false);
@@ -44,8 +46,9 @@ export function useWebRTCStream({
   }, [hasStarted]);
 
   async function initiateConnection() {
-    const sessionResponse = await createDIDStream(meetingLink);
-    if (!sessionResponse || !isMountedRef.current) return;
+    const sessionResponse = await createDIDStream(meetingLink, DIDCodec);
+    if (!sessionResponse || !isMountedRef.current)
+      throw new Error("Failed to create stream.");
 
     const { id: streamId, session_id, offer, ice_servers } = sessionResponse;
     streamIdRef.current = streamId;
@@ -73,11 +76,7 @@ export function useWebRTCStream({
       .then(() => pc.createAnswer())
       .then((answer) => {
         pc.setLocalDescription(answer);
-        if (
-          streamIdRef.current &&
-          sessionIdRef.current &&
-          isMountedRef.current
-        ) {
+        if (streamIdRef.current && sessionIdRef.current && isMountedRef.current) {
           sendSDPAnswer(streamIdRef.current, sessionIdRef.current, {
             type: answer.type,
             sdp: answer.sdp,
@@ -119,8 +118,7 @@ export function useWebRTCStream({
   }
 
   function onIceCandidate(event: RTCPeerConnectionIceEvent) {
-    if (!streamIdRef.current || !sessionIdRef.current || !isMountedRef.current)
-      return;
+    if (!streamIdRef.current || !sessionIdRef.current || !isMountedRef.current) return;
 
     if (event.candidate) {
       sendICECandidate(
@@ -139,10 +137,7 @@ export function useWebRTCStream({
     const pc = pcRef.current;
     if (!pc) return;
 
-    if (
-      pc.iceConnectionState === "connected" ||
-      pc.iceConnectionState === "completed"
-    ) {
+    if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
       setIsReady(true);
       reconnectionAttemptsRef.current = 0;
     } else if (
@@ -216,9 +211,7 @@ export function useWebRTCStream({
       streamVideoRef.current &&
       streamVideoRef.current.srcObject instanceof MediaStream
     ) {
-      streamVideoRef.current.srcObject
-        .getTracks()
-        .forEach((track) => track.stop());
+      streamVideoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       streamVideoRef.current.srcObject = null;
     }
 

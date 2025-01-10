@@ -169,7 +169,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
   }
 }
 
-export async function createDIDStream(meetingLink: string) {
+export async function createDIDStream(meetingLink: string, DIDCodec: string) {
   if (!meetingLink) return null;
 
   try {
@@ -181,6 +181,7 @@ export async function createDIDStream(meetingLink: string) {
     const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>("/streams", {
       source_url: avatar.imageUrl,
       stream_warmup: true,
+      compatibility_mode: DIDCodec, // "on" => VP8 - everything | "off" => H.264 - iOS/Safari (even chrome on iOS)
     });
 
     const didWebRTCStreamData = sessionResponse.data;

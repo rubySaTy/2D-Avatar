@@ -11,14 +11,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface StreamProps {
   meetingLink: string;
   idleVideoUrl: string;
+  DIDCodec: string;
 }
 
-export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
+export default function Stream({ meetingLink, idleVideoUrl, DIDCodec }: StreamProps) {
   const [hasStarted, setHasStarted] = useState(false);
 
   const { isConnected, videoIsPlaying, streamVideoRef, restartStream } = useWebRTCStream({
     meetingLink,
     hasStarted,
+    DIDCodec,
   });
 
   const isMobile = useIsMobile();
