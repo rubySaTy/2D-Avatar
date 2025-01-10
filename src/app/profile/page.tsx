@@ -35,7 +35,7 @@ export default async function ProfilePage() {
               {/* Change Password Card Form */}
               <ChangePasswordFormCard />
 
-              {/* Delete Account Card */}
+              {/* Delete Account Card with Alert Dialog */}
               <DeleteAccountCard userId={currentUser.id} />
             </div>
           </TabsContent>

@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
 import { AdminEditAvatarDialog } from "./AvatarDialog";
-import DeleteAvatarButton from "./DeleteAvatarButton";
+import { DeleteAvatarAlertDialog } from "./DeleteAvatarAlertDialog";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 
 type AvatarCardProps = {
@@ -72,7 +72,7 @@ export default async function AvatarCard({
             associatedUsers={associatedUsers}
             currentUserId={currentUser.id}
           />
-          <DeleteAvatarButton avatarId={avatar.id} />
+          <DeleteAvatarAlertDialog avatarId={avatar.id} />
         </div>
       </CardContent>
     </Card>
