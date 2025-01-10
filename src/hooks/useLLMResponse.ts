@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { OpenAIChatMessage } from "@/lib/types";
+import type { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 
 interface LLMConfig {
   personaPrompt: string;
@@ -18,7 +18,7 @@ export function useLLMResponse(config: LLMConfig) {
    */
   const generateResponse = async (
     message: string,
-    history: OpenAIChatMessage[],
+    history: ChatCompletionMessageParam[],
     onToken?: (token: string) => void,
     model?: string
   ) => {
@@ -56,12 +56,7 @@ export function useLLMResponse(config: LLMConfig) {
         // Decode the chunk
         const chunkValue = decoder.decode(value);
         fullResponse += chunkValue;
-
-        // If you want to show partial text to the user,
-        // call onToken with this chunk
-        if (onToken) {
-          onToken(chunkValue);
-        }
+        onToken?.(chunkValue);
       }
 
       return fullResponse;
@@ -74,25 +69,26 @@ export function useLLMResponse(config: LLMConfig) {
   };
 
   /**
-   * Regenerate the last response with a new system directive
-   * telling the model to ignore the previous assistant message.
+   * Regenerate the last response, instructing the model to ignore
+   * the previous assistant message. We keep the rest of the conversation,
+   * and simply append a new system instruction to override the last assistant response.
    */
   const regenerateResponse = async (
-    history: OpenAIChatMessage[],
+    history: ChatCompletionMessageParam[],
     onToken?: (token: string) => void,
     model?: string
   ) => {
-    // Add a special system message to disregard the last assistant response
-    const tempHistory: OpenAIChatMessage[] = [
+    // Insert a system message at the end telling the model to ignore previous assistant response
+    const tempHistory: ChatCompletionMessageParam[] = [
       ...history,
       {
         role: "system",
         content:
-          "Please ignore your previous assistant response. Provide a new answer to the last user message, keeping the same context and persona but taking a different approach.",
+          "Please ignore your previous assistant response. Provide a new answer to the last user message, keeping the same persona and context but taking a different approach.",
       },
     ];
 
-    // We send an empty user message, but preserve the conversation
+    // Then we call generateResponse with an empty user message (or the same user message, etc.)
     return generateResponse("", tempHistory, onToken, model);
   };
 
