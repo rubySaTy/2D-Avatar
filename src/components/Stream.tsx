@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { PlayCircle, StopCircle } from "lucide-react";
 import { useWebRTCStream } from "@/hooks/useWebRTC";
 import { VoiceRecorderButton } from "./VoiceRecorderButton";
-import { useIsLandscape, useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StreamProps {
   meetingLink: string;
@@ -22,44 +22,14 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
   });
 
   const isMobile = useIsMobile();
-  const isLandscape = useIsLandscape();
-  const isMobileLandscape = isMobile && isLandscape;
 
-  // Get container classes based on current state
+  // unify mobile (portrait or landscape) to a "fixed" full-screen container
+  // and keep a separate style for desktop
   const getContainerClasses = () => {
-    const baseClasses = "bg-gray-900";
-
-    if (isMobileLandscape) {
-      return `fixed inset-0 z-50 ${baseClasses} flex justify-center items-center`;
-    }
-
-    if (isMobile) {
-      return `fixed inset-0 z-50 ${baseClasses} flex items-center`;
-    }
-
-    return "aspect-video max-w-5xl mx-auto rounded-lg bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden";
-  };
-
-  // Get video wrapper classes based on device and orientation
-  const getVideoWrapperClasses = () => {
-    if (isMobileLandscape) {
-      return "h-full aspect-[9/16]"; // Force portrait aspect ratio in landscape
-    }
-    if (isMobile) {
-      return "w-full";
-    }
-    return "w-full h-full relative";
-  };
-
-  // Get video classes based on device and orientation
-  const getVideoClasses = () => {
-    if (isMobileLandscape) {
-      return "h-full w-auto max-w-none";
-    }
-    if (isMobile) {
-      return "w-full h-auto";
-    }
-    return "w-full h-full object-contain";
+    if (isMobile)
+      return "fixed inset-0 z-50 bg-gray-900 flex justify-center items-center";
+    else
+      return "relative bg-gray-900 aspect-video max-w-5xl mx-auto rounded-lg overflow-hidden";
   };
 
   return (
@@ -71,7 +41,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={getVideoWrapperClasses()}
+            className="relative w-full h-full"
           >
             {/* Connection status indicator */}
             <ConnectionStatus isConnected={isConnected} />
@@ -81,7 +51,7 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: videoIsPlaying ? 0 : 1 }}
               transition={{ duration: 0.5 }}
-              className={getVideoClasses()}
+              className="absolute inset-0 w-full h-full object-contain"
               src={idleVideoUrl}
               autoPlay
               loop
@@ -89,13 +59,13 @@ export default function Stream({ meetingLink, idleVideoUrl }: StreamProps) {
               muted
             />
 
-            {/* Stream video */}
+            {/* Stream video (on top) */}
             <motion.video
               ref={streamVideoRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: videoIsPlaying ? 1 : 0 }}
               transition={{ duration: 0.5 }}
-              className={`absolute top-0 left-0 ${getVideoClasses()}`}
+              className="absolute top-0 left-0 inset-0 w-full h-full object-contain"
               autoPlay
               playsInline
             />
