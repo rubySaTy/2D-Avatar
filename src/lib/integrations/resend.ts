@@ -13,7 +13,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   }/reset-password?token=${encodeURIComponent(token)}`;
 
   const { data, error } = await resend.emails.send({
-    from: "riZolv Security <security@rizolv.ai>",
+    from: "riZolv Security <security@avatar.rizolv.ai>",
     to: [email],
     subject: "Password reset request",
     react: EmailTemplate({ resetLink }),
