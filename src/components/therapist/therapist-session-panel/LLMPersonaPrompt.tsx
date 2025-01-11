@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
-import { cn } from "@/lib/utils";
 import { Mic, MicOff } from "lucide-react";
 
 const EXAMPLE_PERSONA_PROMPT =
@@ -58,9 +57,7 @@ export function LLMPersonaPrompt({
           <Button
             variant="ghost"
             size="icon"
-            className={`hover:bg-muted ${
-              isRecording ? " text-red-500 " : ""
-            }`}
+            className={`hover:bg-muted ${isRecording ? " text-red-500 " : ""}`}
             type="button"
             aria-label={isRecording ? "Stop recording" : "Start recording"}
             onClick={handleRecordingToggle}

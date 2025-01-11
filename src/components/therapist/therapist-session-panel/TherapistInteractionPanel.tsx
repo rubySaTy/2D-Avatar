@@ -32,7 +32,7 @@ export default function TherapistInteractionPanel({
   meetingLink,
   VoiceSelectorProps,
 }: TherapistInteractionPanelProps) {
-  const [state, formAction] = useActionState(submitMessageToDID, null);
+  const [state, formAction, isPending] = useActionState(submitMessageToDID, null);
   const [personaPrompt, setPersonaPrompt] = useState("");
 
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
@@ -40,6 +40,8 @@ export default function TherapistInteractionPanel({
 
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
+  // Use this to track when we're ready to submit
+  const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
 
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
     useMessageHistory();
@@ -78,13 +80,8 @@ export default function TherapistInteractionPanel({
     addLLMHistoryMessage(llmResponse, "assistant");
     setHasIncomingLLMResponse(true);
 
-    // And then submit to D-ID
-    if (formRef.current) {
-      formRef.current.requestSubmit();
-    }
-
-    // Clear out partialResponse for next time (or keep it around if you want to display it)
-    setLlmPartialResponse("");
+    // Signal that we're ready to submit the form
+    setShouldSubmitForm(true);
   });
 
   async function handleRegenerate() {
@@ -96,11 +93,19 @@ export default function TherapistInteractionPanel({
     addLLMHistoryMessage(llmResponse, "assistant");
     setHasIncomingLLMResponse(true);
 
-    if (formRef.current) {
-      formRef.current.requestSubmit();
-    }
-    setLlmPartialResponse("");
+    setShouldSubmitForm(true);
   }
+
+  // Watch for when we should submit the form
+  useEffect(() => {
+    if (shouldSubmitForm && formRef.current) {
+      formRef.current.requestSubmit();
+      setShouldSubmitForm(false); // Reset for next time
+
+      // Clear out partialResponse for next time
+      setLlmPartialResponse("");
+    }
+  }, [shouldSubmitForm]);
 
   useEffect(() => {
     if (state?.success && state.message) {
@@ -142,7 +147,7 @@ export default function TherapistInteractionPanel({
                     <Button
                       type="button"
                       variant="destructive"
-                      disabled={isGenerating}
+                      disabled={isGenerating || isPending}
                       onClick={handleRegenerate}
                     >
                       {isGenerating ? (
