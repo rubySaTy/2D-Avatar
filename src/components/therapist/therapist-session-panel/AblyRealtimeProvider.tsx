@@ -1,11 +1,11 @@
 "use client";
 
-import * as Ably from "ably";
 import { AblyProvider, ChannelProvider } from "ably/react";
 import TherapistInteractionPanel from "./TherapistInteractionPanel";
+import { ablyRealtime } from "@/lib/integrations/ably/ably-client";
 import type { MicrosoftVoice } from "@/lib/types";
 
-interface AblyConnectionProps {
+interface AblyRealtimeProviderProps {
   meetingLink: string;
   meetingCipherKey: string;
   VoiceSelectorProps: {
@@ -16,12 +16,12 @@ interface AblyConnectionProps {
   };
 }
 
-export default function AblyConnection({
+export default function AblyRealtimeProvider({
   VoiceSelectorProps,
   meetingLink,
   meetingCipherKey,
-}: AblyConnectionProps) {
-  const client = new Ably.Realtime({ authUrl: "../api/ably" });
+}: AblyRealtimeProviderProps) {
+  const client = ablyRealtime;
   const cipherKey = Buffer.from(meetingCipherKey, "base64");
 
   return (

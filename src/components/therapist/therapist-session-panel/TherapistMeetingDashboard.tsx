@@ -18,8 +18,8 @@ interface TherapistMeetingDashboardProps {
   };
 }
 
-const AblyConnection = dynamic(
-  () => import("@/components/therapist/therapist-session-panel/AblyConnection"),
+const AblyRealtimeProvider = dynamic(
+  () => import("@/components/therapist/therapist-session-panel/AblyRealtimeProvider"),
   { ssr: false }
 );
 
@@ -39,7 +39,7 @@ export default function TherapistMeetingDashboard({
         clientUrl={clientUrl}
         meetingLink={meetingLink}
       />
-      <AblyConnection
+      <AblyRealtimeProvider
         meetingLink={meetingLink}
         meetingCipherKey={meetingCipherKey}
         VoiceSelectorProps={VoiceSelectorProps}

@@ -3,7 +3,7 @@
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { openAI } from "@/lib/integrations/openai";
-import { ablyRest } from "@/lib/integrations/ably";
+import { ablyRest } from "@/lib/integrations/ably/ably-server";
 import { createNewMeetingSession, getMeetingSessionCipherKey } from "@/services";
 import { avatarIdSchema } from "@/lib/validationSchema";
 
