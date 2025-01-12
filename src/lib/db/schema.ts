@@ -121,10 +121,6 @@ export const meetingSessions = pgTable("meeting_session", {
     .notNull()
     .references(() => avatars.id, { onDelete: "cascade" }),
   meetingLink: varchar("meeting_link", { length: 255 }).notNull().unique(),
-  didStreamId: text("did_stream_id"),
-  didSessionId: text("did_session_id"),
-  offer: jsonb("offer"), // (RTCSessionDescriptionInit stored as JSONB)
-  iceServers: jsonb("ice_servers"),
   cipherKey: encryptedKey("cipher_key").notNull(),
   ...timestamps,
 });

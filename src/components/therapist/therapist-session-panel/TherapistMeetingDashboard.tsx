@@ -37,6 +37,7 @@ export default function TherapistMeetingDashboard({
         avatarImageUrl={avatarImageUrl}
         avatarName={avatarName}
         clientUrl={clientUrl}
+        meetingLink={meetingLink}
       />
       <AblyConnection
         meetingLink={meetingLink}

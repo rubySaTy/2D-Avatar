@@ -6,6 +6,7 @@ import {
   notifyICEGatheringComplete,
   closeStream,
 } from "@/app/actions/d-id";
+import { updateWebRTCStreamStatusAction } from "@/app/actions/meetingSession";
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
@@ -32,23 +33,34 @@ export function useWebRTCStream({
 
   const streamVideoRef = useRef<HTMLVideoElement | null>(null);
   const isConnected = isReady && isStreamReady;
-
-  const isMountedRef = useRef<boolean>(false);
+  const prevIsConnectedRef = useRef<boolean>(isConnected);
 
   useEffect(() => {
-    isMountedRef.current = true;
     if (hasStarted) initiateConnection();
-
-    return () => {
-      isMountedRef.current = false;
-      cleanupConnection();
-    };
   }, [hasStarted]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon("/api/did-webrtc/close", JSON.stringify(meetingLink));
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [meetingLink]);
+
+  useEffect(() => {
+    // Only call the server action if isConnected has actually changed
+    if (prevIsConnectedRef.current !== isConnected) {
+      updateWebRTCStreamStatusAction(meetingLink, isConnected);
+      prevIsConnectedRef.current = isConnected;
+    }
+  }, [isConnected, meetingLink]);
 
   async function initiateConnection() {
     const sessionResponse = await createDIDStream(meetingLink, DIDCodec);
-    if (!sessionResponse || !isMountedRef.current)
-      throw new Error("Failed to create stream.");
+    if (!sessionResponse) throw new Error("Failed to create stream.");
 
     const { id: streamId, session_id, offer, ice_servers } = sessionResponse;
     streamIdRef.current = streamId;
@@ -61,8 +73,6 @@ export function useWebRTCStream({
     configuration: RTCConfiguration,
     offer: RTCSessionDescriptionInit
   ) {
-    if (!isMountedRef.current) return;
-
     const pc = new RTCPeerConnection(configuration);
     pcRef.current = pc;
 
@@ -76,7 +86,7 @@ export function useWebRTCStream({
       .then(() => pc.createAnswer())
       .then((answer) => {
         pc.setLocalDescription(answer);
-        if (streamIdRef.current && sessionIdRef.current && isMountedRef.current) {
+        if (streamIdRef.current && sessionIdRef.current) {
           sendSDPAnswer(streamIdRef.current, sessionIdRef.current, {
             type: answer.type,
             sdp: answer.sdp,
@@ -91,9 +101,21 @@ export function useWebRTCStream({
     pc.addEventListener("track", onTrack);
   }
 
-  function onDataChannelMessage(event: MessageEvent) {
-    if (!isMountedRef.current) return;
+  function onIceCandidate(event: RTCPeerConnectionIceEvent) {
+    if (!streamIdRef.current || !sessionIdRef.current) return;
 
+    if (event.candidate) {
+      sendICECandidate(
+        streamIdRef.current,
+        sessionIdRef.current,
+        event.candidate.toJSON()
+      );
+    } else {
+      notifyICEGatheringComplete(sessionIdRef.current, streamIdRef.current);
+    }
+  }
+
+  function onDataChannelMessage(event: MessageEvent) {
     const message = event.data;
     const [eventType] = message.split(":");
 
@@ -117,23 +139,7 @@ export function useWebRTCStream({
     }
   }
 
-  function onIceCandidate(event: RTCPeerConnectionIceEvent) {
-    if (!streamIdRef.current || !sessionIdRef.current || !isMountedRef.current) return;
-
-    if (event.candidate) {
-      sendICECandidate(
-        streamIdRef.current,
-        sessionIdRef.current,
-        event.candidate.toJSON()
-      );
-    } else {
-      notifyICEGatheringComplete(sessionIdRef.current, streamIdRef.current);
-    }
-  }
-
   function onIceConnectionStateChange() {
-    if (!isMountedRef.current) return;
-
     const pc = pcRef.current;
     if (!pc) return;
 
@@ -149,8 +155,6 @@ export function useWebRTCStream({
   }
 
   function onTrack(event: RTCTrackEvent) {
-    if (!isMountedRef.current) return;
-
     const videoElement = streamVideoRef.current;
     if (!videoElement) return;
 
@@ -171,8 +175,6 @@ export function useWebRTCStream({
   }
 
   function attemptReconnection() {
-    if (!isMountedRef.current) return;
-
     const attempts = reconnectionAttemptsRef.current;
     if (attempts >= maxReconnectionAttempts) {
       console.error("Maximum reconnection attempts reached.");
@@ -187,10 +189,6 @@ export function useWebRTCStream({
   }
 
   function cleanupConnection() {
-    if (streamIdRef.current && sessionIdRef.current) {
-      closeStream(streamIdRef.current, sessionIdRef.current);
-    }
-
     if (pcRef.current) {
       pcRef.current.removeEventListener("icecandidate", onIceCandidate);
       pcRef.current.removeEventListener(
@@ -224,13 +222,15 @@ export function useWebRTCStream({
   }
 
   function restartStream() {
-    if (!isMountedRef.current) return;
-
     // Stop the current video stream
     if (streamVideoRef.current?.srcObject instanceof MediaStream) {
       const oldStream = streamVideoRef.current.srcObject as MediaStream;
       oldStream.getTracks().forEach((track) => track.stop());
       streamVideoRef.current.srcObject = null;
+    }
+
+    if (streamIdRef.current && sessionIdRef.current) {
+      closeStream(streamIdRef.current, sessionIdRef.current, meetingLink);
     }
 
     // Clean up existing PeerConnection

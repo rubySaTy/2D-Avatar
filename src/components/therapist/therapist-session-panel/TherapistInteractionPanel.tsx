@@ -2,20 +2,16 @@
 
 import { useEffect, useRef, useState, useActionState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SubmitButton } from "@/components/SubmitButton";
 import VoiceSelector from "./VoiceSelector";
 import { submitMessageToDID } from "@/app/actions/d-id";
 import PremadeMessages from "./PremadeMessages";
 import { useChannel } from "ably/react";
 import { transcribedTextSchema } from "@/lib/validationSchema";
-import { StyleSelector } from "./StyleSelector";
-import { Loader2 } from "lucide-react";
 import { useMessageHistory } from "@/hooks/useMessageHistory";
 import { useLLMResponse } from "@/hooks/useLLMResponse";
 import { LLMPersonaPrompt } from "./LLMPersonaPrompt";
+import LLMTextarea from "@/components/LLMTextArea";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -34,14 +30,15 @@ export default function TherapistInteractionPanel({
 }: TherapistInteractionPanelProps) {
   const [state, formAction, isPending] = useActionState(submitMessageToDID, null);
   const [personaPrompt, setPersonaPrompt] = useState("");
-
+  const [message, setMessage] = useState("");
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
-  // Use this to track when we're ready to submit
   const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
+  const [webrtcConnectionStatus, setWebrtcConnectionStatus] = useState<
+    "pending" | "connected" | null
+  >(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
     useMessageHistory();
@@ -52,7 +49,25 @@ export default function TherapistInteractionPanel({
     intensity: styleIntensity,
   });
 
-  const [llmPartialResponse, setLlmPartialResponse] = useState("");
+  useEffect(() => {
+    const evtSource = new EventSource(
+      `/api/did-webrtc/stream-status?meetingLink=${meetingLink}`
+    );
+
+    evtSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setWebrtcConnectionStatus(data.status);
+    };
+
+    evtSource.onerror = (error) => {
+      console.error("EventSource failed:", error);
+      evtSource.close();
+    };
+
+    return () => {
+      evtSource.close();
+    };
+  }, [meetingLink]);
 
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
@@ -73,7 +88,7 @@ export default function TherapistInteractionPanel({
     // Here we generate the response, showing partial tokens
     const llmResponse = await generateResponse(transcribedText, llmHistory, (token) => {
       // This callback fires on each partial chunk
-      setLlmPartialResponse((prev) => prev + token);
+      setMessage((prev) => prev + token);
     });
 
     // Once done, we push the final result into our LLM history
@@ -85,14 +100,13 @@ export default function TherapistInteractionPanel({
   });
 
   async function handleRegenerate() {
-    setLlmPartialResponse("");
+    setMessage("");
     const llmResponse = await regenerateResponse(llmHistory, (token) => {
-      setLlmPartialResponse((prev) => prev + token);
+      setMessage((prev) => prev + token);
     });
 
     addLLMHistoryMessage(llmResponse, "assistant");
     setHasIncomingLLMResponse(true);
-
     setShouldSubmitForm(true);
   }
 
@@ -103,7 +117,7 @@ export default function TherapistInteractionPanel({
       setShouldSubmitForm(false); // Reset for next time
 
       // Clear out partialResponse for next time
-      setLlmPartialResponse("");
+      setMessage("");
     }
   }, [shouldSubmitForm]);
 
@@ -127,11 +141,22 @@ export default function TherapistInteractionPanel({
             <input type="hidden" name="meetingLink" value={meetingLink} />
             <input type="hidden" name="voiceStyle" value={selectedStyle} />
 
-            <div className="space-y-4">
+            <LLMTextarea
+              message={message}
+              setMessage={setMessage}
+              isConnected={webrtcConnectionStatus === "connected" ? true : false}
+              isGenerating={isGenerating}
+              isPending={isPending}
+              handleRegenerate={handleRegenerate}
+              handleStyleSelect={handleStyleSelect}
+              hasIncomingLLMResponse={hasIncomingLLMResponse}
+              setHasIncomingLLMResponse={setHasIncomingLLMResponse}
+            />
+            {/* <div className="space-y-4">
               <div className="relative">
                 <Textarea
-                  value={llmPartialResponse}
-                  onChange={(e) => setLlmPartialResponse(e.target.value)}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message here."
                   id="message"
                   name="message"
@@ -166,13 +191,13 @@ export default function TherapistInteractionPanel({
                   variant="outline"
                   onClick={() => {
                     setHasIncomingLLMResponse(false);
-                    setLlmPartialResponse("");
+                    setMessage("");
                   }}
                 >
                   Clear
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             {state?.message && !state.success && (
               <div className="text-red-600">{state.message}</div>

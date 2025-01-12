@@ -1,79 +1,80 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { Check } from "lucide-react";
-import { toneInstructions } from "@/lib/LLMTones";
+} from "@/components/ui/popover"
+import { Slider } from "@/components/ui/slider"
+import { Check, ChevronDown } from 'lucide-react'
+import { toneInstructions } from "@/lib/LLMTones"
 
-const styles: string[] = Object.keys(toneInstructions);
+const styles: string[] = Object.keys(toneInstructions)
 
 interface StyleSelectorProps {
-  onStyleSelect: (style: string, intensity: number) => void;
+  onStyleSelect: (style: string, intensity: number) => void
 }
 
 export function StyleSelector({ onStyleSelect }: StyleSelectorProps) {
-  const [selectedStyle, setSelectedStyle] = useState<string>("");
-  const [intensity, setIntensity] = useState<number>(3);
+  const [selectedStyle, setSelectedStyle] = useState<string>("")
+  const [intensity, setIntensity] = useState<number>(3)
 
   useEffect(() => {
     if (selectedStyle) {
-      onStyleSelect(selectedStyle, intensity);
+      onStyleSelect(selectedStyle, intensity)
     } else {
-      onStyleSelect("", 3);
+      onStyleSelect("", 3)
     }
-  }, [selectedStyle, intensity, onStyleSelect]);
+  }, [selectedStyle, intensity, onStyleSelect])
 
   const handleStyleSelect = (style: string) => {
     if (selectedStyle === style) {
-      setSelectedStyle("");
+      setSelectedStyle("")
     } else {
-      setSelectedStyle(style);
+      setSelectedStyle(style)
     }
-  };
+  }
 
   const handleIntensityChange = (value: number[]) => {
-    setIntensity(value[0]);
-  };
+    setIntensity(value[0])
+  }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <Button 
+          variant="ghost" 
           size="sm"
-          className="absolute w-28 bottom-2 right-2 bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="h-7 px-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md flex items-center gap-1"
         >
-          {selectedStyle || "Choose Style"}
+          {selectedStyle || "Choose style"}
+          <ChevronDown className="h-3 w-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+      <PopoverContent className="w-64 p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg">
+        <div className="p-3 space-y-3">
+          <div className="grid grid-cols-2 gap-1">
             {styles.map((style) => (
               <Button
                 key={style}
-                variant={selectedStyle === style ? "default" : "outline"}
+                variant={selectedStyle === style ? "default" : "ghost"}
                 size="sm"
                 onClick={() => handleStyleSelect(style)}
-                className={`justify-start transition-all ${
+                className={`justify-start text-xs h-7 ${
                   selectedStyle === style
                     ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
                 {style}
                 {selectedStyle === style && (
-                  <Check className="w-4 h-4 ml-auto" />
+                  <Check className="w-3 h-3 ml-auto" />
                 )}
               </Button>
             ))}
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Intensity</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Intensity</p>
             <Slider
               min={1}
               max={5}
@@ -82,7 +83,7 @@ export function StyleSelector({ onStyleSelect }: StyleSelectorProps) {
               onValueChange={handleIntensityChange}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
               <span>1</span>
               <span>2</span>
               <span>3</span>
@@ -93,5 +94,5 @@ export function StyleSelector({ onStyleSelect }: StyleSelectorProps) {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

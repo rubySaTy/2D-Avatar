@@ -7,7 +7,9 @@ import {
   getMeetingSession,
   createTalkInDb,
   removeCredits,
-  updateMeetingSessionWithWebRTCData,
+  storeWebRTCSession,
+  getWebRTCSession,
+  updateStreamStatus,
 } from "@/services";
 import type { NewTalk } from "@/lib/db/schema";
 import type {
@@ -15,6 +17,7 @@ import type {
   DIDCreateWebRTCStreamResponse,
   VoiceProviderConfig,
 } from "@/lib/types";
+import { validateRequest } from "@/lib/auth";
 
 export async function sendICECandidate(
   streamId: string,
@@ -57,14 +60,34 @@ export async function sendSDPAnswer(
   }
 }
 
-export async function closeStream(streamId: string, sessionId: string) {
+export async function closeStream(
+  streamId: string,
+  sessionId: string,
+  meetingLink: string
+) {
   try {
-    await didApi.delete(`/streams/${streamId}`),
-      {
-        session_id: sessionId,
-      };
+    updateStreamStatus(meetingLink, "pending");
+    await didApi.delete(`/streams/${streamId}`), { session_id: sessionId };
   } catch (error) {
     console.error("Error in 'closeStream'", error);
+  }
+}
+
+export async function closeStreamTherapist(meetingLink: string) {
+  try {
+    const { user } = await validateRequest();
+    if (!user) return;
+
+    const data = await getWebRTCSession(meetingLink);
+    if (!data) return;
+    console.log(data.didStreamId);
+    console.log(data.didSessionId);
+    updateStreamStatus(meetingLink, "pending");
+    await didApi.delete(`/streams/${data.didStreamId}`, {
+      data: { session_id: data.didSessionId },
+    });
+  } catch (error) {
+    console.error("Error in 'closeStreamTherapist'", error);
   }
 }
 
@@ -98,18 +121,14 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
     console.error(`Meeting data not found with meeting link ${meetingLink}`);
     return { success: false, message: "Meeting data not found" };
   }
-  const {
-    id: meetingSessionId,
-    userId,
-    user,
-    didStreamId,
-    didSessionId,
-    avatar,
-  } = meetingData;
+  const { id: meetingSessionId, userId, user, avatar } = meetingData;
 
-  if (!didStreamId || !didSessionId) {
+  const webrtcData = await getWebRTCSession(meetingLink);
+  if (!webrtcData?.didSessionId || !webrtcData?.didStreamId)
     return { success: false, message: `D-ID stream or session not found` };
-  }
+
+  if (webrtcData.status !== "connected")
+    return { success: false, message: `D-ID stream is not connected` };
 
   const voiceProvider: VoiceProviderConfig = {
     type: providerType || "microsoft", // Default to 'microsoft' if undefined
@@ -125,7 +144,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
 
   try {
     const res = await didApi.post<DIDCreateTalkStreamResponse>(
-      `/streams/${didStreamId}`,
+      `/streams/${webrtcData.didStreamId}`,
       {
         script: {
           type: "text",
@@ -134,7 +153,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
           input: message,
         },
         config: { fluent: true, pad_audio: "0.0" },
-        session_id: didSessionId,
+        session_id: webrtcData.didSessionId,
       },
       {
         headers: {
@@ -178,16 +197,14 @@ export async function createDIDStream(meetingLink: string, DIDCodec: string) {
 
     const { avatar } = meetingSessionData;
 
-    const sessionResponse = await didApi.post<DIDCreateWebRTCStreamResponse>("/streams", {
+    const webrtcResponse = await didApi.post<DIDCreateWebRTCStreamResponse>("/streams", {
       source_url: avatar.imageUrl,
       stream_warmup: true,
       compatibility_mode: DIDCodec, // "on" => VP8 - everything | "off" => H.264 - iOS/Safari (even chrome on iOS)
     });
 
-    const didWebRTCStreamData = sessionResponse.data;
-
-    await updateMeetingSessionWithWebRTCData(didWebRTCStreamData, meetingLink);
-    return didWebRTCStreamData;
+    await storeWebRTCSession(webrtcResponse.data, meetingLink);
+    return webrtcResponse.data;
   } catch (error) {
     console.error(error);
     return null;

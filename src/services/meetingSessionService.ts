@@ -4,7 +4,10 @@ import { db } from "@/lib/db/db";
 import { meetingSessions, type NewMeetingSession } from "@/lib/db/schema";
 import { Rest } from "ably";
 import { eq } from "drizzle-orm";
-import type { DIDCreateWebRTCStreamResponse } from "@/lib/types";
+import { redis } from "@/lib/integrations/redis";
+import type { DIDCreateWebRTCStreamResponse, WebRTCStreamDataRedis } from "@/lib/types";
+
+const STREAM_TTL = 60 * 60;
 
 export async function createNewMeetingSession(userId: string, avatarId: number) {
   const meetingLink = generateMeetingSessionLink();
@@ -64,17 +67,63 @@ function generateMeetingSessionLink() {
     .substring(0, 10);
 }
 
-export async function updateMeetingSessionWithWebRTCData(
+export async function storeWebRTCSession(
   webRTCData: DIDCreateWebRTCStreamResponse,
   meetingLink: string
 ) {
-  await db
-    .update(meetingSessions)
-    .set({
-      didStreamId: webRTCData.id,
-      didSessionId: webRTCData.session_id,
-      offer: webRTCData.offer,
-      iceServers: webRTCData.ice_servers,
-    })
-    .where(eq(meetingSessions.meetingLink, meetingLink));
+  const sessionKey = `webrtc:session:${meetingLink}`;
+
+  const sessionData: WebRTCStreamDataRedis = {
+    didStreamId: webRTCData.id,
+    didSessionId: webRTCData.session_id,
+    offer: webRTCData.offer,
+    iceServers: webRTCData.ice_servers,
+    status: "pending", // Initial status
+  };
+
+  // Upstash Redis transaction
+  await redis
+    .pipeline()
+    .hset(sessionKey, sessionData)
+    .expire(sessionKey, STREAM_TTL)
+    .exec();
+
+  return sessionData;
+}
+
+export async function updateStreamStatus(
+  meetingLink: string,
+  status: WebRTCStreamDataRedis["status"]
+) {
+  const streamKey = `webrtc:session:${meetingLink}`;
+
+  // Update just the status fields
+  await redis.hset(streamKey, { status });
+
+  // Refresh TTL on status update
+  await redis.expire(streamKey, STREAM_TTL);
+}
+
+export async function getWebRTCSession(meetingLink: string) {
+  const sessionKey = `webrtc:session:${meetingLink}`;
+  const data = await redis.hgetall<WebRTCStreamDataRedis>(sessionKey);
+  if (!data) return null;
+
+  return {
+    didStreamId: data.didStreamId,
+    didSessionId: data.didSessionId,
+    offer: data.offer,
+    iceServers: data.iceServers,
+    status: data.status,
+  };
+}
+
+export async function getWebRTCStatus(meetingLink: string) {
+  const sessionKey = `webrtc:session:${meetingLink}`;
+  return redis.hget<string>(sessionKey, "status");
+}
+
+export async function deleteWebRTCSession(meetingLink: string) {
+  const sessionKey = `webrtc:session:${meetingLink}`;
+  await redis.del(sessionKey); // is ignored if key doesn't exist, no error thrown
 }
