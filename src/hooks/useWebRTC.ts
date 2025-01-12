@@ -7,6 +7,7 @@ import {
   closeStream,
 } from "@/app/actions/d-id";
 import { updateWebRTCStreamStatusAction } from "@/app/actions/meetingSession";
+import { logMessage } from "@/app/actions";
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
@@ -121,20 +122,25 @@ export function useWebRTCStream({
 
     switch (eventType) {
       case "stream/ready":
+        logMessage(message);
         setIsStreamReady(true);
         break;
       case "stream/started":
+        logMessage(message);
         setTimeout(() => {
           setVideoIsPlaying(true);
         }, 1000);
         break;
       case "stream/done":
+        logMessage(message);
         setVideoIsPlaying(false);
         break;
       case "stream/error":
+        logMessage(message);
         console.error("Stream error from data channel.");
         break;
       default:
+        logMessage(message);
         console.warn("Unknown data channel message:", message);
     }
   }

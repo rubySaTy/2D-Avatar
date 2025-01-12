@@ -1,8 +1,8 @@
+import { userAgent } from "next/server";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Stream from "@/components/Stream";
 import { getMeetingSession } from "@/services";
-import { userAgent } from "next/server";
 
 function decideDIDCodec(
   browserName?: string,
@@ -39,7 +39,7 @@ export default async function ClientSessionPage(props: {
 
   if (!meetingSessionData) notFound();
   const { avatar } = meetingSessionData;
-  if (!avatar.idleVideoUrl) notFound();
+  if (!avatar.idleVideoUrl) return <p>No idle video available</p>;
 
   return (
     <Stream

@@ -62,3 +62,7 @@ export async function transcribe(audioFile: File) {
     console.error(error);
   }
 }
+
+export async function logMessage(message: string) {
+  console.log(message);
+}
