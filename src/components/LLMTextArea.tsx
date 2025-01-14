@@ -139,9 +139,7 @@ export default function LLMTextarea({
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                    disabled={
-                      !hasIncomingLLMResponse || !isConnected || isGenerating || isPending
-                    }
+                    disabled={!hasIncomingLLMResponse || isGenerating || isPending}
                     onClick={handleRegenerate}
                   >
                     <RefreshCw
@@ -161,9 +159,7 @@ export default function LLMTextarea({
                     size="icon"
                     className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors"
                     type="submit"
-                    disabled={
-                      !isConnected || isPending || isGenerating || message.length === 0
-                    }
+                    disabled={isPending || isGenerating || message.length === 0}
                   >
                     {!isPending && <Send className="h-4 w-4 text-white" />}
                     {isPending && <Loader2 className="h-4 w-4 animate-spin text-white" />}

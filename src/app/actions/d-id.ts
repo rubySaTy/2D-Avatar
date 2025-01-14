@@ -9,7 +9,7 @@ import {
   removeCredits,
   storeWebRTCSession,
   getWebRTCSession,
-  updateStreamStatus,
+  updateWebrtcConnectionStatus,
 } from "@/services";
 import type { NewTalk } from "@/lib/db/schema";
 import type {
@@ -66,7 +66,7 @@ export async function closeStream(
   meetingLink: string
 ) {
   try {
-    updateStreamStatus(meetingLink, "pending");
+    updateWebrtcConnectionStatus(meetingLink, false);
     await didApi.delete(`/streams/${streamId}`), { session_id: sessionId };
   } catch (error) {
     console.error("Error in 'closeStream'", error);
@@ -80,9 +80,7 @@ export async function closeStreamTherapist(meetingLink: string) {
 
     const data = await getWebRTCSession(meetingLink);
     if (!data) return;
-    console.log(data.didStreamId);
-    console.log(data.didSessionId);
-    updateStreamStatus(meetingLink, "pending");
+    updateWebrtcConnectionStatus(meetingLink, false);
     await didApi.delete(`/streams/${data.didStreamId}`, {
       data: { session_id: data.didSessionId },
     });
@@ -126,9 +124,6 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
   const webrtcData = await getWebRTCSession(meetingLink);
   if (!webrtcData?.didSessionId || !webrtcData?.didStreamId)
     return { success: false, message: `D-ID stream or session not found` };
-
-  if (webrtcData.status !== "connected")
-    return { success: false, message: `D-ID stream is not connected` };
 
   const voiceProvider: VoiceProviderConfig = {
     type: providerType || "microsoft", // Default to 'microsoft' if undefined

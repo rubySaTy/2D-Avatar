@@ -1,6 +1,6 @@
-import { redis } from "@/lib/integrations/redis";
-import { updateStreamStatus } from "@/services";
 import { headers } from "next/headers";
+import { redis } from "@/lib/integrations/redis";
+import { publishWebRTCStatusAction } from "@/app/actions/meetingSession";
 
 const RATE_LIMIT_REQUESTS = 10; // Maximum requests per window
 const RATE_LIMIT_WINDOW = 60; // Window in seconds
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Invalid meeting link" }, { status: 400 });
     }
 
-    updateStreamStatus(meetingLink, "pending");
+    await publishWebRTCStatusAction(meetingLink, false);
     return Response.json({ success: true });
   } catch (error) {
     console.error("Error in 'did-webrtc/close'", error);

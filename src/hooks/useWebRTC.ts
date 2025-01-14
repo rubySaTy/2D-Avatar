@@ -6,8 +6,8 @@ import {
   notifyICEGatheringComplete,
   closeStream,
 } from "@/app/actions/d-id";
-import { updateWebRTCStreamStatusAction } from "@/app/actions/meetingSession";
 import { logMessage } from "@/app/actions";
+import { publishWebRTCStatusAction } from "@/app/actions/meetingSession";
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
@@ -54,7 +54,7 @@ export function useWebRTCStream({
   useEffect(() => {
     // Only call the server action if isConnected has actually changed
     if (prevIsConnectedRef.current !== isConnected) {
-      updateWebRTCStreamStatusAction(meetingLink, isConnected);
+      publishWebRTCStatusAction(meetingLink, isConnected);
       prevIsConnectedRef.current = isConnected;
     }
   }, [isConnected, meetingLink]);

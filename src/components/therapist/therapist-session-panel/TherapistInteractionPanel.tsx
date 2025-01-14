@@ -12,6 +12,7 @@ import { useMessageHistory } from "@/hooks/useMessageHistory";
 import { useLLMResponse } from "@/hooks/useLLMResponse";
 import { LLMPersonaPrompt } from "./LLMPersonaPrompt";
 import LLMTextarea from "@/components/LLMTextArea";
+import { getMeetingStatusAction } from "@/app/actions/meetingSession";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -35,9 +36,7 @@ export default function TherapistInteractionPanel({
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
   const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
-  const [webrtcConnectionStatus, setWebrtcConnectionStatus] = useState<
-    "pending" | "connected" | null
-  >(null);
+  const [isWebrtcConnected, setIsWebrtcConnected] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
@@ -49,32 +48,24 @@ export default function TherapistInteractionPanel({
     intensity: styleIntensity,
   });
 
-  useEffect(() => {
-    const evtSource = new EventSource(
-      `/api/did-webrtc/stream-status?meetingLink=${meetingLink}`
-    );
-
-    evtSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setWebrtcConnectionStatus(data.status);
-    };
-
-    evtSource.onerror = (error) => {
-      console.error("EventSource failed:", error);
-      evtSource.close();
-    };
-
-    return () => {
-      evtSource.close();
-    };
-  }, [meetingLink]);
-
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
     setStyleIntensity(intensity);
   };
 
+  // Getting the status of the WebRTC connection when initially loading the component
+  useEffect(() => {
+    getMeetingStatusAction(meetingLink).then((isConnected) => {
+      setIsWebrtcConnected(isConnected ?? false);
+    });
+  }, [meetingLink]);
+
   useChannel(`meeting:${meetingLink}`, async (message) => {
+    if (message.name === "webrtc-status") {
+      setIsWebrtcConnected(message.data.isConnected);
+      return;
+    }
+
     const res = transcribedTextSchema.safeParse(message.data.transcribedText);
     if (!res.success) {
       console.warn("Invalid transcribed text:", message.data.transcribedText);
@@ -144,7 +135,7 @@ export default function TherapistInteractionPanel({
             <LLMTextarea
               message={message}
               setMessage={setMessage}
-              isConnected={webrtcConnectionStatus === "connected" ? true : false}
+              isConnected={isWebrtcConnected}
               isGenerating={isGenerating}
               isPending={isPending}
               handleRegenerate={handleRegenerate}
@@ -152,52 +143,6 @@ export default function TherapistInteractionPanel({
               hasIncomingLLMResponse={hasIncomingLLMResponse}
               setHasIncomingLLMResponse={setHasIncomingLLMResponse}
             />
-            {/* <div className="space-y-4">
-              <div className="relative">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type your message here."
-                  id="message"
-                  name="message"
-                  className="min-h-[150px] text-lg pr-28"
-                />
-                <StyleSelector onStyleSelect={handleStyleSelect} />
-              </div>
-
-              <div className="flex justify-between">
-                <div className="space-x-2">
-                  <SubmitButton>Send Message</SubmitButton>
-                  {hasIncomingLLMResponse && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={isGenerating || isPending}
-                      onClick={handleRegenerate}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Regenerating Response...
-                        </>
-                      ) : (
-                        "Regenerate Response"
-                      )}
-                    </Button>
-                  )}
-                </div>
-                <Button
-                  type="reset"
-                  variant="outline"
-                  onClick={() => {
-                    setHasIncomingLLMResponse(false);
-                    setMessage("");
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
-            </div> */}
 
             {state?.message && !state.success && (
               <div className="text-red-600">{state.message}</div>

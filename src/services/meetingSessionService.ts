@@ -72,13 +72,12 @@ export async function storeWebRTCSession(
   meetingLink: string
 ) {
   const sessionKey = `webrtc:session:${meetingLink}`;
-
   const sessionData: WebRTCStreamDataRedis = {
     didStreamId: webRTCData.id,
     didSessionId: webRTCData.session_id,
     offer: webRTCData.offer,
     iceServers: webRTCData.ice_servers,
-    status: "pending", // Initial status
+    isConnected: false, // Initial status
   };
 
   // Upstash Redis transaction
@@ -91,16 +90,16 @@ export async function storeWebRTCSession(
   return sessionData;
 }
 
-export async function updateStreamStatus(
+export async function updateWebrtcConnectionStatus(
   meetingLink: string,
-  status: WebRTCStreamDataRedis["status"]
+  isConnected: boolean
 ) {
   const streamKey = `webrtc:session:${meetingLink}`;
 
-  // Update just the status fields
-  await redis.hset(streamKey, { status });
+  // Update just the isConnected fields
+  await redis.hset(streamKey, { isConnected });
 
-  // Refresh TTL on status update
+  // Refresh TTL on isConnected update
   await redis.expire(streamKey, STREAM_TTL);
 }
 
@@ -114,13 +113,13 @@ export async function getWebRTCSession(meetingLink: string) {
     didSessionId: data.didSessionId,
     offer: data.offer,
     iceServers: data.iceServers,
-    status: data.status,
+    isConnected: data.isConnected,
   };
 }
 
-export async function getWebRTCStatus(meetingLink: string) {
+export async function getWebrtcConnectionStatus(meetingLink: string) {
   const sessionKey = `webrtc:session:${meetingLink}`;
-  return redis.hget<string>(sessionKey, "status");
+  return redis.hget<boolean>(sessionKey, "isConnected");
 }
 
 export async function deleteWebRTCSession(meetingLink: string) {

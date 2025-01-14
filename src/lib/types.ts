@@ -57,14 +57,11 @@ export interface DIDCreateWebRTCStreamResponse {
 }
 
 export type WebRTCStreamDataRedis = {
-  // Session data
   didStreamId: string;
   didSessionId: string;
   offer: RTCSessionDescriptionInit;
   iceServers: RTCIceServer[];
-
-  // Status data
-  status: "pending" | "connected";
+  isConnected: boolean;
 };
 
 export interface DIDCreateTalkStreamResponse {
