@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { transcribeAndBroadcast } from "@/app/actions";
+import { transcribeAndBroadcastAction } from "@/app/actions";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { MicOff, Mic } from "lucide-react";
 
@@ -10,7 +10,7 @@ export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
   // Pass in a callback that handles what to do with the audioFile
   const { isRecording, startRecording, stopRecording } = useAudioRecorder({
     onRecordingComplete: async (audioFile: File) => {
-      await transcribeAndBroadcast(audioFile, meetingLink);
+      await transcribeAndBroadcastAction(audioFile, meetingLink);
     },
   });
 

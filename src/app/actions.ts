@@ -7,7 +7,7 @@ import { ablyRest } from "@/lib/integrations/ably/ably-server";
 import { createNewMeetingSession, getMeetingSessionCipherKey } from "@/services";
 import { avatarIdSchema } from "@/lib/validationSchema";
 
-export async function createSession(prevState: any, formData: FormData) {
+export async function createSessionAction(prevState: any, formData: FormData) {
   const res = avatarIdSchema.safeParse(formData.get("avatar-id"));
   if (!res.success) return { success: false, message: res.error.message };
   const avatarId = res.data;
@@ -26,7 +26,7 @@ export async function createSession(prevState: any, formData: FormData) {
   redirect(`/therapist/${meetingLink}`);
 }
 
-export async function transcribeAndBroadcast(audioFile: File, meetingLink: string) {
+export async function transcribeAndBroadcastAction(audioFile: File, meetingLink: string) {
   if (!meetingLink || !audioFile) return;
 
   try {
@@ -36,6 +36,7 @@ export async function transcribeAndBroadcast(audioFile: File, meetingLink: strin
       return;
     }
 
+    console.log(`Transcribing audio for meeting link: ${meetingLink}`);
     const transcribe = await openAI.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
@@ -45,7 +46,7 @@ export async function transcribeAndBroadcast(audioFile: File, meetingLink: strin
       .get(`meeting:${meetingLink}`, { cipher: { key: cipherKey } })
       .publish("transcript", { transcribedText: transcribe.text });
   } catch (error) {
-    console.error(error);
+    console.error("Error transcribing and broadcasting audio", error);
   }
 }
 

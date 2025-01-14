@@ -7,7 +7,11 @@ import {
   closeStream,
 } from "@/app/actions/d-id";
 import { logMessage } from "@/app/actions";
-import { publishWebRTCStatusAction } from "@/app/actions/meetingSession";
+import {
+  publishStreamDoneAction,
+  publishStreamStartedAction,
+  publishWebRTCStatusAction,
+} from "@/app/actions/meetingSession";
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
@@ -130,10 +134,12 @@ export function useWebRTCStream({
         setTimeout(() => {
           setVideoIsPlaying(true);
         }, 1000);
+        publishStreamStartedAction(meetingLink);
         break;
       case "stream/done":
         logMessage(message);
         setVideoIsPlaying(false);
+        publishStreamDoneAction(meetingLink);
         break;
       case "stream/error":
         logMessage(message);

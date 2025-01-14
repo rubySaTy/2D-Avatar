@@ -14,7 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import { createSession } from "@/app/actions";
+import { createSessionAction } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { AvatarCreationDropdown } from "@/components/avatar/AvatarCreationDropdown";
@@ -114,7 +114,7 @@ function CreateSessionForm({
   selectedAvatar,
   setSelectedAvatar,
 }: CreateSessionFormProps) {
-  const [state, action] = useActionState(createSession, null);
+  const [state, action] = useActionState(createSessionAction, null);
 
   return (
     <Card className="w-full lg:w-64">

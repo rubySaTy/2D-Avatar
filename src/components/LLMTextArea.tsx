@@ -15,6 +15,7 @@ interface LLMTextareaProps {
   isGenerating: boolean;
   isConnected: boolean;
   isPending: boolean;
+  isVideoStreaming: boolean;
   hasIncomingLLMResponse: boolean;
   setHasIncomingLLMResponse: React.Dispatch<React.SetStateAction<boolean>>;
   handleRegenerate: () => void;
@@ -27,6 +28,7 @@ export default function LLMTextarea({
   isConnected,
   isGenerating,
   isPending,
+  isVideoStreaming,
   hasIncomingLLMResponse,
   setHasIncomingLLMResponse,
   handleRegenerate,
@@ -91,7 +93,11 @@ export default function LLMTextarea({
                   } opacity-75 animate-ping`}
                 ></span>
               </span>
-              {isConnected ? "Connected" : "Disconnected"}
+              {isVideoStreaming
+                ? "Streaming"
+                : isConnected
+                ? "Connected"
+                : "Disconnected"}
             </div>
           </div>
 
@@ -138,14 +144,26 @@ export default function LLMTextarea({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                    disabled={!hasIncomingLLMResponse || isGenerating || isPending}
+                    className={`h-8 w-8 rounded-full transition-colors ${
+                      !hasIncomingLLMResponse ||
+                      isVideoStreaming ||
+                      !isConnected ||
+                      isGenerating ||
+                      isPending
+                        ? "text-gray-400 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        : "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800"
+                    }`}
+                    disabled={
+                      !hasIncomingLLMResponse ||
+                      isVideoStreaming ||
+                      !isConnected ||
+                      isGenerating ||
+                      isPending
+                    }
                     onClick={handleRegenerate}
                   >
                     <RefreshCw
-                      className={`h-4 w-4 text-gray-500 ${
-                        isGenerating ? "animate-spin" : ""
-                      }`}
+                      className={`h-4 w-4 ${isGenerating ? "animate-spin" : ""}`}
                     />
                   </Button>
                 </TooltipTrigger>
@@ -159,7 +177,13 @@ export default function LLMTextarea({
                     size="icon"
                     className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors"
                     type="submit"
-                    disabled={isPending || isGenerating || message.length === 0}
+                    disabled={
+                      isPending ||
+                      isVideoStreaming ||
+                      !isConnected ||
+                      isGenerating ||
+                      message.length === 0
+                    }
                   >
                     {!isPending && <Send className="h-4 w-4 text-white" />}
                     {isPending && <Loader2 className="h-4 w-4 animate-spin text-white" />}

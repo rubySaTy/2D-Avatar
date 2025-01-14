@@ -37,6 +37,7 @@ export default function TherapistInteractionPanel({
   const [styleIntensity, setStyleIntensity] = useState(2);
   const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
   const [isWebrtcConnected, setIsWebrtcConnected] = useState(false);
+  const [isVideoStreaming, setIsVideoStreaming] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
@@ -60,15 +61,27 @@ export default function TherapistInteractionPanel({
     });
   }, [meetingLink]);
 
-  useChannel(`meeting:${meetingLink}`, async (message) => {
-    if (message.name === "webrtc-status") {
-      setIsWebrtcConnected(message.data.isConnected);
+  useChannel(`meeting:${meetingLink}`, async (ablyMessage) => {
+    if (ablyMessage.name === "webrtc-status") {
+      setIsWebrtcConnected(ablyMessage.data.isConnected);
       return;
     }
 
-    const res = transcribedTextSchema.safeParse(message.data.transcribedText);
+    if (ablyMessage.name === "stream/started") {
+      setIsVideoStreaming(true);
+      return;
+    }
+
+    if (ablyMessage.name === "stream/done") {
+      addHistoryMessage(message, "outgoing");
+      setMessage("");
+      setIsVideoStreaming(false);
+      return;
+    }
+
+    const res = transcribedTextSchema.safeParse(ablyMessage.data.transcribedText);
     if (!res.success) {
-      console.warn("Invalid transcribed text:", message.data.transcribedText);
+      console.warn("Invalid transcribed text:", ablyMessage.data.transcribedText);
       return;
     }
     const transcribedText = res.data;
@@ -106,17 +119,8 @@ export default function TherapistInteractionPanel({
     if (shouldSubmitForm && formRef.current) {
       formRef.current.requestSubmit();
       setShouldSubmitForm(false); // Reset for next time
-
-      // Clear out partialResponse for next time
-      setMessage("");
     }
   }, [shouldSubmitForm]);
-
-  useEffect(() => {
-    if (state?.success && state.message) {
-      addHistoryMessage(state.message, "outgoing");
-    }
-  }, [state]);
 
   return (
     <div className="container mx-auto p-4">
@@ -138,6 +142,7 @@ export default function TherapistInteractionPanel({
               isConnected={isWebrtcConnected}
               isGenerating={isGenerating}
               isPending={isPending}
+              isVideoStreaming={isVideoStreaming}
               handleRegenerate={handleRegenerate}
               handleStyleSelect={handleStyleSelect}
               hasIncomingLLMResponse={hasIncomingLLMResponse}
@@ -149,7 +154,6 @@ export default function TherapistInteractionPanel({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <PremadeMessages />
               <Card>
                 <CardHeader>
                   <CardTitle>Voice Selector</CardTitle>
