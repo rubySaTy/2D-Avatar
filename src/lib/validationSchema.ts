@@ -207,9 +207,9 @@ export const transcribedTextSchema = z
   .string()
   .trim()
   .min(1)
-  .regex(/^[A-Za-z0-9\s.,!?()'";\-:@#$%&*]+$/, {
+  .regex(/^[A-Za-z\u0590-\u05FF0-9\s.,!?()'";\-:@#$%&*]+$/, {
     message:
-      "Text can only contain English letters, numbers, spaces and basic punctuation",
+      "Text can only contain English and Hebrew letters, numbers, spaces, and basic punctuation",
   });
 
 export const CreateLLMGeneratedAvatarSchema = z.object({
