@@ -21,7 +21,7 @@ export function AvatarCreationDropdown() {
       <DropdownMenuContent align="end">
         <CreateAvatarDialog />
         <CreateAIAvatarDialog withImage={false} />
-        <CreateAIAvatarDialog withImage={true} />
+        {/* <CreateAIAvatarDialog withImage={true} /> Disabled for now, until DALL-E or an alternative produce good results */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
