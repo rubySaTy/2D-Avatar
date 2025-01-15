@@ -34,8 +34,8 @@ export function AdminCreateAvatarDialog({
             <LucideImage className="mr-2 h-4 w-4" /> Create Avatar
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[90vh] p-0">
-          <ScrollArea className="max-h-[90vh] p-6">
+        <DialogContent>
+          <ScrollArea>
             <AdminCreateAvatarForm
               users={users}
               currentUserId={currentUserId}

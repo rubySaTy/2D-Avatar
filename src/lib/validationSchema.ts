@@ -175,7 +175,6 @@ export const createAvatarSchema = baseAvatarSchema.extend({
 
 export const editAvatarSchema = baseAvatarSchema.extend({
   avatarId: avatarIdSchema,
-  imageFile: imageFileSchema.optional(),
   associatedUsersIds: z.array(userIdSchema).optional(),
 });
 

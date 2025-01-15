@@ -2,10 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  createAvatarSchema,
   createClonedVoiceSchema,
   createUserSchema,
-  editAvatarSchema,
   editUserSchema,
   updateCreditsSchema,
 } from "@/lib/validationSchema";
@@ -17,14 +15,10 @@ import {
   createUserInDB,
   updateUserInDB,
   getUserByID,
-  getAvatarById,
-  editAvatarData,
-  createAvatarData,
 } from "@/services";
 import elevenlabs from "@/lib/integrations/elevenlabs";
-import { getUser, validateRequest } from "@/lib/auth";
-import { isValidFileUpload } from "@/lib/utils";
-import type { ActionResponse, BaseAvatarFormData, BaseUserFormData } from "@/lib/types";
+import { validateRequest } from "@/lib/auth";
+import type { ActionResponse, BaseUserFormData } from "@/lib/types";
 
 async function isAdmin() {
   const { user } = await validateRequest();
@@ -48,6 +42,7 @@ export async function createUserAction(
   const parsedData = createUserSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -99,6 +94,7 @@ export async function editUserAction(
   const parsedData = editUserSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -206,92 +202,5 @@ export async function handleUpdateCredits(prevState: any, formData: FormData) {
   } catch (error) {
     console.error(error);
     return { success: false, message: "An unexpected error occurred." };
-  }
-}
-
-export async function createAvatarAdminAction(
-  _: any,
-  formData: FormData
-): Promise<ActionResponse<BaseAvatarFormData>> {
-  const currentUser = await getUser();
-  if (!currentUser || currentUser.role !== "admin") return unauthorized;
-
-  const rawData = {
-    avatarName: formData.get("avatar-name") as string,
-    imageFile: formData.get("image-file") as File,
-    associatedUsersIds: formData.getAll("associated-users-ids") as string[],
-  };
-
-  const parsedData = createAvatarSchema.safeParse(rawData);
-
-  if (!parsedData.success) {
-    return {
-      success: false,
-      message: "Validation failed",
-      errors: parsedData.error.flatten().fieldErrors,
-      inputs: rawData,
-    };
-  }
-
-  const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
-
-  try {
-    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
-    revalidatePath("/admin");
-    revalidatePath("/therapist");
-    return { success: true, message: "Avatar created" };
-  } catch (error) {
-    console.error("Error creating avatar:", error);
-    return { success: false, message: "Internal server error", inputs: rawData };
-  }
-}
-
-export async function editAvatarAdminAction(
-  _: any,
-  formData: FormData
-): Promise<ActionResponse<BaseAvatarFormData>> {
-  if (!(await isAdmin())) return unauthorized;
-
-  const image = formData.get("image-file") as File;
-  const rawData = {
-    avatarId: formData.get("avatar-id") as string,
-    avatarName: formData.get("avatar-name") as string,
-    imageFile: isValidFileUpload(image) ? image : undefined,
-    associatedUsersIds: formData.getAll("associated-users-ids") as string[],
-  };
-
-  const parsedData = editAvatarSchema.safeParse(rawData);
-
-  if (!parsedData.success) {
-    return {
-      success: false,
-      message: "Validation failed",
-      errors: parsedData.error.flatten().fieldErrors,
-      inputs: rawData,
-    };
-  }
-
-  const { avatarId, avatarName, imageFile, associatedUsersIds } = parsedData.data;
-
-  try {
-    // TODO: move to avatar service layer
-    const existingAvatar = await getAvatarById(avatarId);
-    if (!existingAvatar) {
-      console.error("Avatar not found in DB");
-      return { success: false, message: "Avatar not found" };
-    }
-
-    await editAvatarData(
-      existingAvatar,
-      avatarId,
-      avatarName,
-      imageFile,
-      associatedUsersIds
-    );
-    revalidatePath("/admin");
-    return { success: true, message: "Avatar updated" };
-  } catch (error) {
-    console.error("Error updating avatar:", error);
-    return { success: false, message: "Internal server error", inputs: rawData };
   }
 }

@@ -51,6 +51,7 @@ export async function changeUserPasswordAction(
 
   const parsedData = changePasswordSchema.safeParse(rawData);
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -98,6 +99,7 @@ export async function updateUserAction(
 
   const parsedData = updateUserSchema.safeParse(rawData);
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",

@@ -10,10 +10,8 @@ import { fileArrayToFileList } from "@/lib/utils";
 interface ImageUploaderProps {
   title: string;
   description: string;
-  existingImageUrl?: string;
   maxSize?: number;
   accept?: Accept;
-  required?: boolean;
   isValidationError?: boolean;
   isFormSubmitted?: boolean;
 }
@@ -21,7 +19,6 @@ interface ImageUploaderProps {
 export default function ImageUploader({
   title,
   description,
-  existingImageUrl,
   isFormSubmitted,
   isValidationError,
   maxSize = 10 * 1024 * 1024, // default 10MB
@@ -29,14 +26,8 @@ export default function ImageUploader({
     "image/jpeg": [".jpg", ".jpeg"],
     "image/png": [".png"],
   },
-  required,
 }: ImageUploaderProps) {
-  // Decide if it's required by default: if there's already an existing image, it's not required.
-  // Otherwise, we fallback to true if 'required' wasn't explicitly passed.
-  const isRequired = required ?? !Boolean(existingImageUrl);
-
-  // We'll keep track of the image preview (this might be the existing image or a new preview)
-  const [preview, setPreview] = useState<string | null>(existingImageUrl ?? null);
+  const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset preview if the form is submitted = false
@@ -90,11 +81,11 @@ export default function ImageUploader({
   // Revoke object URLs to free up memory whenever preview changes (cleanup)
   useEffect(() => {
     return () => {
-      if (preview && preview !== existingImageUrl) {
+      if (preview) {
         URL.revokeObjectURL(preview);
       }
     };
-  }, [preview, existingImageUrl]);
+  }, [preview]);
 
   return (
     <div className="space-y-4">
@@ -105,7 +96,6 @@ export default function ImageUploader({
         name="image-file"
         ref={fileInputRef}
         className="sr-only"
-        required={isRequired}
       />
 
       <div

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import axios from "axios";
-import { getUser } from "@/lib/auth";
+import { getUser, validateRequest } from "@/lib/auth";
 import {
   createAvatarSchema,
   editAvatarSchema,
@@ -15,6 +15,7 @@ import {
   createAvatarData,
   editAvatarData,
   getAvatarById,
+  getAvatarWithAssociatedUsersId,
   removeAvatar,
 } from "@/services";
 import { openAI } from "@/lib/integrations/openai";
@@ -25,22 +26,25 @@ import type {
   GenerateAIAvatarActionResponse,
 } from "@/lib/types";
 
-export async function createAvatarTherapistAction(
+export async function createAvatarAction(
   _: any,
   formData: FormData
 ): Promise<ActionResponse<BaseAvatarFormData>> {
-  const currentUser = await getUser();
-  if (!currentUser) return { success: false, message: "Unauthorized" };
+  const { user } = await validateRequest();
+  if (!user) return { success: false, message: "Unauthorized" };
+  if (user.role !== "therapist" && user.role !== "admin") throw new Error("invalid role");
 
+  const usersIds = formData.getAll("associated-users-ids") as string[];
   const rawData = {
     avatarName: formData.get("avatar-name") as string,
     imageFile: formData.get("image-file") as File,
-    associatedUsersIds: [currentUser.id] as string[],
+    associatedUsersIds: usersIds.length > 0 ? usersIds : [user.id],
   };
 
   const parsedData = createAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -52,7 +56,8 @@ export async function createAvatarTherapistAction(
   const { avatarName, imageFile, associatedUsersIds } = parsedData.data;
 
   try {
-    await createAvatarData(avatarName, imageFile, associatedUsersIds, currentUser.id);
+    await createAvatarData(avatarName, imageFile, associatedUsersIds, user.id);
+    revalidatePath("/admin");
     revalidatePath("/therapist");
     return { success: true, message: "Avatar created" };
   } catch (error) {
@@ -60,22 +65,24 @@ export async function createAvatarTherapistAction(
     return { success: false, message: "Internal server error", inputs: rawData };
   }
 }
-
-export async function editAvatarTherapistAction(
+export async function editAvatarAction(
   _: any,
   formData: FormData
 ): Promise<ActionResponse<BaseAvatarFormData>> {
-  const currentUser = await getUser();
-  if (!currentUser) return { success: false, message: "Unauthorized" };
+  const { user } = await validateRequest();
+  if (!user) return { success: false, message: "Unauthorized" };
+  if (user.role !== "therapist" && user.role !== "admin") throw new Error("invalid role");
 
-  const rawData = {
-    avatarId: formData.get("avatar-id"),
+  const rawData: any = {
+    avatarId: formData.get("avatar-id") as string,
     avatarName: formData.get("avatar-name") as string,
+    associatedUsersIds: formData.getAll("associated-users-ids") as string[] | undefined,
   };
 
   const parsedData = editAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -84,20 +91,29 @@ export async function editAvatarTherapistAction(
     };
   }
 
-  const { avatarId, avatarName } = parsedData.data;
+  const { avatarId, avatarName, associatedUsersIds } = parsedData.data;
 
   try {
-    const existingAvatar = await getAvatarById(avatarId);
+    const existingAvatar = await getAvatarWithAssociatedUsersId(avatarId);
     if (!existingAvatar) {
       console.error("Avatar not found in DB");
       return { success: false, message: "Avatar not found" };
     }
 
-    if (existingAvatar.uploaderId !== currentUser.id)
+    if (user.role !== "admin" && existingAvatar.uploaderId !== user.id) {
       return { success: false, message: "Unauthorized" };
+    }
 
-    await editAvatarData(existingAvatar, avatarId, avatarName);
+    // If `associatedUsersIds` is provided and contains at least one element, use it.
+    // otherwise, fall back to the `associatedUsersId` from the existing avatar.
+    const updatedAssociatedUsersIds =
+      associatedUsersIds && associatedUsersIds.length > 0
+        ? associatedUsersIds
+        : existingAvatar.associatedUsersId;
+
+    editAvatarData(avatarId, avatarName, updatedAssociatedUsersIds);
     revalidatePath("/therapist");
+    revalidatePath("/admin");
     return { success: true, message: "Avatar updated" };
   } catch (error) {
     console.error("Error updating avatar:", error);
@@ -146,6 +162,7 @@ export async function generateAIAvatarAction(
   const parsedData = generateLLMAvatarSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -194,6 +211,7 @@ export async function generateAIAvatarWithImageAction(
   const parsedData = generateLLMAvatarWithImageSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",

@@ -8,7 +8,6 @@ import {
   usersToAvatars,
   avatars,
   type NewAvatar,
-  type Avatar,
   type AvatarWithUsersDto,
 } from "@/lib/db/schema";
 import { sanitizeString, sanitizeFileName } from "@/lib/utils";
@@ -24,18 +23,48 @@ export async function createAvatarData(
 ) {
   let s3ImageKey: string | null = null; // keep track of the uploaded S3 key
 
+  // 1) process image
+  const sanitizedAvatarName = sanitizeString(avatarName);
+
+  // Handle filename differently based on input type
+  const fileName = `${sanitizedAvatarName}-${
+    imageInput instanceof File ? sanitizeFileName(imageInput.name) : `${Date.now()}.png` // Default name for Buffer
+  }`;
+
+  // Handle content type differently based on input type
+  const contentType = imageInput instanceof File ? imageInput.type : "image/png"; // Default type for Buffer
+
+  // Handle the data stream differently based on input type
+  const data = imageInput instanceof File ? imageInput.stream() : imageInput;
+
   try {
-    // 1) process image/video
-    const { imageUrl, imageKey } = await processAvatarAndUploadToS3(
-      avatarName,
-      imageInput
+    const { url: imageUrl, key: imageKey } = await uploadToS3(
+      data,
+      "images/",
+      fileName,
+      contentType
     );
 
     // store key for potential s3 cleanup if something goes wrong later
     s3ImageKey = imageKey;
 
-    // 2) create idle video
-    const createdIdleVideoRes = await createIdleDIDVideo(imageUrl);
+    // 2) create idle Talk with DID, The result will be delivered to a webhook
+    const createTalkRes = await didApi.post<DIDCreateTalkResponse>("", {
+      source_url: imageUrl,
+      driver_url: "bank://lively/driver-06",
+      script: {
+        type: "text",
+        ssml: true,
+        input: '<break time="5000ms"/><break time="5000ms"/><break time="4000ms"/>',
+        provider: {
+          type: "microsoft",
+          voice_id: "en-US-JennyNeural",
+        },
+      },
+      config: { fluent: true },
+      webhook: `${process.env.WEBHOOK_URL}`,
+    });
+
     const newAvatar: NewAvatar = {
       avatarName,
       imageKey,
@@ -56,7 +85,7 @@ export async function createAvatarData(
       await tx.insert(usersToAvatars).values(associations);
 
       // 4) store the new avatar ID in Redis for incoming webhook
-      redis.set(createdIdleVideoRes.id, createdAvatar.id, { ex: 300 });
+      redis.set(createTalkRes.data.id, createdAvatar.id, { ex: 300 });
     });
   } catch (error) {
     if (s3ImageKey) {
@@ -73,91 +102,42 @@ export async function createAvatarData(
 }
 
 export async function editAvatarData(
-  existingAvatar: Avatar,
   avatarId: number,
   avatarName: string,
-  imageFile?: File,
   associatedUsersIds?: string[]
 ) {
-  // 1) Prepare files to delete (if any)
-  const filesToDelete: string[] = [];
-  let newS3ImageKey: string | null = null; // keep track of the uploaded S3 key
+  // 1) prepare update object for avatar
+  const updateData: Partial<NewAvatar> = { avatarName };
 
-  // 2) prepare update object for avatar
-  const updateData: Partial<NewAvatar> = {
-    avatarName,
-  };
+  // 2) update avatar
+  await db.transaction(async (tx) => {
+    await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
 
-  try {
-    if (imageFile && imageFile.size > 0) {
-      // 3) process image/video if user has uploaded a new one
-      const { imageKey, imageUrl } = await processAvatarAndUploadToS3(
-        avatarName,
-        imageFile
-      );
+    if (!associatedUsersIds) return;
 
-      // store key for potential s3 cleanup if something goes wrong later
-      newS3ImageKey = imageKey;
+    const existingAssociations = await tx
+      .select({ userId: usersToAvatars.userId })
+      .from(usersToAvatars)
+      .where(eq(usersToAvatars.avatarId, avatarId));
 
-      // 4) create idle video
-      const createdIdleVideoRes = await createIdleDIDVideo(imageUrl);
+    const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
 
-      // 5) update object with new key of new image file
-      updateData.imageKey = imageKey;
-      updateData.imageUrl = imageUrl;
+    if (
+      existingUserIds.length !== associatedUsersIds.length ||
+      !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
+    ) {
+      // 3) Delete existing user associations
+      await tx.delete(usersToAvatars).where(eq(usersToAvatars.avatarId, avatarId));
 
-      // 6) Mark old files for deletion
-      filesToDelete.push(existingAvatar.imageKey);
-      if (existingAvatar.idleVideoKey) filesToDelete.push(existingAvatar.idleVideoKey);
+      // 4) Insert new user associations (if any)
+      const associations = associatedUsersIds.map((userId) => ({
+        userId,
+        avatarId,
+      }));
 
-      // 7) store Avatar ID in Redis for incoming webhook
-      redis.set(createdIdleVideoRes.id, existingAvatar.id, { ex: 300 });
+      if (associations.length > 0) await tx.insert(usersToAvatars).values(associations);
     }
-
-    // 8) update avatar
-    await db.transaction(async (tx) => {
-      await tx.update(avatars).set(updateData).where(eq(avatars.id, avatarId));
-
-      if (!associatedUsersIds) return;
-
-      const existingAssociations = await tx
-        .select({ userId: usersToAvatars.userId })
-        .from(usersToAvatars)
-        .where(eq(usersToAvatars.avatarId, avatarId));
-
-      const existingUserIds = existingAssociations.map((assoc) => assoc.userId);
-
-      if (
-        existingUserIds.length !== associatedUsersIds.length ||
-        !associatedUsersIds.every((userId) => existingUserIds.includes(userId))
-      ) {
-        // 9) Delete existing user associations
-        await tx.delete(usersToAvatars).where(eq(usersToAvatars.avatarId, avatarId));
-
-        // 10) Insert new user associations (if any)
-        const associations = associatedUsersIds.map((userId) => ({
-          userId,
-          avatarId,
-        }));
-
-        if (associations.length > 0) await tx.insert(usersToAvatars).values(associations);
-      }
-    });
-
-    // 11) Delete old S3 files after successful upload and database transaction
-    if (filesToDelete.length > 0) await deleteS3Objects(filesToDelete);
-  } catch (error) {
-    if (newS3ImageKey) {
-      await deleteS3Objects([newS3ImageKey]).catch((deleteError) => {
-        console.error(
-          "Error while cleaning up the S3 file after a failed operation:",
-          deleteError
-        );
-      });
-    }
-
-    throw error;
-  }
+  });
 }
 
 export async function removeAvatar(avatarId: number) {
@@ -192,6 +172,23 @@ export async function updateManyAvatars(
   return db.update(avatars).set(updatedAvatar).where(inArray(avatars.id, avatarIds));
 }
 
+export async function getAvatarWithAssociatedUsersId(avatarId: number) {
+  const avatarWithUsersId = await db.query.avatars.findFirst({
+    where: eq(avatars.id, avatarId),
+    with: {
+      usersToAvatars: {
+        with: { user: { columns: { id: true } } },
+      },
+    },
+  });
+
+  return {
+    ...avatarWithUsersId,
+    associatedUsersId: avatarWithUsersId?.usersToAvatars.map((uta) => uta.user.id),
+    usersToAvatars: undefined,
+  };
+}
+
 export async function getAvatarsWithAssociatedUsers(): Promise<AvatarWithUsersDto[]> {
   const avatarsWithUsers = await db.query.avatars.findMany({
     with: {
@@ -219,49 +216,6 @@ export async function getAvatarsWithAssociatedUsers(): Promise<AvatarWithUsersDt
     associatedUsers: avatar.usersToAvatars.map((uta) => uta.user),
     usersToAvatars: undefined,
   }));
-}
-
-async function processAvatarAndUploadToS3(avatarName: string, imageInput: File | Buffer) {
-  const sanitizedAvatarName = sanitizeString(avatarName);
-
-  // Handle filename differently based on input type
-  const fileName = `${sanitizedAvatarName}-${
-    imageInput instanceof File ? sanitizeFileName(imageInput.name) : `${Date.now()}.png` // Default name for Buffer
-  }`;
-
-  // Handle content type differently based on input type
-  const contentType = imageInput instanceof File ? imageInput.type : "image/png"; // Default type for Buffer
-
-  // Handle the data stream differently based on input type
-  const data = imageInput instanceof File ? imageInput.stream() : imageInput;
-
-  const { url: imageUrl, key: imageKey } = await uploadToS3(
-    data,
-    "images/",
-    fileName,
-    contentType
-  );
-
-  return { imageUrl, imageKey };
-}
-
-async function createIdleDIDVideo(imageUrl: string) {
-  const res = await didApi.post<DIDCreateTalkResponse>("", {
-    source_url: imageUrl,
-    driver_url: "bank://lively/driver-06",
-    script: {
-      type: "text",
-      ssml: true,
-      input: '<break time="5000ms"/><break time="5000ms"/><break time="4000ms"/>',
-      provider: {
-        type: "microsoft",
-        voice_id: "en-US-JennyNeural",
-      },
-    },
-    config: { fluent: true },
-    webhook: `${process.env.WEBHOOK_URL}`,
-  });
-  return res.data;
 }
 
 export async function getAvatarsByVoiceId(voiceId: string) {

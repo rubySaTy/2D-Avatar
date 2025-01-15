@@ -14,11 +14,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { FormInput } from "@/components/FormInput";
 import MultiUserSelector from "./MultiUserSelector";
-import { createAvatarAdminAction, editAvatarAdminAction } from "@/app/actions/admin";
-import {
-  createAvatarTherapistAction,
-  editAvatarTherapistAction,
-} from "@/app/actions/avatar";
+import { createAvatarAction, editAvatarAction } from "@/app/actions/avatar";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 import type { ActionResponse, BaseAvatarFormData } from "@/lib/types";
 
@@ -62,12 +58,8 @@ function BaseAvatarForm({
   return (
     <form action={formAction} className="space-y-6">
       <DialogHeader>
-        <DialogTitle className="text-2xl font-semibold tracking-tight">
-          {title}
-        </DialogTitle>
-        <DialogDescription className="text-base text-muted-foreground">
-          {description}
-        </DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
 
       <div className="space-y-4">
@@ -85,26 +77,26 @@ function BaseAvatarForm({
           />
         </div>
 
-        {/* TODO: Only allow admins to edit images? */}
-        <>
-          <Separator />
-          <ImageUploader
-            title="Drag & drop an image here, or click to select"
-            description="Supports: JPEG, JPG, PNG"
-            accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
-            existingImageUrl={initialData?.imageUrl}
-            isFormSubmitted={isPending}
-            isValidationError={!!state?.errors?.imageFile?.[0]}
-          />
-          {state?.errors?.imageFile && (
-            <p
-              id={`image-file-error`}
-              className="text-sm text-destructive [&>svg]:text-destructive"
-            >
-              {state.errors.imageFile[0]}
-            </p>
-          )}
-        </>
+        {!initialData && (
+          <>
+            <Separator />
+            <ImageUploader
+              title="Drag & drop an image here, or click to select"
+              description="Supports: JPEG, JPG, PNG"
+              accept={{ "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }}
+              isFormSubmitted={isPending}
+              isValidationError={!!state?.errors?.imageFile?.[0]}
+            />
+            {state?.errors?.imageFile && (
+              <p
+                id={`image-file-error`}
+                className="text-sm text-destructive [&>svg]:text-destructive"
+              >
+                {state.errors.imageFile[0]}
+              </p>
+            )}
+          </>
+        )}
 
         {/* 
           If users/associatedUsers/currentUserId are passed in, 
@@ -146,7 +138,7 @@ export function AdminCreateAvatarForm({
 }: AdminCreateAvatarFormProps) {
   return (
     <BaseAvatarForm
-      serverAction={createAvatarAdminAction}
+      serverAction={createAvatarAction}
       title="Create New Avatar"
       description="Add a new avatar to the system."
       submitText="Create Avatar"
@@ -175,7 +167,7 @@ export function AdminEditAvatarForm({
 }: AdminEditAvatarFormProps) {
   return (
     <BaseAvatarForm
-      serverAction={editAvatarAdminAction}
+      serverAction={editAvatarAction}
       initialData={avatar}
       title="Edit Avatar"
       description="Update avatar details."
@@ -191,7 +183,7 @@ export function AdminEditAvatarForm({
 export function CreateAvatarForm({ onClose }: { onClose: () => void }) {
   return (
     <BaseAvatarForm
-      serverAction={createAvatarTherapistAction}
+      serverAction={createAvatarAction}
       title="Create New Avatar"
       description="Upload a photo to create a new avatar."
       submitText="Create Avatar"
@@ -208,7 +200,7 @@ interface EditAvatarFormProps {
 export function EditAvatarForm({ avatar, onClose }: EditAvatarFormProps) {
   return (
     <BaseAvatarForm
-      serverAction={editAvatarTherapistAction}
+      serverAction={editAvatarAction}
       initialData={avatar}
       title="Edit Avatar"
       description="Update avatar details."

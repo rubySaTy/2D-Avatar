@@ -43,6 +43,7 @@ export async function loginUser(
   const parsedData = loginUserSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -103,6 +104,7 @@ export async function sendResetLink(
   const parsedData = forgotPasswordSchema.safeParse({ email: emailInput });
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
@@ -159,6 +161,7 @@ export async function resetPassword(
   const parsedData = resetPasswordSchema.safeParse(rawData);
 
   if (!parsedData.success) {
+    console.error(parsedData.error.errors);
     return {
       success: false,
       message: "Validation failed",
