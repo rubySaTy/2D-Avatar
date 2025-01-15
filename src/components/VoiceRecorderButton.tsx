@@ -6,7 +6,12 @@ import { transcribeAndBroadcastAction } from "@/app/actions/meetingSession";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { MicOff, Mic } from "lucide-react";
 
-export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
+interface VoiceRecorderButtonProps {
+  meetingLink: string;
+  disabled: boolean;
+}
+
+export function VoiceRecorderButton({ meetingLink, disabled }: VoiceRecorderButtonProps) {
   // Pass in a callback that handles what to do with the audioFile
   const { isRecording, startRecording, stopRecording } = useAudioRecorder({
     onRecordingComplete: async (audioFile: File) => {
@@ -29,6 +34,7 @@ export function VoiceRecorderButton({ meetingLink }: { meetingLink: string }) {
       className={`flex items-center gap-2 ${
         isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
       } text-white`}
+      disabled={disabled}
     >
       <motion.div
         animate={{

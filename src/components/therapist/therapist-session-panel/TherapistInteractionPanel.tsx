@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import VoiceSelector from "./VoiceSelector";
 import { submitMessageToDID } from "@/app/actions/d-id";
-import PremadeMessages from "./PremadeMessages";
 import { useChannel } from "ably/react";
 import { transcribedTextSchema } from "@/lib/validationSchema";
 import { useMessageHistory } from "@/hooks/useMessageHistory";
@@ -13,6 +12,7 @@ import { useLLMResponse } from "@/hooks/useLLMResponse";
 import { LLMPersonaPrompt } from "./LLMPersonaPrompt";
 import LLMTextarea from "@/components/LLMTextArea";
 import { getMeetingStatusAction } from "@/app/actions/meetingSession";
+import { logMessage } from "@/app/actions";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -57,23 +57,27 @@ export default function TherapistInteractionPanel({
   // Getting the status of the WebRTC connection when initially loading the component
   useEffect(() => {
     getMeetingStatusAction(meetingLink).then((isConnected) => {
+      logMessage(`Therapist webrtc-status: isConnected-${isConnected}`);
       setIsWebrtcConnected(isConnected ?? false);
     });
   }, [meetingLink]);
 
   useChannel(`meeting:${meetingLink}`, async (ablyMessage) => {
     if (ablyMessage.name === "webrtc-status") {
+      logMessage(`Therapist webrtc-status: isConnected-${ablyMessage.data.isConnected}`);
       setIsWebrtcConnected(ablyMessage.data.isConnected);
       if (ablyMessage.data.isConnected === false) setIsVideoStreaming(false);
       return;
     }
 
     if (ablyMessage.name === "stream/started") {
+      logMessage("Therapist received stream/started");
       setIsVideoStreaming(true);
       return;
     }
 
     if (ablyMessage.name === "stream/done") {
+      logMessage("Therapist received stream/done");
       addHistoryMessage(message, "outgoing");
       setMessage("");
       setIsVideoStreaming(false);

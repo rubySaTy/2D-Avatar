@@ -77,6 +77,7 @@ export default function Stream({ meetingLink, idleVideoUrl, DIDCodec }: StreamPr
               meetingLink={meetingLink}
               restartStream={restartStream}
               videoIsPlaying={videoIsPlaying}
+              isConnected={isConnected}
             />
           </motion.div>
         )}
@@ -156,10 +157,12 @@ function Controls({
   videoIsPlaying,
   restartStream,
   meetingLink,
+  isConnected,
 }: {
   videoIsPlaying: boolean;
   restartStream: () => void;
   meetingLink: string;
+  isConnected: boolean;
 }) {
   return (
     <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10">
@@ -173,7 +176,10 @@ function Controls({
         <StopCircle className="w-4 h-4" />
         <span className="hidden md:inline">Stop & Restart</span>
       </Button>
-      <VoiceRecorderButton meetingLink={meetingLink} />
+      <VoiceRecorderButton
+        meetingLink={meetingLink}
+        disabled={videoIsPlaying || !isConnected}
+      />
     </div>
   );
 }
