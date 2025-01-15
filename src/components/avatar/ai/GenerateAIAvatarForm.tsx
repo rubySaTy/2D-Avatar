@@ -68,7 +68,6 @@ export function GenerateAIAvatarForm({
             maxSize={4 * 1024 * 1024}
             isFormSubmitted={isPending}
             isValidationError={!!state?.errors?.imageFile?.[0]}
-            required
           />
         </>
       )}
