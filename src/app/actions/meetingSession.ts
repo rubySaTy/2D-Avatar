@@ -35,7 +35,7 @@ export async function createSessionAction(_: any, formData: FormData) {
 
     meetingLink = await createNewMeetingSession(user.id, avatarId);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating a new meeting session", error);
     return { success: false, message: "Error creating session" };
   }
 
@@ -46,14 +46,16 @@ export async function publishWebRTCStatusAction(
   meetingLink: string,
   isConnected: boolean
 ) {
+  console.log(
+    `publishing webrtc status to redis and ably in Meeting Link: ${meetingLink} \nconnection status: ${isConnected}`
+  );
   try {
-    console.log(
-      `publishing webrtc status to redis and ably in Meeting Link: ${meetingLink} \nconnection status: ${isConnected}`
-    );
-    updateWebrtcConnectionStatus(meetingLink, isConnected);
-    await ablyRest.channels
-      .get(`meeting:${meetingLink}`)
-      .publish("webrtc-status", { isConnected });
+    await Promise.all([
+      updateWebrtcConnectionStatus(meetingLink, isConnected),
+      ablyRest.channels
+        .get(`meeting:${meetingLink}`)
+        .publish("webrtc-status", { isConnected }),
+    ]);
   } catch (error) {
     console.error("failed to publish webrtc status to ably", error);
   }

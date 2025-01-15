@@ -14,7 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import { createSessionAction } from "@/app/actions";
+import { createSessionAction } from "@/app/actions/meetingSession";
 import { SubmitButton } from "@/components/SubmitButton";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { AvatarCreationDropdown } from "@/components/avatar/AvatarCreationDropdown";

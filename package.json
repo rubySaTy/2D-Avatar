@@ -32,6 +32,7 @@
     "ably": "^2",
     "argon2": "0.31.2",
     "axios": "^1",
+    "axios-retry": "^4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2",
     "cmdk": "^1",

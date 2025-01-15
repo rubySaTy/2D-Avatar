@@ -26,6 +26,7 @@ async function isRateLimited(ip: string): Promise<boolean> {
 
 // This route is called when a user closes the WebRTC session page (the video streaming page)
 export async function POST(req: Request) {
+  console.log("api/did-webrtc/close was called - Closing WebRTC session...");
   try {
     // 1. Validate origin
     const headersList = await headers();

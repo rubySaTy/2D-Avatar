@@ -64,6 +64,7 @@ export default function TherapistInteractionPanel({
   useChannel(`meeting:${meetingLink}`, async (ablyMessage) => {
     if (ablyMessage.name === "webrtc-status") {
       setIsWebrtcConnected(ablyMessage.data.isConnected);
+      if (ablyMessage.data.isConnected === false) setIsVideoStreaming(false);
       return;
     }
 

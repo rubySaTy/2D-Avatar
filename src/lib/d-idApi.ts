@@ -1,4 +1,5 @@
 import axios from "axios";
+import axiosRetry from "axios-retry";
 
 const didApi = axios.create({
   baseURL: `${process.env.DID_API_URL}/${process.env.DID_API_SERVICE}`,
@@ -9,43 +10,22 @@ const didApi = axios.create({
   },
 });
 
+axiosRetry(didApi, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: (error) => {
+    return (
+      axiosRetry.isNetworkError(error) ||
+      axiosRetry.isRetryableError(error) ||
+      error.response?.status === 429 // Rate limit exceeded
+    );
+  },
+  onRetry: (retryCount, error, requestConfig) => {
+    console.log(
+      `Retry attempt ${retryCount} for ${requestConfig.method} ${requestConfig.url}`,
+      error.message
+    );
+  },
+});
+
 export default didApi;
-
-// TODO: add retry mechanism to axios requests?
-// async function fetchWithRetries<T>(
-//   url: string,
-//   config: AxiosRequestConfig = {},
-//   pollConfig: PollConfig<T>
-// ): Promise<AxiosResponse<T>> {
-//   const { maxRetries, initialRetryDelay, maxRetryDelay, shouldRetry } = pollConfig;
-
-//   for (let attempt = 0; attempt < maxRetries; attempt++) {
-//     try {
-//       const response = await didApi<T>(url, config);
-
-//       if (!shouldRetry(response.data)) {
-//         return response;
-//       }
-
-//       const delay = Math.min(initialRetryDelay * Math.pow(2, attempt), maxRetryDelay);
-
-//       console.warn(
-//         `Status not yet 'done', retrying in ${delay}ms... (${attempt + 1}/${maxRetries})`
-//       );
-//       await new Promise((resolve) => setTimeout(resolve, delay));
-//     } catch (error) {
-//       if (attempt === maxRetries - 1) {
-//         throw error;
-//       }
-
-//       const delay = Math.min(initialRetryDelay * Math.pow(2, attempt), maxRetryDelay);
-
-//       console.warn(
-//         `Request failed, retrying in ${delay}ms... (${attempt + 1}/${maxRetries})`
-//       );
-//       await new Promise((resolve) => setTimeout(resolve, delay));
-//     }
-//   }
-
-//   throw new Error("Max retries reached without achieving desired status");
-// }

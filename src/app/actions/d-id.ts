@@ -26,7 +26,7 @@ export async function sendICECandidate(
 ) {
   const { candidate, sdpMid, sdpMLineIndex } = eventCandidate;
   try {
-    didApi.post(`/streams/${streamId}/ice`, {
+    await didApi.post(`/streams/${streamId}/ice`, {
       candidate,
       sdpMid,
       sdpMLineIndex,
@@ -39,7 +39,7 @@ export async function sendICECandidate(
 
 export async function notifyICEGatheringComplete(sessionId: string, streamId: string) {
   try {
-    didApi.post(`/streams/${streamId}/ice`, { session_id: sessionId });
+    await didApi.post(`/streams/${streamId}/ice`, { session_id: sessionId });
   } catch (error) {
     console.error("Error in 'notifyICEGatheringComplete'", error);
   }
@@ -65,9 +65,12 @@ export async function closeStream(
   sessionId: string,
   meetingLink: string
 ) {
+  console.log("Stopping stream...");
   try {
-    updateWebrtcConnectionStatus(meetingLink, false);
-    await didApi.delete(`/streams/${streamId}`), { session_id: sessionId };
+    await Promise.all([
+      updateWebrtcConnectionStatus(meetingLink, false),
+      didApi.delete(`/streams/${streamId}`, { data: { session_id: sessionId } }),
+    ]);
   } catch (error) {
     console.error("Error in 'closeStream'", error);
   }
@@ -78,9 +81,14 @@ export async function closeStreamTherapist(meetingLink: string) {
     const { user } = await validateRequest();
     if (!user) return;
 
-    const data = await getWebRTCSession(meetingLink);
+    console.log("Therapist stopping stream...");
+
+    const [data] = await Promise.all([
+      getWebRTCSession(meetingLink),
+      updateWebrtcConnectionStatus(meetingLink, false),
+    ]);
     if (!data) return;
-    updateWebrtcConnectionStatus(meetingLink, false);
+
     await didApi.delete(`/streams/${data.didStreamId}`, {
       data: { session_id: data.didSessionId },
     });
@@ -185,6 +193,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
 
 export async function createDIDStream(meetingLink: string, DIDCodec: string) {
   if (!meetingLink) return null;
+  console.log(`Creating D-ID stream for meeting link: ${meetingLink}`);
 
   try {
     const meetingSessionData = await getMeetingSession(meetingLink);
