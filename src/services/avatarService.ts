@@ -182,9 +182,11 @@ export async function getAvatarWithAssociatedUsersId(avatarId: number) {
     },
   });
 
+  if (!avatarWithUsersId) return null;
+
   return {
     ...avatarWithUsersId,
-    associatedUsersId: avatarWithUsersId?.usersToAvatars.map((uta) => uta.user.id),
+    associatedUsersId: avatarWithUsersId.usersToAvatars.map((uta) => uta.user.id),
     usersToAvatars: undefined,
   };
 }

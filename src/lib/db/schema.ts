@@ -5,7 +5,6 @@ import {
   text,
   varchar,
   timestamp,
-  jsonb,
   primaryKey,
   integer,
   real,

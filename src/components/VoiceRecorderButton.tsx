@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
-import { transcribeAndBroadcastAction } from "@/app/actions";
+import { transcribeAndBroadcastAction } from "@/app/actions/meetingSession";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { MicOff, Mic } from "lucide-react";
 
