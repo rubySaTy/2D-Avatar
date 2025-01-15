@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Separator } from "@/components/ui/separator";
 import { getUserCredits } from "@/services";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -52,10 +53,14 @@ export default async function RootLayout({
                   <Separator orientation="vertical" className="mr-2 h-4" />
                 </header>
                 <main className="flex-1">{children}</main>
+                <Toaster />
               </SidebarInset>
             </SidebarProvider>
           ) : (
-            <main>{children}</main>
+            <>
+              <main>{children}</main>
+              <Toaster />
+            </>
           )}
         </ThemeProvider>
       </body>

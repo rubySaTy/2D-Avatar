@@ -27,6 +27,7 @@
     "@radix-ui/react-slot": "^1",
     "@radix-ui/react-switch": "^1",
     "@radix-ui/react-tabs": "^1",
+    "@radix-ui/react-toast": "^1",
     "@radix-ui/react-tooltip": "^1",
     "@upstash/redis": "^1",
     "ably": "^2",

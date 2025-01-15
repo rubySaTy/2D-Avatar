@@ -13,6 +13,7 @@ import { LLMPersonaPrompt } from "./LLMPersonaPrompt";
 import LLMTextarea from "@/components/LLMTextArea";
 import { getMeetingStatusAction } from "@/app/actions/meetingSession";
 import { logMessage } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
 import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
@@ -40,6 +41,7 @@ export default function TherapistInteractionPanel({
   const [isVideoStreaming, setIsVideoStreaming] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const { toast } = useToast();
   const { history, llmHistory, addHistoryMessage, addLLMHistoryMessage } =
     useMessageHistory();
 
@@ -86,7 +88,13 @@ export default function TherapistInteractionPanel({
 
     const res = transcribedTextSchema.safeParse(ablyMessage.data.transcribedText);
     if (!res.success) {
-      console.warn("Invalid transcribed text:", ablyMessage.data.transcribedText);
+      toast({
+        title: "Invalid Message",
+        description:
+          "The incoming message contains invalid text and cannot be processed.",
+        variant: "destructive",
+        duration: 5000,
+      });
       return;
     }
     const transcribedText = res.data;
@@ -95,6 +103,7 @@ export default function TherapistInteractionPanel({
     addLLMHistoryMessage(transcribedText, "user");
 
     // Here we generate the response, showing partial tokens
+    logMessage(`Generating LLM response for meeting link ${meetingLink}`);
     const llmResponse = await generateResponse(transcribedText, llmHistory, (token) => {
       // This callback fires on each partial chunk
       setMessage((prev) => prev + token);
@@ -109,6 +118,7 @@ export default function TherapistInteractionPanel({
   });
 
   async function handleRegenerate() {
+    logMessage(`Regenerating LLM response for meeting link ${meetingLink}`);
     setMessage("");
     const llmResponse = await regenerateResponse(llmHistory, (token) => {
       setMessage((prev) => prev + token);

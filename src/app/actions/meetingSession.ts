@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { validateRequest } from "@/lib/auth";
 import { ablyRest } from "@/lib/integrations/ably/ably-server";
-import { avatarIdSchema } from "@/lib/validationSchema";
+import { avatarIdSchema, transcribedTextSchema } from "@/lib/validationSchema";
 import {
   createNewMeetingSession,
   getAvatarWithAssociatedUsersId,
@@ -90,12 +90,13 @@ export async function publishStreamDoneAction(meetingLink: string) {
 
 export async function transcribeAndBroadcastAction(audioFile: File, meetingLink: string) {
   if (!meetingLink || !audioFile) return;
+  let warnMessage: string | null = null;
 
   try {
     const cipherKey = await getMeetingSessionCipherKey(meetingLink);
     if (!cipherKey) {
       console.error("Cipher key not found for meeting link:", meetingLink);
-      return;
+      throw new Error("Cipher key not found");
     }
 
     console.log(`Transcribing audio for meeting link: ${meetingLink}`);
@@ -104,10 +105,20 @@ export async function transcribeAndBroadcastAction(audioFile: File, meetingLink:
       model: "whisper-1",
     });
 
+    const res = transcribedTextSchema.safeParse(transcribe.text);
+    if (!res.success) {
+      console.warn("Invalid transcribed text:", transcribe.text);
+      warnMessage = "The transcribed text is invalid. Please try again.";
+    }
+
     await ablyRest.channels
       .get(`meeting:${meetingLink}`, { cipher: { key: cipherKey } })
       .publish("transcript", { transcribedText: transcribe.text });
+
+    return warnMessage;
   } catch (error) {
     console.error("Error transcribing and broadcasting audio", error);
+    return (warnMessage =
+      "An error occurred while transcribing. Please try again later.");
   }
 }

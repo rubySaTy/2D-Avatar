@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
+import { Button } from "@/components/ui/button";
 import { transcribeAndBroadcastAction } from "@/app/actions/meetingSession";
-import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { MicOff, Mic } from "lucide-react";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoiceRecorderButtonProps {
   meetingLink: string;
@@ -12,10 +13,21 @@ interface VoiceRecorderButtonProps {
 }
 
 export function VoiceRecorderButton({ meetingLink, disabled }: VoiceRecorderButtonProps) {
+  const { toast } = useToast();
+
   // Pass in a callback that handles what to do with the audioFile
   const { isRecording, startRecording, stopRecording } = useAudioRecorder({
     onRecordingComplete: async (audioFile: File) => {
-      await transcribeAndBroadcastAction(audioFile, meetingLink);
+      const warnMessage = await transcribeAndBroadcastAction(audioFile, meetingLink);
+
+      if (warnMessage) {
+        toast({
+          title: "Error",
+          description: warnMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     },
   });
 
