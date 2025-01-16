@@ -176,7 +176,7 @@ export async function uploadClonedVoice(prevState: any, formData: FormData) {
   }
 }
 
-export async function handleUpdateCredits(prevState: any, formData: FormData) {
+export async function handleUpdateCreditsAction(prevState: any, formData: FormData) {
   if (!(await isAdmin())) return unauthorized;
 
   const parsedData = updateCreditsSchema.safeParse({
@@ -193,6 +193,7 @@ export async function handleUpdateCredits(prevState: any, formData: FormData) {
   const { userId, amount, reason } = parsedData.data;
 
   try {
+    console.log(`Updating user credits for user: ${userId} with amount: ${amount}`);
     await updateUserCredits(userId, amount, reason);
 
     // TODO: "Use revalidateTag when upgrading to NextJS 15,";

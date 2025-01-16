@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, RotateCcw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { logMessage } from "../actions";
+import { logMessage } from "@/app/actions";
 
 export default function AdminError({
   error,

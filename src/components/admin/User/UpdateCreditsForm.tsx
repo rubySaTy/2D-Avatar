@@ -6,13 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Plus, Minus } from "lucide-react";
-import { handleUpdateCredits } from "@/app/actions/admin";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { handleUpdateCreditsAction } from "@/app/actions/admin";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SubmitButton } from "@/components/SubmitButton";
+import { useToast } from "@/hooks/use-toast";
 
 interface UpdateCreditsFormProps {
   userId: string;
@@ -23,24 +20,31 @@ export default function UpdateCreditsForm({
   userId,
   currentCredits,
 }: UpdateCreditsFormProps) {
-  const [state, formAction] = useActionState(handleUpdateCredits, null);
+  const [state, formAction] = useActionState(handleUpdateCreditsAction, null);
   const [isOpen, setIsOpen] = useState(false);
   const [operation, setOperation] = useState<"add" | "subtract">("add");
   const [amount, setAmount] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (operation === "subtract" && amount > currentCredits) {
-      setError(
-        `Cannot subtract more than the current credits (${currentCredits})`
-      );
+      setError(`Cannot subtract more than the current credits (${currentCredits})`);
     } else {
       setError(null);
     }
   }, [operation, amount, currentCredits]);
 
   useEffect(() => {
-    if (state?.success) {
+    if (!state) return;
+
+    toast({
+      title: state.success ? "Success" : "Error",
+      description: state.message,
+      variant: state.success ? "default" : "destructive",
+    });
+
+    if (state.success) {
       setAmount(1);
       setIsOpen(false);
     }
@@ -88,9 +92,7 @@ export default function UpdateCreditsForm({
                 name="amount"
                 type="number"
                 value={amount}
-                onChange={(e) =>
-                  setAmount(Math.max(1, parseInt(e.target.value) || 0))
-                }
+                onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 0))}
                 required
                 min="1"
                 max={operation === "subtract" ? currentCredits : undefined}
@@ -115,16 +117,6 @@ export default function UpdateCreditsForm({
             </SubmitButton>
           </div>
         </form>
-
-        {state && (
-          <Alert
-            variant={state.success ? "default" : "destructive"}
-            className="mt-4"
-          >
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{state.message}</AlertDescription>
-          </Alert>
-        )}
 
         <div className="mt-4 text-sm text-muted-foreground">
           Current Credits: {currentCredits}
