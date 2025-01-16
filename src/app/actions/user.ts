@@ -19,20 +19,23 @@ import { isDbError } from "@/lib/typeGuards";
 
 export async function deleteUserAction(userId: string) {
   const { user } = await validateRequest();
-  if (user && user.id !== userId && user.role !== "admin") return;
+  if (user && user.id !== userId && user.role !== "admin")
+    return { success: false, message: "Unauthorized" };
 
   const parsedData = userIdSchema.safeParse(userId);
 
   if (!parsedData.success) {
     console.error(parsedData.error);
-    return;
+    return { success: false, message: "Validation failed" };
   }
 
   try {
     await deleteUserById(parsedData.data);
     revalidatePath("/admin");
+    return { success: true, message: "User Deleted Successfully" };
   } catch (error) {
     console.error("Error deleting user:", error);
+    return { success: false, message: "Internal server error" };
   }
 }
 

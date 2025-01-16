@@ -71,7 +71,7 @@ export async function createUserAction(
 
     await createUserInDB(username, email, password, role);
     revalidatePath("/admin");
-    return { success: true, message: "User created" };
+    return { success: true, message: "User created successfully" };
   } catch (error) {
     console.error(error);
     return { success: false, message: "An unexpected error occurred", inputs: rawData };

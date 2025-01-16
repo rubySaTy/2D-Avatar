@@ -20,6 +20,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import PasswordInputWithToggle from "@/components/PasswordInputWithToggle";
 import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { createUserAction, editUserAction } from "@/app/actions/admin";
+import { useToast } from "@/hooks/use-toast";
 import type { UserDto } from "@/lib/db/schema";
 import type { ActionResponse, BaseUserFormData } from "@/lib/types";
 
@@ -72,9 +73,18 @@ function BaseUserForm({
   onClose,
 }: BaseUserFormProps) {
   const [state, formAction] = useActionState(serverAction, null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.success) onClose();
+    if (state?.success) {
+      onClose();
+      toast({
+        title: "Success",
+        description: state.message,
+        variant: "default",
+        duration: 5000,
+      });
+    }
   }, [state, onClose]);
 
   return (
