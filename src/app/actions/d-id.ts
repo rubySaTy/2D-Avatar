@@ -57,6 +57,10 @@ export async function sendSDPAnswer(
     });
   } catch (error) {
     console.error("Error in 'sendSDPAnswer'", error);
+    return {
+      success: false,
+      message: "Unable to connect to the stream. Please refresh the page and try again",
+    };
   }
 }
 

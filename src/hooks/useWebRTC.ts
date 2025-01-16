@@ -8,10 +8,10 @@ import {
 } from "@/app/actions/d-id";
 import { logMessage } from "@/app/actions";
 import {
-  publishStreamDoneAction,
-  publishStreamStartedAction,
+  publishStreamStatusAction,
   publishWebRTCStatusAction,
 } from "@/app/actions/meetingSession";
+import { useToast } from "./use-toast";
 
 interface UseWebRTCStreamOptions {
   meetingLink: string;
@@ -39,6 +39,7 @@ export function useWebRTCStream({
   const streamVideoRef = useRef<HTMLVideoElement | null>(null);
   const isConnected = isReady && isStreamReady;
   const prevIsConnectedRef = useRef<boolean>(isConnected);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (hasStarted) initiateConnection();
@@ -65,7 +66,15 @@ export function useWebRTCStream({
 
   async function initiateConnection() {
     const sessionResponse = await createDIDStream(meetingLink, DIDCodec);
-    if (!sessionResponse) throw new Error("Failed to create stream.");
+    if (!sessionResponse) {
+      toast({
+        title: "Error creating stream.",
+        description: "Please try refreshing the page, or try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
 
     const { id: streamId, session_id, offer, ice_servers } = sessionResponse;
     streamIdRef.current = streamId;
@@ -74,10 +83,12 @@ export function useWebRTCStream({
     setupPeerConnection({ iceServers: ice_servers }, offer);
   }
 
-  function setupPeerConnection(
+  async function setupPeerConnection(
     configuration: RTCConfiguration,
     offer: RTCSessionDescriptionInit
   ) {
+    if (!streamIdRef.current || !sessionIdRef.current) return;
+
     const pc = new RTCPeerConnection(configuration);
     pcRef.current = pc;
 
@@ -87,17 +98,23 @@ export function useWebRTCStream({
     dataChannelRef.current = dataChannel;
     dataChannel.onmessage = onDataChannelMessage;
 
-    pc.setRemoteDescription(offer)
-      .then(() => pc.createAnswer())
-      .then((answer) => {
-        pc.setLocalDescription(answer);
-        if (streamIdRef.current && sessionIdRef.current) {
-          sendSDPAnswer(streamIdRef.current, sessionIdRef.current, {
-            type: answer.type,
-            sdp: answer.sdp,
-          });
-        }
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    const res = await sendSDPAnswer(streamIdRef.current, sessionIdRef.current, {
+      type: answer.type,
+      sdp: answer.sdp,
+    });
+
+    if (res && !res.success) {
+      toast({
+        title: "Failed to establish connection.",
+        description: res.message,
+        variant: "destructive",
+        duration: Infinity,
       });
+    }
   }
 
   function addPeerConnectionEventListeners(pc: RTCPeerConnection) {
@@ -121,33 +138,34 @@ export function useWebRTCStream({
   }
 
   function onDataChannelMessage(event: MessageEvent) {
-    const message = event.data;
-    const [eventType] = message.split(":");
+    const [eventType, ...params] = event.data.split(":");
+    logMessage(event.data);
 
     switch (eventType) {
       case "stream/ready":
-        logMessage(message);
         setIsStreamReady(true);
         break;
       case "stream/started":
-        logMessage(message);
         setTimeout(() => {
           setVideoIsPlaying(true);
         }, 1000);
-        publishStreamStartedAction(meetingLink);
+        publishStreamStatusAction(meetingLink, eventType);
         break;
       case "stream/done":
-        logMessage(message);
         setVideoIsPlaying(false);
-        publishStreamDoneAction(meetingLink);
+        publishStreamStatusAction(meetingLink, eventType);
         break;
       case "stream/error":
-        logMessage(message);
-        console.error("Stream error from data channel.");
+        toast({
+          title: "Stream error.",
+          description: "Please try refreshing the page, or try again later.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        console.warn("Stream error from data channel.");
         break;
       default:
-        logMessage(message);
-        console.warn("Unknown data channel message:", message);
+        console.warn("Unknown data channel message:", event.data);
     }
   }
 
@@ -155,14 +173,18 @@ export function useWebRTCStream({
     const pc = pcRef.current;
     if (!pc) return;
 
-    if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-      setIsReady(true);
-      reconnectionAttemptsRef.current = 0;
-    } else if (
-      pc.iceConnectionState === "disconnected" ||
-      pc.iceConnectionState === "failed"
-    ) {
-      attemptReconnection();
+    switch (pc.connectionState) {
+      case "connected":
+        setIsReady(true);
+        reconnectionAttemptsRef.current = 0;
+        break;
+      case "disconnected":
+      case "failed":
+        attemptReconnection();
+        break;
+      case "closed":
+        cleanupConnection();
+        break;
     }
   }
 
@@ -189,7 +211,13 @@ export function useWebRTCStream({
   function attemptReconnection() {
     const attempts = reconnectionAttemptsRef.current;
     if (attempts >= maxReconnectionAttempts) {
-      console.error("Maximum reconnection attempts reached.");
+      toast({
+        title: "Connection lost.",
+        description: "Please try refreshing the page, or try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      console.warn("Maximum reconnection attempts reached.");
       return;
     }
     reconnectionAttemptsRef.current += 1;
@@ -201,14 +229,16 @@ export function useWebRTCStream({
   }
 
   function cleanupConnection() {
-    if (pcRef.current) {
-      pcRef.current.removeEventListener("icecandidate", onIceCandidate);
-      pcRef.current.removeEventListener(
-        "iceconnectionstatechange",
-        onIceConnectionStateChange
-      );
-      pcRef.current.removeEventListener("track", onTrack);
-      pcRef.current.close();
+    const pc = pcRef.current;
+    if (pc) {
+      pc.removeEventListener("icecandidate", onIceCandidate);
+      pc.removeEventListener("iceconnectionstatechange", onIceConnectionStateChange);
+      pc.removeEventListener("track", onTrack);
+      pc.getTransceivers().forEach((transceiver) => {
+        transceiver.stop();
+      });
+
+      pc.close();
       pcRef.current = null;
     }
 

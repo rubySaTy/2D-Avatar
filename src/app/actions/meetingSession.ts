@@ -70,21 +70,13 @@ export async function getMeetingStatusAction(meetingLink: string) {
   }
 }
 
-export async function publishStreamStartedAction(meetingLink: string) {
-  try {
-    console.log(`publishing stream/started to ably in Meeting Link: ${meetingLink}`);
-    await ablyRest.channels.get(`meeting:${meetingLink}`).publish("stream/started", {});
-  } catch (error) {
-    console.error("failed to publish stream done to ably", error);
-  }
-}
+export async function publishStreamStatusAction(meetingLink: string, eventType: string) {
+  console.log(`publishing ${eventType} to ably in Meeting Link: ${meetingLink}`);
 
-export async function publishStreamDoneAction(meetingLink: string) {
   try {
-    console.log(`publishing stream/done to ably in Meeting Link: ${meetingLink}`);
-    await ablyRest.channels.get(`meeting:${meetingLink}`).publish("stream/done", {});
+    await ablyRest.channels.get(`meeting:${meetingLink}`).publish(eventType, {});
   } catch (error) {
-    console.error("failed to publish stream done to ably", error);
+    console.error("failed to publish stream status to ably", error);
   }
 }
 
