@@ -137,6 +137,17 @@ export default function TherapistInteractionPanel({
     }
   }, [shouldSubmitForm]);
 
+  useEffect(() => {
+    if (state?.message && !state.success) {
+      toast({
+        title: "Error",
+        description: state.message,
+        variant: "destructive",
+        duration: 7500,
+      });
+    }
+  }, [state]);
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col lg:flex-row gap-6">
@@ -163,10 +174,6 @@ export default function TherapistInteractionPanel({
               hasIncomingLLMResponse={hasIncomingLLMResponse}
               setHasIncomingLLMResponse={setHasIncomingLLMResponse}
             />
-
-            {state?.message && !state.success && (
-              <div className="text-red-600">{state.message}</div>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
