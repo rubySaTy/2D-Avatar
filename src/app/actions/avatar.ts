@@ -59,7 +59,11 @@ export async function createAvatarAction(
     await createAvatarData(avatarName, imageFile, associatedUsersIds, user.id);
     revalidatePath("/admin");
     revalidatePath("/therapist");
-    return { success: true, message: "Avatar created" };
+    return {
+      success: true,
+      message:
+        "Avatar Created Successfully. \nIt's being processed and will be available shortly.",
+    };
   } catch (error) {
     console.error("Error creating avatar:", error);
     return { success: false, message: "Internal server error", inputs: rawData };
@@ -111,10 +115,11 @@ export async function editAvatarAction(
         ? associatedUsersIds
         : existingAvatar.associatedUsersId;
 
+    console.log("Editing avatar:", avatarId);
     editAvatarData(avatarId, avatarName, updatedAssociatedUsersIds);
     revalidatePath("/therapist");
     revalidatePath("/admin");
-    return { success: true, message: "Avatar updated" };
+    return { success: true, message: "Avatar Updated Successfully" };
   } catch (error) {
     console.error("Error updating avatar:", error);
     return { success: false, message: "Internal server error", inputs: rawData };
@@ -122,32 +127,35 @@ export async function editAvatarAction(
 }
 
 export async function deleteAvatarAction(avatarId: number) {
-  const currentUser = await getUser();
-  if (!currentUser) return;
+  const { user } = await validateRequest();
+  if (!user) return { success: false, message: "Unauthorized" };
 
   const parsedData = avatarIdSchema.safeParse(avatarId);
 
   if (!parsedData.success) {
     console.error(parsedData.error.errors);
-    return;
+    return { success: false, message: "Validation failed" };
   }
 
   try {
     const existingAvatar = await getAvatarById(parsedData.data);
     if (!existingAvatar) {
       console.error("Avatar not found in DB");
-      return;
+      return { success: false, message: "Avatar not found" };
     }
 
-    if (existingAvatar.uploaderId !== currentUser.id && currentUser.role !== "admin") {
+    if (existingAvatar.uploaderId !== user.id && user.role !== "admin") {
       console.error("User is Unauthorized to delete avatar");
-      return;
+      return { success: false, message: "Unauthorized" };
     }
 
+    console.log("Deleting avatar:", existingAvatar.id);
     await removeAvatar(existingAvatar.id);
     revalidatePath("/admin");
+    return { success: true, message: "Avatar Deleted Successfully" };
   } catch (error) {
     console.error("Error deleting avatar:", error);
+    return { success: false, message: "Internal server error" };
   }
 }
 

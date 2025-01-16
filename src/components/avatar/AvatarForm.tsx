@@ -15,6 +15,7 @@ import ServerActionAlertMessage from "@/components/ServerActionAlertMessage";
 import { FormInput } from "@/components/FormInput";
 import MultiUserSelector from "./MultiUserSelector";
 import { createAvatarAction, editAvatarAction } from "@/app/actions/avatar";
+import { useToast } from "@/hooks/use-toast";
 import type { Avatar, UserDto } from "@/lib/db/schema";
 import type { ActionResponse, BaseAvatarFormData } from "@/lib/types";
 
@@ -50,9 +51,18 @@ function BaseAvatarForm({
   onClose,
 }: BaseAvatarFormProps) {
   const [state, formAction, isPending] = useActionState(serverAction, null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (state?.success) onClose();
+    if (state?.success) {
+      onClose();
+      toast({
+        title: "Success",
+        description: <span className="whitespace-pre-line">{state.message}</span>,
+        variant: "default",
+        duration: 5000,
+      });
+    }
   }, [state, onClose]);
 
   return (
