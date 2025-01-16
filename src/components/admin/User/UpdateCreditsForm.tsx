@@ -42,6 +42,7 @@ export default function UpdateCreditsForm({
       title: state.success ? "Success" : "Error",
       description: state.message,
       variant: state.success ? "default" : "destructive",
+      duration: 5000,
     });
 
     if (state.success) {
