@@ -89,7 +89,11 @@ export function useWebRTCStream({
   ) {
     if (!streamIdRef.current || !sessionIdRef.current) return;
 
-    const pc = new RTCPeerConnection(configuration);
+    const pc = new RTCPeerConnection({
+      iceServers: configuration.iceServers,
+      // TODO: in case user is consistently behind a restrictive firewall? connection is taking longer than expected
+      iceTransportPolicy: "relay",
+    });
     pcRef.current = pc;
 
     addPeerConnectionEventListeners(pc);
@@ -172,6 +176,7 @@ export function useWebRTCStream({
   function onIceConnectionStateChange() {
     const pc = pcRef.current;
     if (!pc) return;
+    logMessage(`ICE state: ${pc.connectionState}`);
 
     switch (pc.connectionState) {
       case "connected":
