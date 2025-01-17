@@ -89,11 +89,7 @@ export function useWebRTCStream({
   ) {
     if (!streamIdRef.current || !sessionIdRef.current) return;
 
-    const pc = new RTCPeerConnection({
-      iceServers: configuration.iceServers,
-      // TODO: in case user is consistently behind a restrictive firewall? connection is taking longer than expected
-      iceTransportPolicy: "relay",
-    });
+    const pc = new RTCPeerConnection(configuration);
     pcRef.current = pc;
 
     addPeerConnectionEventListeners(pc);
