@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Send, RefreshCw, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +8,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { StyleSelector } from "./therapist/therapist-session-panel/StyleSelector";
+import VoiceSelector from "./therapist/therapist-session-panel/VoiceSelector";
+import type { MicrosoftVoice, VoiceList } from "@/lib/types";
 
 interface LLMTextareaProps {
   message: string;
@@ -20,6 +22,8 @@ interface LLMTextareaProps {
   setHasIncomingLLMResponse: React.Dispatch<React.SetStateAction<boolean>>;
   handleRegenerate: () => void;
   handleStyleSelect: (style: string, intensity: number) => void;
+  handleVoiceSelect: (voice: MicrosoftVoice) => void;
+  voiceList: VoiceList;
 }
 
 export default function LLMTextarea({
@@ -33,6 +37,8 @@ export default function LLMTextarea({
   setHasIncomingLLMResponse,
   handleRegenerate,
   handleStyleSelect,
+  handleVoiceSelect,
+  voiceList,
 }: LLMTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -70,8 +76,9 @@ export default function LLMTextarea({
       <div className="w-full mx-auto p-4">
         <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
           {/* Style selector */}
-          <div className="absolute top-2 left-2 z-10">
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
             <StyleSelector onStyleSelect={handleStyleSelect} />
+            <VoiceSelector {...voiceList} onVoiceSelect={handleVoiceSelect} />
           </div>
 
           {/* Connection status with pulse animation */}

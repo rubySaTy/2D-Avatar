@@ -26,7 +26,7 @@ export function useWebRTCStream({
   DIDCodec,
   maxReconnectionAttempts = 5,
 }: UseWebRTCStreamOptions) {
-  const [isReady, setIsReady] = useState(false);
+  // const [isReady, setIsReady] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [videoIsPlaying, setVideoIsPlaying] = useState(false);
 
@@ -37,7 +37,8 @@ export function useWebRTCStream({
   const reconnectionAttemptsRef = useRef<number>(0);
 
   const streamVideoRef = useRef<HTMLVideoElement | null>(null);
-  const isConnected = isReady && isStreamReady;
+  // const isConnected = isReady && isStreamReady;
+  const isConnected = isStreamReady;
   const prevIsConnectedRef = useRef<boolean>(isConnected);
   const { toast } = useToast();
 
@@ -119,6 +120,9 @@ export function useWebRTCStream({
 
   function addPeerConnectionEventListeners(pc: RTCPeerConnection) {
     pc.addEventListener("icecandidate", onIceCandidate);
+    pc.addEventListener("icecandidateerror", (e) => {
+      logMessage(`ICE candidate error: ${e}`);
+    });
     pc.addEventListener("iceconnectionstatechange", onIceConnectionStateChange);
     pc.addEventListener("track", onTrack);
   }
@@ -176,8 +180,8 @@ export function useWebRTCStream({
 
     switch (pc.connectionState) {
       case "connected":
-        setIsReady(true);
-        reconnectionAttemptsRef.current = 0;
+        // setIsReady(true);
+        // reconnectionAttemptsRef.current = 0;
         break;
       case "disconnected":
       case "failed":
@@ -256,7 +260,7 @@ export function useWebRTCStream({
       streamVideoRef.current.srcObject = null;
     }
 
-    setIsReady(false);
+    // setIsReady(false);
     setIsStreamReady(false);
     setVideoIsPlaying(false);
 

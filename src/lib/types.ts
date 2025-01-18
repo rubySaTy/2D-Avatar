@@ -17,6 +17,12 @@ export interface MicrosoftVoice {
   provider: string;
   styles: string[];
 }
+export interface VoiceList {
+  voices: MicrosoftVoice[];
+  genders: string[];
+  languages: string[];
+  ageGroups: string[];
+}
 
 export interface VoiceProviderConfig {
   type: string;

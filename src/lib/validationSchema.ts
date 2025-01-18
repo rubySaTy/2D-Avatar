@@ -74,40 +74,18 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
-export const createTalkStreamSchema = z
-  .object({
-    meetingLink: z.string().min(1, { message: "Meeting link is required" }),
+export const createTalkStreamSchema = z.object({
+  meetingLink: z.string().min(1, { message: "Meeting link is required" }),
 
-    // Preprocess 'message': Convert empty strings to undefined
-    message: z.preprocess((val) => {
-      if (typeof val === "string" && val.trim() === "") return undefined;
-      return val;
-    }, z.string().min(1, { message: "Message input is required" }).optional()),
+  // Preprocess 'message': Convert empty strings to undefined
+  message: z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return undefined;
+    return val;
+  }, z.string().min(1, { message: "Message input is required" }).optional()),
 
-    // Preprocess 'premadeMessage': Convert empty strings to null
-    premadeMessage: z.preprocess((val) => {
-      if (typeof val === "string" && val.trim() === "") return null;
-      return val;
-    }, z.string().nullable().optional()),
-
-    providerType: z.string().nullable().optional(),
-    voiceId: z.string().nullable().optional(),
-    voiceStyle: z.string().nullable().optional(),
-  })
-  .refine(
-    (data) => {
-      // If 'premadeMessage' is null or undefined, 'message' must be provided
-      if (data.premadeMessage == null) {
-        return typeof data.message === "string" && data.message.trim().length > 0;
-      }
-      // If 'premadeMessage' is provided, 'message' is optional
-      return true;
-    },
-    {
-      message: "Message input is required",
-      path: ["message"], // This sets the error on the 'message' field
-    }
-  );
+  voiceId: z.string().nullable().optional(),
+  voiceStyle: z.string().nullable().optional(),
+});
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];

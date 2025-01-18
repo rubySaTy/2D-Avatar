@@ -1,309 +1,190 @@
-import { useState, useMemo, useRef } from "react";
-import { Label } from "../../ui/label";
+import { useState, useRef } from "react";
+import { Check, ChevronDown, Play, Pause } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import type { MicrosoftVoice } from "@/lib/types";
-import { Button } from "../../ui/button";
-import { Pause, Play } from "lucide-react";
-
-const GenderSelect: React.FC<{
-  genders: string[];
-  selectedGender: string;
-  onChange: (value: string) => void;
-}> = ({ genders, selectedGender, onChange }) => (
-  <div className="space-y-2">
-    <Label htmlFor="gender-select">Gender</Label>
-    <Select value={selectedGender} onValueChange={onChange}>
-      <SelectTrigger id="gender-select">
-        <SelectValue placeholder="Select gender" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All Genders</SelectItem>
-        {genders.map((gender) => (
-          <SelectItem key={gender} value={gender}>
-            {gender.charAt(0).toUpperCase() + gender.slice(1)}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
-
-const LanguageSelect: React.FC<{
-  languages: string[];
-  selectedLanguage: string;
-  onChange: (value: string) => void;
-  disabled: boolean;
-}> = ({ languages, selectedLanguage, onChange, disabled }) => (
-  <div className="space-y-2">
-    <Label htmlFor="language-select">Language</Label>
-    <Select
-      value={selectedLanguage}
-      onValueChange={onChange}
-      disabled={disabled}
-    >
-      <SelectTrigger id="language-select">
-        <SelectValue placeholder="Select language" />
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((language) => (
-          <SelectItem key={language} value={language}>
-            {language}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
-
-const AgeGroupSelect: React.FC<{
-  ageGroups: string[];
-  selectedAgeGroup: string;
-  onChange: (value: string) => void;
-}> = ({ ageGroups, selectedAgeGroup, onChange }) => {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="age-group-select">Age Group</Label>
-      <Select value={selectedAgeGroup} onValueChange={onChange}>
-        <SelectTrigger id="age-group-select">
-          <SelectValue placeholder="Select age group" />
-        </SelectTrigger>
-        <SelectContent>
-          {/* You can define your “All” or “Any” option */}
-          <SelectItem value="all">All Age Groups</SelectItem>
-          {ageGroups.map((ageGroup) => (
-            <SelectItem key={ageGroup} value={ageGroup}>
-              {ageGroup.charAt(0).toUpperCase() + ageGroup.slice(1)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-};
-
-const VoiceSelect: React.FC<{
-  voices: MicrosoftVoice[];
-  selectedVoice: string;
-  selectedLanguage: string;
-  onChange: (value: string) => void;
-  disabled: boolean;
-  onPreview: (voiceId: string, language: string) => Promise<string>;
-}> = ({
-  voices,
-  selectedVoice,
-  selectedLanguage,
-  onChange,
-  disabled,
-  onPreview,
-}) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const handlePreview = async () => {
-    if (isPlaying && audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      try {
-        const audioUrl = await onPreview(selectedVoice, selectedLanguage);
-        if (audioRef.current) {
-          audioRef.current.src = audioUrl;
-          await audioRef.current.play();
-          setIsPlaying(true);
-        }
-      } catch (error) {
-        console.error("Error playing audio:", error);
-      }
-    }
-  };
-
-  const handleAudioEnded = () => {
-    setIsPlaying(false);
-  };
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="voice-select">Voice</Label>
-      <div className="flex items-center space-x-2">
-        <Select
-          name="voiceId"
-          value={selectedVoice}
-          onValueChange={onChange}
-          disabled={disabled}
-        >
-          <SelectTrigger id="voice-select" className="flex-grow">
-            <SelectValue
-              placeholder={
-                voices.length > 0 ? "Choose a Voice" : "No Voices Available"
-              }
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {voices.map((voice) => (
-              <SelectItem key={voice.id} value={voice.id}>
-                {voice.name} ({voice.gender})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {selectedVoice && (
-          <Button
-            type="button"
-            onClick={handlePreview}
-            variant="outline"
-            size="icon"
-            className="shrink-0"
-            disabled={disabled}
-          >
-            {isPlaying ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-            <span className="sr-only">
-              {isPlaying ? "Pause" : "Play"} Voice Preview
-            </span>
-          </Button>
-        )}
-      </div>
-      <audio ref={audioRef} onEnded={handleAudioEnded} className="hidden" />
-
-      {selectedVoice && (
-        <div className="mt-2">
-          <p className="text-sm">
-            {voices.find((voice) => voice.id === selectedVoice)?.description}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
 
 interface VoiceSelectorProps {
   voices: MicrosoftVoice[];
   genders: string[];
   languages: string[];
-  selectedStyle: string;
   ageGroups: string[];
+  onVoiceSelect: (voice: MicrosoftVoice) => void;
 }
 
 export default function VoiceSelector({
   voices,
   genders,
   languages,
-  selectedStyle,
   ageGroups,
+  onVoiceSelect,
 }: VoiceSelectorProps) {
-  const [selection, setSelection] = useState<{
-    gender: string;
-    language: string;
-    voice: string;
-    style: string;
-    ageGroup: string;
-  }>({
-    gender: "all",
+  const [selectedVoice, setSelectedVoice] = useState<MicrosoftVoice | null>(null);
+  const [filters, setFilters] = useState({
+    gender: "",
     language: "",
-    voice: "",
-    style: selectedStyle,
-    ageGroup: "all",
+    ageGroup: "",
+  });
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const filteredVoices = voices.filter((voice) => {
+    const matchesGender = !filters.gender || voice.gender === filters.gender;
+    const matchesLanguage =
+      !filters.language ||
+      voice.languages.some((lang) => lang.language === filters.language);
+    const matchesAge = !filters.ageGroup || voice.ageGroup === filters.ageGroup;
+
+    return matchesGender && matchesLanguage && matchesAge;
   });
 
-  const { gender, language, voice, ageGroup } = selection;
-
-  // Memoize filtered voices based on gender, language, and ageGroup
-  const filteredVoices = useMemo(() => {
-    return voices.filter((v) => {
-      const matchesGender = gender !== "all" ? v.gender === gender : true;
-      const matchesLanguage =
-        language !== ""
-          ? v.languages.some((lang) => lang.language === language)
-          : true;
-      const matchesAgeGroup =
-        ageGroup !== "all" ? v.ageGroup === ageGroup : true;
-
-      return matchesGender && matchesLanguage && matchesAgeGroup;
-    });
-  }, [voices, gender, language, ageGroup]);
-
-  // Determine disabled states
-  const isLanguageDisabled = false;
-  const isVoiceDisabled = language === "" || filteredVoices.length === 0;
-
-  // Handle selection changes
-  const handleChange = (field: keyof typeof selection, value: string) => {
-    setSelection((prev) => {
-      const updated = { ...prev, [field]: value };
-
-      // Reset dependent fields based on the changed field
-      if (field === "gender") {
-        updated.language = "";
-        updated.voice = "";
-      } else if (field === "language") {
-        updated.voice = "";
-      } else if (field === "ageGroup") {
-        // If the user changes ageGroup, you may or may not want to reset these
-        updated.voice = "";
-      }
-
-      return updated;
-    });
+  const handleVoiceSelect = (voice: MicrosoftVoice) => {
+    setSelectedVoice(voice);
+    onVoiceSelect(voice);
   };
 
-  // Handle voice preview
-  const handlePreview = async (
-    voiceId: string,
-    selectedLanguage: string
-  ): Promise<string> => {
-    const voice = voices.find((v) => v.id === voiceId);
-    if (voice) {
-      const languagePreview = voice.languages.find(
-        (lang) => lang.language === selectedLanguage
-      );
-      if (languagePreview) {
-        return languagePreview.preview;
+  const handlePreview = (voice: MicrosoftVoice) => {
+    const selectedLanguage = filters.language;
+    const languageData = voice.languages.find(
+      (lang) => lang.language === selectedLanguage
+    );
+    const previewUrl = languageData?.preview ?? voice.languages[0]?.preview;
+    if (!previewUrl) return;
+
+    if (playingVoiceId === voice.id) {
+      // Stop the current playback
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setPlayingVoiceId(null);
+    } else {
+      // Stop any existing playback before starting a new one
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
+
+      // Create a new audio element and play
+      const audio = new Audio(previewUrl);
+      audioRef.current = audio;
+      audio.play();
+      setPlayingVoiceId(voice.id);
+
+      // Reset state when playback ends
+      audio.onended = () => {
+        setPlayingVoiceId(null);
+        audioRef.current = null;
+      };
     }
-    throw new Error("Preview not available");
   };
 
   return (
-    <>
-      <input type="hidden" name="providerType" value="microsoft" />
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md flex items-center gap-1"
+        >
+          {selectedVoice?.name || "Select voice"}
+          <ChevronDown className="h-3 w-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg">
+        <Command>
+          <CommandInput placeholder="Search voices..." className="h-9 text-xs" />
+          <CommandList>
+            <div className="p-2 border-b border-gray-200 dark:border-gray-800 flex flex-wrap gap-1">
+              <select
+                className="px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-700"
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, language: e.target.value }))
+                }
+                value={filters.language}
+              >
+                <option value="">Language</option>
+                {languages.map((language) => (
+                  <option key={language} value={language}>
+                    {language}
+                  </option>
+                ))}
+              </select>
 
-      <GenderSelect
-        genders={genders}
-        selectedGender={gender}
-        onChange={(value) => handleChange("gender", value)}
-      />
+              <select
+                className="px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-700"
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, gender: e.target.value }))
+                }
+                value={filters.gender}
+              >
+                <option value="">Gender</option>
+                {genders.map((gender) => (
+                  <option key={gender} value={gender}>
+                    {gender}
+                  </option>
+                ))}
+              </select>
 
-      <AgeGroupSelect
-        ageGroups={ageGroups}
-        selectedAgeGroup={ageGroup}
-        onChange={(value) => handleChange("ageGroup", value)}
-      />
+              <select
+                className="px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-700"
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, ageGroup: e.target.value }))
+                }
+                value={filters.ageGroup}
+              >
+                <option value="">Age</option>
+                {ageGroups.map((age) => (
+                  <option key={age} value={age}>
+                    {age}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <LanguageSelect
-        languages={languages}
-        selectedLanguage={language}
-        onChange={(value) => handleChange("language", value)}
-        disabled={isLanguageDisabled}
-      />
-
-      <VoiceSelect
-        voices={filteredVoices}
-        selectedVoice={voice}
-        selectedLanguage={language}
-        onChange={(value) => handleChange("voice", value)}
-        disabled={isVoiceDisabled}
-        onPreview={handlePreview}
-      />
-    </>
+            <CommandEmpty>No voice found.</CommandEmpty>
+            <CommandGroup>
+              {filteredVoices.map((voice) => (
+                <CommandItem
+                  key={voice.id}
+                  onSelect={() => handleVoiceSelect(voice)}
+                  className="flex items-center justify-between p-2 text-sm"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{voice.name}</div>
+                    <div className="text-xs text-gray-500">
+                      {voice.gender} • {voice.languages[0]?.language}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreview(voice);
+                      }}
+                    >
+                      {playingVoiceId === voice.id ? (
+                        <Pause className="h-3 w-3" />
+                      ) : (
+                        <Play className="h-3 w-3" />
+                      )}
+                    </Button>
+                    {selectedVoice?.id === voice.id && <Check className="h-3 w-3" />}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

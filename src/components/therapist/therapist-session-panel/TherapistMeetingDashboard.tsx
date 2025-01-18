@@ -2,20 +2,17 @@
 
 import dynamic from "next/dynamic";
 import TherapistPanelHeader from "./TherapistPanelHeader";
-import type { MicrosoftVoice } from "@/lib/types";
+import TherapistInteractionPanel from "./TherapistInteractionPanel";
+import type { VoiceList } from "@/lib/types";
 
 interface TherapistMeetingDashboardProps {
+  therapistUsername: string;
   avatarImageUrl: string;
   avatarName: string;
   clientUrl: string;
   meetingLink: string;
   meetingCipherKey: string;
-  VoiceSelectorProps: {
-    voices: MicrosoftVoice[];
-    genders: string[];
-    languages: string[];
-    ageGroups: string[];
-  };
+  voiceList: VoiceList;
 }
 
 const AblyRealtimeProvider = dynamic(
@@ -24,12 +21,13 @@ const AblyRealtimeProvider = dynamic(
 );
 
 export default function TherapistMeetingDashboard({
+  therapistUsername,
   avatarName,
   avatarImageUrl,
   clientUrl,
   meetingLink,
   meetingCipherKey,
-  VoiceSelectorProps,
+  voiceList,
 }: TherapistMeetingDashboardProps) {
   return (
     <>
@@ -39,11 +37,13 @@ export default function TherapistMeetingDashboard({
         clientUrl={clientUrl}
         meetingLink={meetingLink}
       />
-      <AblyRealtimeProvider
-        meetingLink={meetingLink}
-        meetingCipherKey={meetingCipherKey}
-        VoiceSelectorProps={VoiceSelectorProps}
-      />
+      <AblyRealtimeProvider meetingLink={meetingLink} meetingCipherKey={meetingCipherKey}>
+        <TherapistInteractionPanel
+          therapistUsername={therapistUsername}
+          meetingLink={meetingLink}
+          voiceList={voiceList}
+        />
+      </AblyRealtimeProvider>
     </>
   );
 }

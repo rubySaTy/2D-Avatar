@@ -101,14 +101,12 @@ export async function closeStreamTherapist(meetingLink: string) {
   }
 }
 
-export async function submitMessageToDID(prevState: any, formData: FormData) {
+export async function submitMessageToDID(_: any, formData: FormData) {
   const parsedData = createTalkStreamSchema.safeParse({
-    meetingLink: formData.get("meetingLink"),
+    meetingLink: formData.get("meeting-link"),
     message: formData.get("message"),
-    premadeMessage: formData.get("premadeMessage"),
-    providerType: formData.get("providerType"),
-    voiceId: formData.get("voiceId"),
-    voiceStyle: formData.get("voiceStyle"),
+    voiceId: formData.get("voice-id"),
+    voiceStyle: formData.get("voice-style"),
   });
 
   if (!parsedData.success) {
@@ -116,15 +114,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
     return { success: false, message: `Validation failed: ${errors}` };
   }
 
-  const {
-    meetingLink,
-    message: userMessage,
-    premadeMessage,
-    providerType,
-    voiceId,
-    voiceStyle,
-  } = parsedData.data;
-  const message = premadeMessage ?? userMessage;
+  const { meetingLink, message, voiceId, voiceStyle } = parsedData.data;
 
   const meetingData = await getMeetingSession(meetingLink);
   if (!meetingData) {
@@ -138,7 +128,7 @@ export async function submitMessageToDID(prevState: any, formData: FormData) {
     return { success: false, message: `D-ID stream or session not found` };
 
   const voiceProvider: VoiceProviderConfig = {
-    type: providerType || "microsoft", // Default to 'microsoft' if undefined
+    type: "microsoft",
     voice_id: voiceId || "en-US-EmmaMultilingualNeural", // Default voice ID
     voice_config: voiceStyle ? { style: voiceStyle } : {},
   };

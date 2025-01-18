@@ -1,9 +1,6 @@
-"use client";
-
 import { useEffect, useRef, useState, useActionState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import VoiceSelector from "./VoiceSelector";
 import { submitMessageToDID } from "@/app/actions/d-id";
 import { useChannel } from "ably/react";
 import { transcribedTextSchema } from "@/lib/validationSchema";
@@ -14,26 +11,24 @@ import LLMTextarea from "@/components/LLMTextArea";
 import { getMeetingStatusAction } from "@/app/actions/meetingSession";
 import { logMessage } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-import type { MessageHistory, MicrosoftVoice } from "@/lib/types";
+import type { MessageHistory, MicrosoftVoice, VoiceList } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
+  therapistUsername: string;
   meetingLink: string;
-  VoiceSelectorProps: {
-    voices: MicrosoftVoice[];
-    genders: string[];
-    languages: string[];
-    ageGroups: string[];
-  };
+  voiceList: VoiceList;
 }
 
 export default function TherapistInteractionPanel({
+  therapistUsername,
   meetingLink,
-  VoiceSelectorProps,
+  voiceList,
 }: TherapistInteractionPanelProps) {
   const [state, formAction, isPending] = useActionState(submitMessageToDID, null);
   const [personaPrompt, setPersonaPrompt] = useState("");
   const [message, setMessage] = useState("");
   const [hasIncomingLLMResponse, setHasIncomingLLMResponse] = useState(false);
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>("");
   const [selectedStyle, setSelectedStyle] = useState("");
   const [styleIntensity, setStyleIntensity] = useState(2);
   const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
@@ -54,6 +49,10 @@ export default function TherapistInteractionPanel({
   const handleStyleSelect = (style: string, intensity: number) => {
     setSelectedStyle(style);
     setStyleIntensity(intensity);
+  };
+
+  const handleVoiceSelect = (voice: MicrosoftVoice) => {
+    setSelectedVoiceId(voice.id);
   };
 
   // Getting the status of the WebRTC connection when initially loading the component
@@ -159,8 +158,9 @@ export default function TherapistInteractionPanel({
 
           {/* Form that sends message to D-ID */}
           <form action={formAction} className="space-y-6" ref={formRef}>
-            <input type="hidden" name="meetingLink" value={meetingLink} />
-            <input type="hidden" name="voiceStyle" value={selectedStyle} />
+            <input type="hidden" name="meeting-link" value={meetingLink} />
+            <input type="hidden" name="voice-style" value={selectedStyle} />
+            <input type="hidden" name="voice-id" value={selectedVoiceId} />
 
             <LLMTextarea
               message={message}
@@ -171,25 +171,11 @@ export default function TherapistInteractionPanel({
               isVideoStreaming={isVideoStreaming}
               handleRegenerate={handleRegenerate}
               handleStyleSelect={handleStyleSelect}
+              handleVoiceSelect={handleVoiceSelect}
               hasIncomingLLMResponse={hasIncomingLLMResponse}
               setHasIncomingLLMResponse={setHasIncomingLLMResponse}
+              voiceList={voiceList}
             />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Voice Selector</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <VoiceSelector
-                      {...VoiceSelectorProps}
-                      selectedStyle={selectedStyle}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </form>
         </div>
         <MessageHistory history={history} />
