@@ -51,7 +51,7 @@ export default async function TherapistSessionPage(props: {
   const clientUrl = new URL(`${process.env.APP_URL}/client/${meetingLink}`);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto lg:px-4 space-y-6">
       <TherapistMeetingDashboard
         therapistUsername={user.username}
         avatarImageUrl={avatar.imageUrl}

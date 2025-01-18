@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import TherapistPanelHeader from "./TherapistPanelHeader";
 import TherapistInteractionPanel from "./TherapistInteractionPanel";
 import type { VoiceList } from "@/lib/types";
 
@@ -30,20 +29,15 @@ export default function TherapistMeetingDashboard({
   voiceList,
 }: TherapistMeetingDashboardProps) {
   return (
-    <>
-      <TherapistPanelHeader
-        avatarImageUrl={avatarImageUrl}
+    <AblyRealtimeProvider meetingLink={meetingLink} meetingCipherKey={meetingCipherKey}>
+      <TherapistInteractionPanel
+        therapistUsername={therapistUsername}
         avatarName={avatarName}
+        avatarImageUrl={avatarImageUrl}
         clientUrl={clientUrl}
         meetingLink={meetingLink}
+        voiceList={voiceList}
       />
-      <AblyRealtimeProvider meetingLink={meetingLink} meetingCipherKey={meetingCipherKey}>
-        <TherapistInteractionPanel
-          therapistUsername={therapistUsername}
-          meetingLink={meetingLink}
-          voiceList={voiceList}
-        />
-      </AblyRealtimeProvider>
-    </>
+    </AblyRealtimeProvider>
   );
 }

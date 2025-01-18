@@ -72,133 +72,126 @@ export default function LLMTextarea({
 
   return (
     <TooltipProvider>
-      {/* max-w-3xl */}
-      <div className="w-full mx-auto p-4">
-        <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          {/* Style selector */}
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
-            <StyleSelector onStyleSelect={handleStyleSelect} />
-            <VoiceSelector {...voiceList} onVoiceSelect={handleVoiceSelect} />
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        {/* Style selector */}
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
+          <StyleSelector onStyleSelect={handleStyleSelect} />
+          <VoiceSelector {...voiceList} onVoiceSelect={handleVoiceSelect} />
+        </div>
+
+        {/* Connection status with pulse animation */}
+        <div className="absolute top-2 right-2 z-10">
+          <div
+            className={`flex items-center ${
+              isConnected ? "text-green-500" : "text-red-500"
+            } text-xs font-medium opacity-60 hover:opacity-100 transition-opacity`}
+          >
+            <span className={`relative flex h-1.5 w-1.5 mr-1.5`}>
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full ${
+                  isConnected ? "bg-green-500" : "bg-red-500"
+                } opacity-75`}
+              ></span>
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full ${
+                  isConnected ? "bg-green-500" : "bg-red-500"
+                } opacity-75 animate-ping`}
+              ></span>
+            </span>
+            {isVideoStreaming ? "Streaming" : isConnected ? "Connected" : "Disconnected"}
           </div>
+        </div>
 
-          {/* Connection status with pulse animation */}
-          <div className="absolute top-2 right-2 z-10">
-            <div
-              className={`flex items-center ${
-                isConnected ? "text-green-500" : "text-red-500"
-              } text-xs font-medium opacity-60 hover:opacity-100 transition-opacity`}
-            >
-              <span className={`relative flex h-1.5 w-1.5 mr-1.5`}>
-                <span
-                  className={`absolute inline-flex h-full w-full rounded-full ${
-                    isConnected ? "bg-green-500" : "bg-red-500"
-                  } opacity-75`}
-                ></span>
-                <span
-                  className={`absolute inline-flex h-full w-full rounded-full ${
-                    isConnected ? "bg-green-500" : "bg-red-500"
-                  } opacity-75 animate-ping`}
-                ></span>
-              </span>
-              {isVideoStreaming
-                ? "Streaming"
-                : isConnected
-                ? "Connected"
-                : "Disconnected"}
-            </div>
-          </div>
+        {/* Textarea container */}
+        <div className="relative mt-8">
+          <textarea
+            id="message"
+            name="message"
+            placeholder="Send a message..."
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              adjustHeight();
+            }}
+            className="w-full min-h-[56px] max-h-[400px] px-4 py-2 text-base resize-none rounded-2xl bg-transparent focus:outline-none dark:text-gray-100 custom-scrollbar"
+            style={{
+              marginBottom: "40px", // Height of the button container
+              lineHeight: "1.5",
+            }}
+          />
 
-          {/* Textarea container */}
-          <div className="relative mt-8">
-            <textarea
-              id="message"
-              name="message"
-              placeholder="Send a message..."
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
-                adjustHeight();
-              }}
-              className="w-full min-h-[56px] max-h-[400px] px-4 py-2 text-base resize-none rounded-2xl bg-transparent focus:outline-none dark:text-gray-100 custom-scrollbar"
-              style={{
-                marginBottom: "40px", // Height of the button container
-                lineHeight: "1.5",
-              }}
-            />
-
-            {/* Buttons container */}
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 p-1 bg-white dark:bg-gray-900">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    type="button"
-                    className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => {
-                      setMessage("");
-                      setHasIncomingLLMResponse(false);
-                    }}
-                  >
-                    <X className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Clear message</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className={`h-8 w-8 rounded-full transition-colors ${
-                      !hasIncomingLLMResponse ||
-                      isVideoStreaming ||
-                      !isConnected ||
-                      isGenerating ||
-                      isPending
-                        ? "text-gray-400 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        : "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800"
-                    }`}
-                    disabled={
-                      !hasIncomingLLMResponse ||
-                      isVideoStreaming ||
-                      !isConnected ||
-                      isGenerating ||
-                      isPending
-                    }
-                    onClick={handleRegenerate}
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${isGenerating ? "animate-spin" : ""}`}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isGenerating ? "Regenerating..." : "Regenerate response"}
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors"
-                    type="submit"
-                    disabled={
-                      isPending ||
-                      isVideoStreaming ||
-                      !isConnected ||
-                      isGenerating ||
-                      message.length === 0
-                    }
-                  >
-                    {!isPending && <Send className="h-4 w-4 text-white" />}
-                    {isPending && <Loader2 className="h-4 w-4 animate-spin text-white" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Send message</TooltipContent>
-              </Tooltip>
-            </div>
+          {/* Buttons container */}
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 p-1 bg-white dark:bg-gray-900">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  type="button"
+                  className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => {
+                    setMessage("");
+                    setHasIncomingLLMResponse(false);
+                  }}
+                >
+                  <X className="h-4 w-4 text-gray-500" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Clear message</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-full transition-colors ${
+                    !hasIncomingLLMResponse ||
+                    isVideoStreaming ||
+                    !isConnected ||
+                    isGenerating ||
+                    isPending
+                      ? "text-gray-400 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      : "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800"
+                  }`}
+                  disabled={
+                    !hasIncomingLLMResponse ||
+                    isVideoStreaming ||
+                    !isConnected ||
+                    isGenerating ||
+                    isPending
+                  }
+                  onClick={handleRegenerate}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${isGenerating ? "animate-spin" : ""}`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isGenerating ? "Regenerating..." : "Regenerate response"}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors"
+                  type="submit"
+                  disabled={
+                    isPending ||
+                    isVideoStreaming ||
+                    !isConnected ||
+                    isGenerating ||
+                    message.length === 0
+                  }
+                >
+                  {!isPending && <Send className="h-4 w-4 text-white" />}
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin text-white" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Send message</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

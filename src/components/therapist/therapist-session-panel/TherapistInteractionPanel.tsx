@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useActionState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { submitMessageToDID } from "@/app/actions/d-id";
 import { useChannel } from "ably/react";
@@ -11,16 +10,24 @@ import LLMTextarea from "@/components/LLMTextArea";
 import { getMeetingStatusAction } from "@/app/actions/meetingSession";
 import { logMessage } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
+import TherapistPanelHeader from "./TherapistPanelHeader";
+import VideoMeeting from "@/components/meeting/VideoMeeting";
 import type { MessageHistory, MicrosoftVoice, VoiceList } from "@/lib/types";
 
 interface TherapistInteractionPanelProps {
   therapistUsername: string;
+  avatarImageUrl: string;
+  avatarName: string;
+  clientUrl: string;
   meetingLink: string;
   voiceList: VoiceList;
 }
 
 export default function TherapistInteractionPanel({
   therapistUsername,
+  avatarName,
+  avatarImageUrl,
+  clientUrl,
   meetingLink,
   voiceList,
 }: TherapistInteractionPanelProps) {
@@ -148,20 +155,30 @@ export default function TherapistInteractionPanel({
   }, [state]);
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-3/4 space-y-8">
-          <LLMPersonaPrompt
-            therapistPersona={personaPrompt}
-            setTherapistPersona={setPersonaPrompt}
-          />
+    <div className="space-y-4">
+      <TherapistPanelHeader
+        avatarImageUrl={avatarImageUrl}
+        avatarName={avatarName}
+        clientUrl={clientUrl}
+        meetingLink={meetingLink}
+      />
 
-          {/* Form that sends message to D-ID */}
-          <form action={formAction} className="space-y-6" ref={formRef}>
-            <input type="hidden" name="meeting-link" value={meetingLink} />
-            <input type="hidden" name="voice-style" value={selectedStyle} />
-            <input type="hidden" name="voice-id" value={selectedVoiceId} />
+      <VideoMeeting name={therapistUsername} room={meetingLink} />
 
+      <div className="mx-auto lg:w-1/2 w-full">
+        <LLMPersonaPrompt
+          therapistPersona={personaPrompt}
+          setTherapistPersona={setPersonaPrompt}
+        />
+        <MessageHistory history={history} />
+
+        {/* Form that sends message to D-ID */}
+        <form action={formAction} className="sticky bottom-0" ref={formRef}>
+          <input type="hidden" name="meeting-link" value={meetingLink} />
+          <input type="hidden" name="voice-style" value={selectedStyle} />
+          <input type="hidden" name="voice-id" value={selectedVoiceId} />
+
+          <div>
             <LLMTextarea
               message={message}
               setMessage={setMessage}
@@ -176,9 +193,8 @@ export default function TherapistInteractionPanel({
               setHasIncomingLLMResponse={setHasIncomingLLMResponse}
               voiceList={voiceList}
             />
-          </form>
-        </div>
-        <MessageHistory history={history} />
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -186,41 +202,34 @@ export default function TherapistInteractionPanel({
 
 function MessageHistory({ history }: { history: MessageHistory[] }) {
   return (
-    <Card className="w-full lg:w-1/3">
-      <CardHeader>
-        <CardTitle>Message History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[60vh]">
-          <div className="space-y-4">
-            {history.map((msg, index) => (
+    <ScrollArea className="h-[60vh]">
+      <div className="space-y-4">
+        {history.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex ${
+              msg.type === "incoming" ? "justify-start" : "justify-end"
+            }`}
+          >
+            <div
+              className={`flex items-start space-x-2 max-w-[80%] ${
+                msg.type === "incoming" ? "flex-row" : "flex-row-reverse"
+              }`}
+            >
               <div
-                key={index}
-                className={`flex ${
-                  msg.type === "incoming" ? "justify-start" : "justify-end"
+                className={`p-3 rounded-lg ${
+                  msg.type === "incoming"
+                    ? "bg-blue-100 text-blue-900"
+                    : "bg-green-100 text-green-900"
                 }`}
               >
-                <div
-                  className={`flex items-start space-x-2 max-w-[80%] ${
-                    msg.type === "incoming" ? "flex-row" : "flex-row-reverse"
-                  }`}
-                >
-                  <div
-                    className={`p-3 rounded-lg ${
-                      msg.type === "incoming"
-                        ? "bg-blue-100 text-blue-900"
-                        : "bg-green-100 text-green-900"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.content}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{msg.timestamp}</p>
-                  </div>
-                </div>
+                <p className="text-sm">{msg.content}</p>
+                <p className="text-xs text-muted-foreground mt-1">{msg.timestamp}</p>
               </div>
-            ))}
+            </div>
           </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </ScrollArea>
   );
 }
