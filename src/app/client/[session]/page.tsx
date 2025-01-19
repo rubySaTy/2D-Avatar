@@ -44,7 +44,7 @@ export default async function ClientSessionPage(props: {
 
   return (
     <div>
-      <VideoMeeting name="client" room={meetingLink} />
+      {/* <VideoMeeting name="client" room={meetingLink} /> */}
       <Stream
         meetingLink={meetingLink}
         idleVideoUrl={avatar.idleVideoUrl}

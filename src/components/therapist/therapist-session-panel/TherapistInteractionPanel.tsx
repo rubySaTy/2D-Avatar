@@ -163,7 +163,7 @@ export default function TherapistInteractionPanel({
         meetingLink={meetingLink}
       />
 
-      <VideoMeeting name={therapistUsername} room={meetingLink} />
+      {/* <VideoMeeting name={therapistUsername} room={meetingLink} /> */}
 
       <div className="mx-auto lg:w-1/2 w-full">
         <LLMPersonaPrompt
